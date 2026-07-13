@@ -20,7 +20,7 @@ export const en = {
     settlement: 'Settlement',
   },
   auth: {
-    signIn: 'Sign In',
+    signIn: 'Log In',
     signInSubtitle: 'Welcome back. Sign in to your mimony account.',
     email: 'Email',
     rememberMe: 'Remember me',

@@ -18,6 +18,17 @@ function Spinner({ className }: { className?: string }) {
   )
 }
 
+/** Green success check shown in the trailing slot when the field passes validation. */
+function SuccessCheck() {
+  return (
+    <span aria-hidden="true" className="inline-flex shrink-0 text-status-success motion-safe:animate-check-pop">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+        <path d="m5 10.5 3.5 3.5 6-8" />
+      </svg>
+    </span>
+  )
+}
+
 /**
  * Input — presentational shell over {@link useInput}. The hook owns the ref, the
  * click-to-focus behavior, style resolution and the typed-error a11y wiring; this file
@@ -33,6 +44,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
     trailingAction,
     isLoading,
     spinnerClassName,
+    showSuccessCheck,
     statusText,
   } = useInput(props, ref)
 
@@ -58,6 +70,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
         >
           {trailingAction.icon}
         </button>
+      ) : showSuccessCheck ? (
+        <SuccessCheck />
       ) : (
         rightIcon != null && (
           <span aria-hidden="true" className="inline-flex shrink-0 text-content-tertiary">

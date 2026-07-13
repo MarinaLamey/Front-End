@@ -118,6 +118,7 @@ export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetai
             placeholder={t('onboarding.company.orgNamePlaceholder')}
             value={data.orgName}
             onChange={(event) => patch({ orgName: event.target.value })}
+            success={data.orgName.trim().length > 0}
           />
 
           <Field
@@ -128,6 +129,7 @@ export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetai
             value={data.cr}
             onChange={(event) => setCr(event.target.value.replace(/\D/g, '').slice(0, 10))}
             error={crError}
+            success={/^\d{10}$/.test(data.cr)}
           />
 
           <FileDrop
@@ -150,6 +152,7 @@ export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetai
             value={data.vat}
             onChange={(event) => patch({ vat: event.target.value.replace(/\D/g, '').slice(0, 15) })}
             error={data.vat.length > 0 && !/^\d{15}$/.test(data.vat) ? { title: t('validation.vatInvalid') } : null}
+            success={/^\d{15}$/.test(data.vat)}
           />
 
           <FileDrop

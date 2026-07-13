@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Field } from '@/shared/ui/Field'
 import { MultiSelect } from '@/shared/ui/MultiSelect'
+import { isNameOnly } from '@/shared/lib/validators'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
 import type { OnboardingData } from '../../useOnboardingWizard'
@@ -20,15 +21,9 @@ const BUILDING_RE = /^\d{4}$/ // e.g. 7201
 const ADDITIONAL_RE = /^\d{4}$/ // e.g. 2443
 const ZIP_RE = /^\d{5}$/ // e.g. 13315
 const UNIT_RE = /^\d{1,4}$/ // e.g. 12
-// Names (city / district / street): a letter (any script incl. Arabic) followed by letters,
-// spaces, or name punctuation (' . -). No digits or other symbols.
-const NAME_RE = /^\p{L}[\p{L}\s'.-]*$/u
 
 /** Strip to digits and clamp to `max` — for the numeric national-address fields. */
 const digits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max)
-
-/** True when a name field is non-empty and letters-only (validated on the trimmed value). */
-const isValidName = (value: string) => NAME_RE.test(value.trim())
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -46,9 +41,9 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
   const canContinue =
     BUILDING_RE.test(data.buildingNo) &&
     (data.additionalNo === '' || ADDITIONAL_RE.test(data.additionalNo)) &&
-    isValidName(data.street) &&
-    isValidName(data.district) &&
-    isValidName(data.city) &&
+    isNameOnly(data.street) &&
+    isNameOnly(data.district) &&
+    isNameOnly(data.city) &&
     ZIP_RE.test(data.zip) &&
     UNIT_RE.test(data.unitNo) &&
     data.categories.length > 0
@@ -71,6 +66,7 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="7201"
               value={data.buildingNo}
               onChange={(event) => patch({ buildingNo: digits(event.target.value, 4) })}
+              success={BUILDING_RE.test(data.buildingNo)}
               error={
                 data.buildingNo.length > 0 && !BUILDING_RE.test(data.buildingNo)
                   ? { title: t('validation.buildingNoInvalid') }
@@ -83,6 +79,7 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="2443"
               value={data.additionalNo}
               onChange={(event) => patch({ additionalNo: digits(event.target.value, 4) })}
+              success={data.additionalNo !== '' && ADDITIONAL_RE.test(data.additionalNo)}
               error={
                 data.additionalNo.length > 0 && !ADDITIONAL_RE.test(data.additionalNo)
                   ? { title: t('validation.additionalNoInvalid') }
@@ -96,8 +93,9 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
             placeholder="King Fahd Road"
             value={data.street}
             onChange={(event) => patch({ street: event.target.value })}
+            success={isNameOnly(data.street)}
             error={
-              data.street.trim().length > 0 && !isValidName(data.street)
+              data.street.trim().length > 0 && !isNameOnly(data.street)
                 ? { title: t('validation.lettersOnly') }
                 : null
             }
@@ -109,8 +107,9 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="As Sahafah"
               value={data.district}
               onChange={(event) => patch({ district: event.target.value })}
+              success={isNameOnly(data.district)}
               error={
-                data.district.trim().length > 0 && !isValidName(data.district)
+                data.district.trim().length > 0 && !isNameOnly(data.district)
                   ? { title: t('validation.lettersOnly') }
                   : null
               }
@@ -121,8 +120,9 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="Riyadh"
               value={data.city}
               onChange={(event) => patch({ city: event.target.value })}
+              success={isNameOnly(data.city)}
               error={
-                data.city.trim().length > 0 && !isValidName(data.city)
+                data.city.trim().length > 0 && !isNameOnly(data.city)
                   ? { title: t('validation.lettersOnly') }
                   : null
               }
@@ -136,6 +136,7 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="13315"
               value={data.zip}
               onChange={(event) => patch({ zip: digits(event.target.value, 5) })}
+              success={ZIP_RE.test(data.zip)}
               error={data.zip.length > 0 && !ZIP_RE.test(data.zip) ? { title: t('validation.zipInvalid') } : null}
             />
             <Field
@@ -145,6 +146,7 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="12"
               value={data.unitNo}
               onChange={(event) => patch({ unitNo: digits(event.target.value, 4) })}
+              success={UNIT_RE.test(data.unitNo)}
               error={data.unitNo.length > 0 && !UNIT_RE.test(data.unitNo) ? { title: t('validation.unitNoInvalid') } : null}
             />
           </div>

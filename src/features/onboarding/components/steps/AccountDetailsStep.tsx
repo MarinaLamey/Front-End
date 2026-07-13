@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@/platform/api'
 import { Field } from '@/shared/ui/Field'
+import { isNameOnly } from '@/shared/lib/validators'
 import { EyeIcon, EyeOffIcon } from '@/features/auth/components/authIcons'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
@@ -28,7 +29,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
 
   const passwordsMatch = data.password.length > 0 && data.password === data.confirmPassword
   const canContinue =
-    data.fullName.trim().length > 0 &&
+    isNameOnly(data.fullName) &&
     EMAIL_RE.test(data.email) &&
     MOBILE_RE.test(data.mobile.replace(/\s/g, '')) &&
     data.password.length >= 8 &&
@@ -95,6 +96,12 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
           placeholder={t('onboarding.account.fullNamePlaceholder')}
           value={data.fullName}
           onChange={(event) => patch({ fullName: event.target.value })}
+          error={
+            data.fullName.trim().length > 0 && !isNameOnly(data.fullName)
+              ? { title: t('validation.lettersOnly') }
+              : null
+          }
+          success={isNameOnly(data.fullName)}
         />
 
         <Field
@@ -106,6 +113,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
           value={data.email}
           onChange={(event) => setEmail(event.target.value)}
           error={emailError}
+          success={EMAIL_RE.test(data.email)}
         />
 
         <Field
@@ -118,6 +126,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
           value={data.mobile}
           onChange={(event) => setMobile(event.target.value)}
           error={mobileError}
+          success={MOBILE_RE.test(data.mobile.replace(/\s/g, ''))}
         />
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -130,6 +139,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
             value={data.password}
             onChange={(event) => patch({ password: event.target.value })}
             error={data.password.length > 0 && data.password.length < 8 ? { title: t('validation.passwordMin8') } : null}
+            success={data.password.length >= 8}
             trailingAction={{
               icon: showPassword ? <EyeOffIcon className="h-[18px] w-[18px]" /> : <EyeIcon className="h-[18px] w-[18px]" />,
               label: t('auth.togglePassword'),
@@ -148,6 +158,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
             error={
               data.confirmPassword.length > 0 && !passwordsMatch ? { title: t('validation.passwordMismatch') } : null
             }
+            success={passwordsMatch}
             trailingAction={{
               icon: showConfirm ? <EyeOffIcon className="h-[18px] w-[18px]" /> : <EyeIcon className="h-[18px] w-[18px]" />,
               label: t('auth.togglePassword'),

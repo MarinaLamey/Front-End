@@ -94,6 +94,8 @@
   --animate-cell-flash-strong: cell-flash-strong 3s ease-in-out infinite;
   /* Auth/register card entrance — a soft rise + settle on mount. Gate with motion-safe:. */
   --animate-card-in: card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  /* Success check pop — the valid-field checkmark springs in. Gate with motion-safe:. */
+  --animate-check-pop: check-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
 /* ── Palette · Light (default) — from Light.tokens.json ─────────────────────── */
@@ -379,6 +381,18 @@
   from {
     opacity: 0;
     transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Success check pop — the valid-field checkmark springs in from small + faded. */
+@keyframes check-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
   }
   to {
     opacity: 1;

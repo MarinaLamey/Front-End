@@ -38,6 +38,8 @@ export function CredentialsCard({ onAuthenticated, onPhoneLogin, onForgot }: Cre
     toggleShowPassword,
     isSubmitting,
     canSubmit,
+    emailValid,
+    passwordValid,
     submitError,
     onSubmit,
     googleSignIn,
@@ -54,6 +56,7 @@ export function CredentialsCard({ onAuthenticated, onPhoneLogin, onForgot }: Cre
           autoComplete="email"
           placeholder="name@company.com"
           error={fieldError(errors.email)}
+          success={emailValid}
           {...register('email')}
         />
         <Field
@@ -63,6 +66,7 @@ export function CredentialsCard({ onAuthenticated, onPhoneLogin, onForgot }: Cre
           autoComplete="current-password"
           placeholder="••••••••"
           error={fieldError(errors.password)}
+          success={passwordValid}
           trailingAction={{
             icon: showPassword ? (
               <EyeOffIcon className="h-[18px] w-[18px]" />

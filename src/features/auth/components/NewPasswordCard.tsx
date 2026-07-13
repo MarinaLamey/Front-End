@@ -39,6 +39,7 @@ export function NewPasswordCard({ onSaved, onBack }: NewPasswordCardProps) {
           error={
             form.password.length > 0 && !form.strongEnough ? { title: t('validation.passwordMin8') } : null
           }
+          success={form.strongEnough}
           trailingAction={{
             icon: form.showPassword ? (
               <EyeOffIcon className="h-[18px] w-[18px]" />
@@ -64,6 +65,7 @@ export function NewPasswordCard({ onSaved, onBack }: NewPasswordCardProps) {
               ? { title: t('validation.passwordMismatch') }
               : null
           }
+          success={form.passwordsMatch}
           trailingAction={{
             icon: form.showConfirm ? (
               <EyeOffIcon className="h-[18px] w-[18px]" />

@@ -62,6 +62,7 @@ const WRAPPER_BASE =
   // only opacity animates; the outline COLOR snaps (color transitions are paint, not compositor).
   'transition-opacity duration-150 ease-out motion-reduce:transition-none ' +
   'focus-within:outline-2 focus-within:[outline-offset:-2px] focus-within:outline-border-focus ' +
+  'data-[success=true]:outline-status-success data-[success=true]:focus-within:outline-status-success ' +
   'data-[invalid=true]:outline-border-danger data-[invalid=true]:focus-within:outline-border-danger ' +
   'data-[disabled=true]:cursor-not-allowed data-[disabled=true]:bg-bg-surface-sunken ' +
   'data-[disabled=true]:opacity-60 data-[disabled=true]:outline-border-subtle'
@@ -95,6 +96,8 @@ export interface InputProps
   isLoading?: boolean
   /** Typed error context (Pillar 4). Drives the danger outline + aria-invalid. Never a string. */
   error?: UiError | null
+  /** Field passed validation → green outline + a trailing check. Ignored when `error` is set. */
+  success?: boolean
   /** id of the element rendering the error message, wired to `aria-describedby`. */
   errorId?: string
   /** Extra classes for the inner <input> (the wrapper takes `className`). */
@@ -108,6 +111,7 @@ export interface UseInputResult {
   wrapperProps: {
     className: string
     'data-invalid'?: 'true'
+    'data-success'?: 'true'
     'data-disabled'?: 'true'
     onMouseDown: (event: MouseEvent<HTMLDivElement>) => void // this func for if user click in outlines drop him into the input .
   }
@@ -117,6 +121,8 @@ export interface UseInputResult {
   trailingAction?: InputProps['trailingAction']
   isLoading: boolean
   spinnerClassName: string
+  /** Show the green success check in the trailing slot (valid + no error/spinner/action). */
+  showSuccessCheck: boolean
   /** Live-region text (the visible message is the parent's job). */
   statusText: string
 }
@@ -136,6 +142,7 @@ export function useInput(props: InputProps, ref: ForwardedRef<HTMLInputElement>)
     trailingAction,
     isLoading = false,
     error = null,
+    success = false,
     errorId,
     className,
     inputClassName,
@@ -179,11 +186,15 @@ export function useInput(props: InputProps, ref: ForwardedRef<HTMLInputElement>)
     }
   }
 
+  // Error always wins over success (can't be both green and red).
+  const isSuccess = success && !error
+
   return {
     inputRef: innerRef,
     wrapperProps: {
       className: cn(WRAPPER_BASE, resolveStyleClasses(selection), className),
       'data-invalid': error ? 'true' : undefined,
+      'data-success': isSuccess ? 'true' : undefined,
       'data-disabled': disabled ? 'true' : undefined,
       onMouseDown: handleMouseDown,
     },
@@ -200,6 +211,7 @@ export function useInput(props: InputProps, ref: ForwardedRef<HTMLInputElement>)
     trailingAction,
     isLoading,
     spinnerClassName: SPINNER_SIZE[size],
+    showSuccessCheck: isSuccess && !isLoading && !trailingAction,
     statusText: error ? error.title : '',
   }
 }
