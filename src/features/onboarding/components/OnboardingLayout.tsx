@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
-import { SplitShell } from '@/shared/ui/SplitShell'
+import { SplitShell, BRAND_PANEL_GRADIENT } from '@/shared/ui/SplitShell'
 import { LanguageToggle } from '@/platform/i18n'
 import { ThemeToggle } from '@/platform/theme/ThemeToggle'
 import { OnboardingStepper } from './OnboardingStepper'
@@ -15,9 +15,6 @@ interface OnboardingLayoutProps {
   rejected?: boolean
   children: ReactNode
 }
-
-/** mimony brand panel: deep purple sweeping into teal (bottom-inner corner). */
-const PANEL_GRADIENT = 'bg-[linear-gradient(150deg,#4A3F8F_0%,#51489E_34%,#2C7E86_72%,#00AB98_100%)]'
 
 /**
  * OnboardingLayout — the registration/KYC shell. It's just {@link SplitShell} with the
@@ -34,7 +31,7 @@ export function OnboardingLayout({ current, allDone, rejected, children }: Onboa
         </>
       }
       aside={<OnboardingStepper current={current} allDone={allDone} rejected={rejected} />}
-      asideClassName={cn('w-[42.5%]', PANEL_GRADIENT)}
+      asideClassName={cn('w-1/2', BRAND_PANEL_GRADIENT)}
     >
       {children}
     </SplitShell>

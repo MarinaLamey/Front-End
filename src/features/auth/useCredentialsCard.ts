@@ -22,6 +22,9 @@ export interface UseCredentialsCardResult {
   toggleShowPassword: () => void
   /** True while the login request is in flight (drives the tracing-border loader). */
   isSubmitting: boolean
+  /** True once the form passes validation — gates the Sign in button (disabled until
+   *  valid), so it dims like the register wizard's Continue instead of staying enabled. */
+  canSubmit: boolean
   /** Typed server error from the login call (e.g. invalid credentials). */
   submitError: UiError | null
   /** Validated-submit handler — pass to `handleSubmit(onSubmit)`. */
@@ -49,12 +52,16 @@ export function useCredentialsCard({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<LoginValues>({
     resolver: zodResolver(schema),
-    mode: 'onTouched',
+    mode: 'onChange',
     defaultValues: { email: '', password: '', rememberMe: false },
   })
+
+  // Live validity for the submit gate — the button dims until both fields are valid,
+  // mirroring the register wizard's Continue. `onChange` keeps `isValid` current.
+  const canSubmit = isValid
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) => api.login(email, password),
@@ -86,6 +93,7 @@ export function useCredentialsCard({
     showPassword,
     toggleShowPassword: () => setShowPassword((prev) => !prev),
     isSubmitting: loginMutation.isPending,
+    canSubmit,
     submitError: loginMutation.error ? toUiError(loginMutation.error) : null,
     onSubmit,
     googleSignIn,

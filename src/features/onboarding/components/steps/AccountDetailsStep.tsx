@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useMutation } from '@tanstack/react-query'
+import { api } from '@/platform/api'
 import { Field } from '@/shared/ui/Field'
 import { EyeIcon, EyeOffIcon } from '@/features/auth/components/authIcons'
 import { StepFrame } from '../StepFrame'
@@ -20,6 +22,9 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  // Server-side uniqueness, checked once when the step is completed — not per keystroke.
+  const [taken, setTaken] = useState<{ email?: boolean; mobile?: boolean }>({})
+  const availability = useMutation({ mutationFn: api.checkAvailability })
 
   const passwordsMatch = data.password.length > 0 && data.password === data.confirmPassword
   const canContinue =
@@ -30,11 +35,55 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
     passwordsMatch &&
     data.terms
 
+  // Editing an identifier clears its stale "already registered" flag.
+  const setEmail = (email: string) => {
+    patch({ email })
+    if (taken.email) setTaken((prev) => ({ ...prev, email: false }))
+  }
+  const setMobile = (mobile: string) => {
+    patch({ mobile })
+    if (taken.mobile) setTaken((prev) => ({ ...prev, mobile: false }))
+  }
+
+  // Gate the step: confirm the email/mobile aren't already registered before advancing.
+  const handleContinue = async () => {
+    try {
+      const result = await availability.mutateAsync({ email: data.email, mobile: data.mobile })
+      const emailTaken = result.email === 'taken'
+      const mobileTaken = result.mobile === 'taken'
+      setTaken({ email: emailTaken, mobile: mobileTaken })
+      if (!emailTaken && !mobileTaken) onNext()
+    } catch {
+      // Availability check unreachable — don't trap the user; final submit still guards.
+      onNext()
+    }
+  }
+
+  const emailError =
+    data.email.length > 0 && !EMAIL_RE.test(data.email)
+      ? { title: t('validation.emailInvalid') }
+      : taken.email
+        ? { title: t('validation.emailTaken') }
+        : null
+  const mobileError =
+    data.mobile.length > 0 && !MOBILE_RE.test(data.mobile.replace(/\s/g, ''))
+      ? { title: t('validation.mobileInvalid') }
+      : taken.mobile
+        ? { title: t('validation.mobileTaken') }
+        : null
+
   return (
     <StepFrame
       title={t('onboarding.account.createTitle')}
       subtitle={t('onboarding.account.createSubtitle')}
-      footer={<WizardFooter continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!canContinue} />}
+      footer={
+        <WizardFooter
+          continueLabel={t('onboarding.continue')}
+          onContinue={handleContinue}
+          disabled={!canContinue}
+          loading={availability.isPending}
+        />
+      }
     >
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold text-content-primary">{t('onboarding.account.details')}</h2>
@@ -55,8 +104,8 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
           autoComplete="email"
           placeholder="name@company.com"
           value={data.email}
-          onChange={(event) => patch({ email: event.target.value })}
-          error={data.email.length > 0 && !EMAIL_RE.test(data.email) ? { title: t('validation.emailInvalid') } : null}
+          onChange={(event) => setEmail(event.target.value)}
+          error={emailError}
         />
 
         <Field
@@ -67,12 +116,8 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
           leftIcon={<span className="text-xs font-medium text-content-tertiary">+966</span>}
           placeholder={t('auth.mobileHint')}
           value={data.mobile}
-          onChange={(event) => patch({ mobile: event.target.value })}
-          error={
-            data.mobile.length > 0 && !MOBILE_RE.test(data.mobile.replace(/\s/g, ''))
-              ? { title: t('validation.mobileInvalid') }
-              : null
-          }
+          onChange={(event) => setMobile(event.target.value)}
+          error={mobileError}
         />
 
         <div className="grid gap-4 sm:grid-cols-2">

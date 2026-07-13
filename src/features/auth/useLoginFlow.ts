@@ -1,23 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth, type Portal } from '@/platform/auth'
+import { useAuth } from '@/platform/auth'
 import type { LoginResult } from '@/platform/api'
 
-export type LoginStep =
-  | 'credentials'
-  | 'phone'
-  | 'continueAs'
-  | 'forgot'
-  | 'resetOtp'
-  | 'newPassword'
-  | 'passwordUpdated'
+export type LoginStep = 'credentials' | 'phone' | 'forgot' | 'resetOtp' | 'newPassword' | 'passwordUpdated'
 
 /** The login flow's state + transitions, with no markup. */
 export interface UseLoginFlowResult {
   step: LoginStep
   /** Where the reset code was sent — shown on the OTP screen. */
   resetDestination: string
-  /** Identity verified → route by role count (dual-role shows "Continue as"). */
+  /** Identity verified → log in and land on the dashboard. */
   onAuthenticated: (result: LoginResult) => void
   /** Switch to the passwordless phone-OTP sign-in. */
   startPhone: () => void
@@ -33,16 +26,14 @@ export interface UseLoginFlowResult {
   backToForgot: () => void
   /** New password saved → show the success screen. */
   passwordSaved: () => void
-  /** A dashboard context was chosen → log it in and land on that portal. */
-  selectContext: (role: Portal) => void
 }
 
 /**
  * useLoginFlow — the login state machine, with no markup.
  *
- * verify identity → if the org has >1 role, choose a dashboard CONTEXT ("Continue as");
- * otherwise go straight to its dashboard. A parallel reset-password branch runs
- * request → OTP → new password → done. Per HLD v1.0 there is no per-role PIN.
+ * Verify identity (password / Google / Apple / phone-OTP) → log in and land on the
+ * dashboard. A parallel reset-password branch runs request → OTP → new password → done.
+ * Per HLD v1.0 there is no per-role PIN and no "Continue as" step.
  */
 export function useLoginFlow(): UseLoginFlowResult {
   const navigate = useNavigate()
@@ -50,17 +41,10 @@ export function useLoginFlow(): UseLoginFlowResult {
   const [step, setStep] = useState<LoginStep>('credentials')
   const [resetDestination, setResetDestination] = useState('')
 
-  const selectContext = (role: Portal) => {
-    login(role)
-    navigate(`/${role}`) // supplier portal lands in Phase 4
-  }
-
   const onAuthenticated = (result: LoginResult) => {
-    if (result.requiresContinueAs) {
-      setStep('continueAs')
-    } else {
-      selectContext(result.roles[0])
-    }
+    const portal = result.roles[0]
+    login(portal)
+    navigate(`/${portal}`)
   }
 
   return {
@@ -77,6 +61,5 @@ export function useLoginFlow(): UseLoginFlowResult {
     resetOtpVerified: () => setStep('newPassword'),
     backToForgot: () => setStep('forgot'),
     passwordSaved: () => setStep('passwordUpdated'),
-    selectContext,
   }
 }

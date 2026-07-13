@@ -13,6 +13,12 @@
  * override cascade through the `@theme` indirection.
  */
 @theme {
+  /* Typeface — Inter (self-hosted variable, loaded in main.tsx) as the app's primary font.
+     Inter has no Arabic glyphs, so Arabic text falls back to the system Arabic font. Setting
+     --font-sans here makes it Tailwind's default, so every element inherits it. */
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', 'Segoe UI Arabic',
+    'Helvetica Neue', Arial, sans-serif;
+
   /* Brand */
   --color-brand-primary: var(--brand-primary, var(--mp-brand-primary));
   --color-brand-primary-hover: var(--brand-primary-hover, var(--mp-brand-primary-hover));
@@ -81,6 +87,13 @@
      current marker. transform/opacity only → 60fps; gate usage with motion-safe:. */
   --animate-stepper-in: stepper-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   --animate-stepper-pulse: stepper-pulse 1.9s ease-out infinite;
+  /* Step-cell flash: a brand halo pulsing purple↔teal around a stepper marker (register's
+     current step + the sign-in timeline badges). Gate usage with motion-safe:. */
+  --animate-cell-flash: cell-flash 2s ease-in-out infinite;
+  /* Stronger, faster variant — bigger/brighter halo + a scale throb — for the register rail. */
+  --animate-cell-flash-strong: cell-flash-strong 3s ease-in-out infinite;
+  /* Auth/register card entrance — a soft rise + settle on mount. Gate with motion-safe:. */
+  --animate-card-in: card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 /* ── Palette · Light (default) — from Light.tokens.json ─────────────────────── */
@@ -361,6 +374,93 @@
   animation: otp-shimmer 1.2s ease-in-out infinite;
 }
 
+/* Card entrance — the whole auth/register card rises, scales up a hair, and fades in on mount. */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Staggered content entrance — each direct child of `.auth-stagger` rises + fades in one after
+   another (the logo → title → subtitle → form cascade). Applied to the auth/step form body so
+   it plays on every screen and every flow step. Transform/opacity only → 60fps. */
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.auth-stagger > * {
+  animation: auth-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.auth-stagger > *:nth-child(1) {
+  animation-delay: 0.06s;
+}
+.auth-stagger > *:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.auth-stagger > *:nth-child(3) {
+  animation-delay: 0.18s;
+}
+.auth-stagger > *:nth-child(4) {
+  animation-delay: 0.24s;
+}
+.auth-stagger > *:nth-child(5) {
+  animation-delay: 0.3s;
+}
+.auth-stagger > *:nth-child(6) {
+  animation-delay: 0.36s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-stagger > * {
+    animation: none;
+  }
+}
+
+/* Step-cell flash — a soft halo around a stepper marker that pulses from a purple (brand-primary)
+   ring to a teal (brand-secondary) glow and back, so it stays visible across the purple→teal
+   panel gradient. box-shadow is paint, but the markers are few and small, so it stays smooth. */
+@keyframes cell-flash {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--color-brand-primary) 65%, transparent),
+      0 0 14px 3px color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--color-brand-secondary) 75%, transparent),
+      0 0 22px 5px color-mix(in srgb, var(--color-brand-secondary) 55%, transparent);
+  }
+}
+
+/* Stronger step-cell flash — a bigger, brighter purple↔teal halo AND a scale throb, so the
+   register rail markers pulse unmistakably. Transform + box-shadow; a handful of small markers. */
+@keyframes cell-flash-strong {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--color-brand-primary) 70%, transparent),
+      0 0 12px 3px color-mix(in srgb, var(--color-brand-primary) 42%, transparent);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--color-brand-secondary) 80%, transparent),
+      0 0 20px 5px color-mix(in srgb, var(--color-brand-secondary) 55%, transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .otp-shimmer {
     animation: none;
@@ -372,4 +472,80 @@ html,
 body,
 #root {
   height: 100%;
+}
+
+/* Theme switch — the whole UI crossfades between palettes via the View Transitions API
+   (triggered in ThemeToggle). Tune the default root fade; reduced motion / no-support get an
+   instant swap (the toggle already guards, this is the CSS-level belt-and-suspenders). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* Modern scrollbars — applied GLOBALLY so every scroll container (the document included)
+   matches: a slim, pill-shaped brand thumb floating over a FULLY TRANSPARENT track, with the
+   up/down stepper arrows removed. The transparent border + `background-clip: padding-box`
+   insets the thumb (the "floating" look); it reskins light↔dark automatically because it's
+   mixed from the `brand-primary` token. Thumb sits at ~45% brand, deepening to ~70% on hover.
+
+   ⚠️ Chrome/Edge path is the ::-webkit-scrollbar rules below. We deliberately DO NOT set the
+   standard `scrollbar-color`/`scrollbar-width` globally: since Chrome 121, setting either makes
+   Chrome render its NATIVE (Fluent) scrollbar — tinted by scrollbar-color, complete with the
+   Windows arrow buttons we can't remove — and IGNORE every ::-webkit rule (so display:none on
+   the arrows is thrown away). The standard props are therefore scoped to Firefox at the bottom. */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+/* Hide the up/down (and left/right) stepper arrows at the ends of the track. Every button
+   variant is targeted explicitly — some Chromium builds only drop them when the specific
+   single/double-button pseudo-states are matched, not the bare element. */
+*::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:double-button,
+*::-webkit-scrollbar-button:start,
+*::-webkit-scrollbar-button:end,
+*::-webkit-scrollbar-button:vertical:increment,
+*::-webkit-scrollbar-button:vertical:decrement,
+*::-webkit-scrollbar-button:horizontal:increment,
+*::-webkit-scrollbar-button:horizontal:decrement {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  background-color: color-mix(in srgb, var(--color-brand-primary) 45%, transparent);
+  /* Soft brand-tinted lift so the thumb reads as floating over the transparent track. */
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-brand-primary) 40%, transparent);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--color-brand-primary) 70%, transparent);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--color-brand-primary) 55%, transparent);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox only (no ::-webkit-scrollbar support) — the `@supports (-moz-appearance)` gate is
+   true in Firefox and false in Chrome, so these standard props never trigger Chrome's native
+   scrollbar fallback. Firefox thin scrollbars have no arrow buttons, so nothing to hide there. */
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-brand-primary) 45%, transparent) transparent;
+  }
 }

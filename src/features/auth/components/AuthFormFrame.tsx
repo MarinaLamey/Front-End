@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
-import { BrandLogo } from '@/shared/ui/BrandLogo'
+import { BrandHeader } from '@/shared/ui/BrandHeader'
 
 interface AuthFormFrameProps {
   title: string
@@ -13,30 +13,24 @@ interface AuthFormFrameProps {
 }
 
 /**
- * AuthFormFrame — the form-side chrome for every auth screen: brand logo, heading +
- * subtitle, and a vertically-centered body. The register wizard uses StepFrame (scroll +
- * sticky footer for long forms); auth screens are short, so this is their lighter analog.
- * Reused by sign-in, phone, reset, new-password, and the success screen.
+ * AuthFormFrame — the form-side chrome for every auth screen: the shared {@link BrandHeader}
+ * (logo + heading + subtitle) over a vertically-centered body. The onboarding wizard uses
+ * StepFrame instead (scroll + sticky footer for long forms); auth screens are short, so this
+ * is their lighter analog. Reused by sign-in, phone, reset, new-password, and the success screen.
  */
 export function AuthFormFrame({ title, subtitle, centered = false, media, children }: AuthFormFrameProps) {
   return (
-    // Content-height (no inner scroll); h-full fills the card and centers the (short) auth
-    // content. If it ever exceeds the viewport, the page scrolls.
+    // Content-height (no inner scroll): fills the card and vertically centers the short auth
+    // content, with a min-height baseline. If content ever exceeds the viewport, the page scrolls.
     <div
       className={cn(
-        'flex h-full min-h-[560px] flex-col justify-center px-6 py-10 sm:px-12',
+        // w-full + max-w caps the form narrow; mx-auto centers it in the (wider) form column.
+        // auth-stagger cascades the logo → title → subtitle → form in on mount / step change.
+        'auth-stagger mx-auto flex h-full min-h-[560px] w-full max-w-[500px] flex-col justify-center px-6 py-10 sm:px-10',
         centered && 'items-center text-center',
       )}
     >
-      
-      <BrandLogo className="h-8 w-auto" />
-
-      {media && <div className="mt-6">{media}</div>}
-
-      <h1 className="mt-5 text-2xl font-semibold leading-8 text-content-primary">{title}</h1>
-      {subtitle && (
-        <p className={cn('mt-2 text-base text-content-secondary', centered && 'max-w-sm')}>{subtitle}</p>
-      )}
+      <BrandHeader title={title} subtitle={subtitle} media={media} centered={centered} />
 
       {children && <div className={cn('mt-6', centered && 'w-full')}>{children}</div>}
     </div>

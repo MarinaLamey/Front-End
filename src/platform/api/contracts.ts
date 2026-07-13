@@ -39,8 +39,6 @@ export interface OtpChallenge {
 export interface LoginResult {
   orgId: string
   roles: OnboardingRole[]
-  /** True when the org has >1 role → show ContinueAsCard; else go straight to the dashboard. */
-  requiresContinueAs: boolean
 }
 
 /** Per-role organization profile captured in the onboarding wizard (HLD §6). */
@@ -115,11 +113,33 @@ export interface CompleteRegistrationInput {
   productCategories: string[]
 }
 
+export type Availability = 'available' | 'taken'
+
+/** Identifiers to check for prior registration. Pass only the ones you want checked. */
+export interface AvailabilityQuery {
+  email?: string
+  mobile?: string
+  cr?: string
+}
+
+/** Per-identifier outcome. A field is absent unless it was in the query. */
+export interface AvailabilityResult {
+  email?: Availability
+  mobile?: Availability
+  cr?: Availability
+}
+
 /**
  * OnboardingApi — the registration / OTP / login / profile / validation surface.
  * Async by contract (mirrors the BFF). Rejections are always {@link ApiError}.
  */
 export interface OnboardingApi {
+  /**
+   * Fail-fast uniqueness check so the wizard can reject a taken email/mobile/CR at the
+   * step that OWNS it — not at final submit. A safety net; `completeRegistration` still
+   * guards against a value taken mid-session.
+   */
+  checkAvailability(query: AvailabilityQuery): Promise<AvailabilityResult>
   /** Create the org + profiles from the full wizard payload (used by the 4-step flow). */
   completeRegistration(input: CompleteRegistrationInput): Promise<{ orgId: string }>
   register(input: RegisterInput): Promise<{ orgId: string; otp: OtpChallenge }>

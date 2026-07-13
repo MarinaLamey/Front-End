@@ -1,7 +1,6 @@
 import { AuthShell } from './components/AuthShell'
 import { CredentialsCard } from './components/CredentialsCard'
 import { PhoneLoginCard } from './components/PhoneLoginCard'
-import { ContinueAsCard } from './components/ContinueAsCard'
 import { ForgotPasswordCard } from './components/ForgotPasswordCard'
 import { ResetOtpCard } from './components/ResetOtpCard'
 import { NewPasswordCard } from './components/NewPasswordCard'
@@ -18,7 +17,7 @@ export function LoginPage() {
   const flow = useLoginFlow()
 
   return (
-    <AuthShell>
+    <AuthShell >
       {flow.step === 'credentials' && (
         <CredentialsCard
           onAuthenticated={flow.onAuthenticated}
@@ -48,8 +47,6 @@ export function LoginPage() {
       )}
 
       {flow.step === 'passwordUpdated' && <PasswordUpdatedCard onBack={flow.backToCredentials} />}
-
-      {flow.step === 'continueAs' && <ContinueAsCard onSelect={flow.selectContext} />}
     </AuthShell>
   )
 }

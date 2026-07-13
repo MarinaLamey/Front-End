@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
-import { SplitShell } from '@/shared/ui/SplitShell'
+import { cn } from '@/shared/lib/cn'
+import { SplitShell, BRAND_PANEL_GRADIENT } from '@/shared/ui/SplitShell'
 import { LanguageToggle } from '@/platform/i18n'
 import { ThemeToggle } from '@/platform/theme/ThemeToggle'
 import { HowItWorksPanel } from './HowItWorksPanel'
@@ -24,7 +25,8 @@ export function AuthShell({ children }: AuthShellProps) {
         </>
       }
       aside={<HowItWorksPanel />}
-      asideClassName="w-[52%] bg-[linear-gradient(150deg,#7C3AED_0%,#5B4BE0_55%,#4F46E5_100%)]"
+      // Same panel as registration: the shared mimony gradient + matching width.
+      asideClassName={cn('w-1/2', BRAND_PANEL_GRADIENT)}
     >
       {children}
     </SplitShell>

@@ -1,6 +1,6 @@
 export const en = {
   common: {
-    signOut: 'Sign out',
+    signOut: 'Sign Out',
     or: 'OR',
     loading: 'Loading…',
     comingSoon: 'UI coming soon',
@@ -20,8 +20,8 @@ export const en = {
     settlement: 'Settlement',
   },
   auth: {
-    signIn: 'Sign in',
-    signInSubtitle: 'Welcome back. Sign in to your {{tenant}} account.',
+    signIn: 'Sign In',
+    signInSubtitle: 'Welcome back. Sign in to your mimony account.',
     email: 'Email',
     rememberMe: 'Remember me',
     forgotPassword: 'Forgot password?',
@@ -72,9 +72,6 @@ export const en = {
     declined: 'The request was declined. Please try again.',
     expired: 'The request expired. Please try again.',
     verifyCrVat: 'Verify your CR and VAT numbers to continue.',
-    continueAs: 'Continue as',
-    continueAsSubtitle: 'Your company operates as both. Choose how to continue.',
-    rememberChoice: 'Remember my choice on this device',
     openRfqsCount: '{{count}} open RFQs',
     bidsPendingCount: '{{count}} bids pending',
     enterPin: 'Enter your {{role}} PIN',
@@ -168,6 +165,9 @@ export const en = {
     vatInvalid: 'Enter a valid 15-digit VAT number',
     mobileRequired: 'Mobile number is required',
     mobileInvalid: 'Enter a valid mobile number',
+    emailTaken: 'This email is already registered. Try signing in instead.',
+    mobileTaken: 'This mobile number is already registered.',
+    crTaken: 'This CR number is already registered.',
     confirmPasswordRequired: 'Please confirm your password',
     passwordMismatch: 'Passwords do not match',
     otpRequired: 'Enter the 4-digit code',
@@ -175,6 +175,7 @@ export const en = {
     additionalNoInvalid: 'Additional number must be 4 digits',
     zipInvalid: 'Zip code must be 5 digits',
     unitNoInvalid: 'Enter a valid unit number',
+    lettersOnly: 'Use letters only — no numbers or symbols.',
   },
   onboarding: {
     back: 'Back',

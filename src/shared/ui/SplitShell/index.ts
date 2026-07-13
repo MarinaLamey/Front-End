@@ -1,1 +1,1 @@
-export { SplitShell } from './SplitShell'
+export { SplitShell, BRAND_PANEL_GRADIENT } from './SplitShell'

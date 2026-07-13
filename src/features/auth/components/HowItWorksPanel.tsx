@@ -20,7 +20,7 @@ export function HowItWorksPanel() {
   const { t } = useTranslation()
 
   return (
-    <div className="w-full text-white">
+    <div className="w-full text-white pt-10">
       <p className="text-xs font-medium text-white/70">{t('auth.flow.eyebrow')}</p>
       <h2 className="mt-2 text-2xl font-semibold leading-8">{t('auth.flow.headline')}</h2>
 
@@ -35,7 +35,10 @@ export function HowItWorksPanel() {
             >
               {/* Badge + connector column. */}
               <div className="flex flex-col items-center">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-inset ring-white/25">
+                <span
+                  style={{ animationDelay: `${index * 350}ms` }}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-inset ring-white/25 motion-safe:animate-cell-flash"
+                >
                   <Icon className="h-4 w-4" />
                 </span>
                 {!isLast && <span aria-hidden="true" className="mt-1 w-px flex-1 bg-white/20" />}

@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { BrandLogo } from '@/shared/ui/BrandLogo'
+import { BrandHeader } from '@/shared/ui/BrandHeader'
 
 interface StepFrameProps {
   /** Left-aligned heading. Omit for screens that render their own (e.g. a centered header). */
@@ -11,19 +11,17 @@ interface StepFrameProps {
 }
 
 /**
- * StepFrame — the form-side chrome for a wizard/KYC screen: brand logo, heading + subtitle,
- * a scrollable body, and an optional sticky footer. Keeps every step visually consistent so
- * a step only owns its fields.
+ * StepFrame — the form-side chrome for a wizard/KYC screen: the shared {@link BrandHeader}
+ * (logo + heading + subtitle), a scrollable body, and an optional sticky footer. Keeps every
+ * step visually consistent so a step only owns its fields.
  */
 export function StepFrame({ title, subtitle, children, footer }: StepFrameProps) {
   return (
-    // Content-height (no inner scroll). h-full fills the card; the body grows with content
-    // and the footer stays at the bottom. If content exceeds the viewport, the page scrolls.
+    // Content-height (no inner scroll): the body grows with its content and the footer sits
+    // below it. If a long step exceeds the viewport, the whole PAGE scrolls — not this box.
     <div className="flex h-full min-h-[560px] flex-col">
-      <div className="flex-1 px-6 py-6 sm:px-10 sm:py-8 lg:px-12">
-        <BrandLogo className="h-8 w-auto" />
-        {title && <h1 className="mt-4 text-2xl font-semibold leading-8 text-content-primary">{title}</h1>}
-        {subtitle && <p className="mt-1.5 text-base text-content-secondary">{subtitle}</p>}
+      <div className="auth-stagger flex-1 px-6 py-6 sm:px-10 sm:py-8 lg:px-12">
+        <BrandHeader title={title} subtitle={subtitle} />
         <div className="mt-6">{children}</div>
       </div>
 

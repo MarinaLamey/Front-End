@@ -94,7 +94,9 @@ export function MultiSelect({
         </button>
 
         {open && (
-          <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-border-subtle bg-bg-surface p-1 shadow-lg">
+          // In-flow (not absolute) so the dropdown grows the card height instead of overlaying
+          // and being clipped by the card's overflow-hidden. Long lists scroll within max-h-56.
+          <ul className="mt-1 max-h-56 w-full overflow-auto rounded-xl border border-border-subtle bg-bg-surface p-1 shadow-lg">
             {options.map((option) => {
               const selected = isSelected(option)
               return (

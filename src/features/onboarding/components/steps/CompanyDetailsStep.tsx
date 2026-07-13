@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useMutation } from '@tanstack/react-query'
+import { api } from '@/platform/api'
 import { cn } from '@/shared/lib/cn'
 import { Field } from '@/shared/ui/Field'
 import { FileDrop } from '@/shared/ui/FileDrop'
@@ -25,6 +28,9 @@ const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 /** Step 4 — account type + organization identity, CR/VAT numbers and certificate uploads. */
 export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetailsStepProps) {
   const { t } = useTranslation()
+  // CR uniqueness, checked once when the step is completed — not per keystroke.
+  const [crTaken, setCrTaken] = useState(false)
+  const availability = useMutation({ mutationFn: api.checkAvailability })
 
   const canContinue =
     data.orgName.trim().length > 0 &&
@@ -33,12 +39,44 @@ export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetai
     /^\d{15}$/.test(data.vat) &&
     data.vatCertificate.length > 0
 
+  // Editing the CR clears its stale "already registered" flag.
+  const setCr = (cr: string) => {
+    patch({ cr })
+    if (crTaken) setCrTaken(false)
+  }
+
+  // Gate the step: confirm the CR isn't already registered before advancing.
+  const handleContinue = async () => {
+    try {
+      const result = await availability.mutateAsync({ cr: data.cr })
+      const isTaken = result.cr === 'taken'
+      setCrTaken(isTaken)
+      if (!isTaken) onNext()
+    } catch {
+      // Availability check unreachable — don't trap the user; final submit still guards.
+      onNext()
+    }
+  }
+
+  const crError =
+    data.cr.length > 0 && !/^\d{10}$/.test(data.cr)
+      ? { title: t('validation.crInvalid') }
+      : crTaken
+        ? { title: t('validation.crTaken') }
+        : null
+
   return (
     <StepFrame
       title={t('onboarding.company.title')}
       subtitle={t('onboarding.company.subtitle')}
       footer={
-        <WizardFooter onBack={onBack} continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!canContinue} />
+        <WizardFooter
+          onBack={onBack}
+          continueLabel={t('onboarding.continue')}
+          onContinue={handleContinue}
+          disabled={!canContinue}
+          loading={availability.isPending}
+        />
       }
     >
       <div className="flex flex-col gap-6">
@@ -88,8 +126,8 @@ export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetai
             inputMode="numeric"
             placeholder={t('onboarding.company.crPlaceholder')}
             value={data.cr}
-            onChange={(event) => patch({ cr: event.target.value.replace(/\D/g, '').slice(0, 10) })}
-            error={data.cr.length > 0 && !/^\d{10}$/.test(data.cr) ? { title: t('validation.crInvalid') } : null}
+            onChange={(event) => setCr(event.target.value.replace(/\D/g, '').slice(0, 10))}
+            error={crError}
           />
 
           <FileDrop

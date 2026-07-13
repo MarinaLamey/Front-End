@@ -197,14 +197,22 @@ resolves Tailwind classes from a literal `styleConfig`, derives `data-state`
 
 | File | Responsibility / Internal logic | Depends on |
 | --- | --- | --- |
-| `contracts.ts` | The `OnboardingApi` interface + domain types (RegisterInput, LoginResult, OtpChallenge, OrgProfileInput, CompleteRegistrationInput…). The boundary everything depends on. | `platform/auth` (Portal), `shared/ui/types` |
+| `contracts.ts` | The `OnboardingApi` interface + domain types (RegisterInput, LoginResult, OtpChallenge, OrgProfileInput, CompleteRegistrationInput, AvailabilityQuery/Result…). The boundary everything depends on. | `platform/auth` (Portal), `shared/ui/types` |
 | `errors.ts` | `ApiError { code, message, field }` + `toUiError()` → maps failures to `UiError` | `shared/ui/types` |
 | `mock/db.ts` | localStorage-persisted store (`miproc.mockdb.v1`) + in-memory cache; seeded demo orgs; `reset()` | — |
 | `mock/mockApi.ts` | Implements every method with simulated latency + **magic-value errors** (e.g. CR `0000000000` → exists, OTP `1234`) | `db.ts`, `errors.ts` |
 | `index.ts` | Exports `api: OnboardingApi = mockApi` (**single swap point**) + `resetDemoData()` | mock impl |
 
-**Methods:** `register`, `verifyOtp`, `resendOtp`, `submitProfile`, `login`,
-`requestLoginOtp`, `verifyLoginOtp`, `validateCr`, `validateVat`, `completeRegistration`.
+**Methods:** `checkAvailability`, `register`, `verifyOtp`, `resendOtp`, `submitProfile`,
+`login`, `requestLoginOtp`, `verifyLoginOtp`, `validateCr`, `validateVat`,
+`completeRegistration`.
+
+**Fail-fast uniqueness (`checkAvailability`).** So a taken email/mobile/CR is caught at the
+wizard step that *owns* it — not at final submit — `checkAvailability(query)` returns
+`'available' | 'taken'` per queried identifier (checked against `mock/db`; CR magic value
+`0000000000` reads as taken). It's a **safety net, not the sole guard**: `completeRegistration`
+still rejects a value taken mid-session. Fired **once per step on Continue** (not per
+keystroke); an unreachable check doesn't trap the user (advance, submit still guards).
 
 ### 4.2 `platform/bff` + `commands` + `realtime` — async domain model
 
@@ -309,10 +317,10 @@ flowchart LR
   W["useOnboardingWizard<br/>(step 1–6 + all data + submit + KYC)"] --> OP["OnboardingPage"]
   OP --> Shell["OnboardingLayout → SplitShell (persistent)"]
   Shell --> RAIL["OnboardingStepper (grouped rail)"]
-  OP --> S1["1 AccountDetailsStep"]
+  OP --> S1["1 AccountDetailsStep<br/>↳ checkAvailability(email, mobile)"]
   OP --> S2["2 VerifyStep · phone"]
   OP --> S3["3 VerifyStep · email"]
-  OP --> S4["4 CompanyDetailsStep"]
+  OP --> S4["4 CompanyDetailsStep<br/>↳ checkAvailability(cr)"]
   OP --> S5["5 AddressPreferencesStep"]
   OP --> S6["6 ReviewStep"]
   S6 -->|submit| API["api.completeRegistration"]
@@ -329,9 +337,9 @@ flowchart LR
 | `components/StepFrame.tsx` | Left chrome | `BrandLogo` + **optional** title + subtitle + scroll body + sticky footer | `BrandLogo` |
 | `components/WizardFooter.tsx` | Back/continue footer | Leading back + trailing primary (arrow icon) | `Button`, icons |
 | `components/registerIcons.tsx` | Wizard/KYC icon set | Exact Figma Buyer(cart)/Seller(store)/Both(repeat) + upload/chevron/clock/users/sliders/grid/lock/alert/info/warning/check (all `currentColor`) | — |
-| `components/steps/AccountDetailsStep.tsx` | Step 1 | Full name/email/mobile/password/confirm/terms; inline validation gates Continue (no role here) | `Field`, `authIcons` |
+| `components/steps/AccountDetailsStep.tsx` | Step 1 | Full name/email/mobile/password/confirm/terms; inline validation gates Continue (no role here). On Continue, **email + mobile uniqueness** via `api.checkAvailability` (one call) — a taken value blocks here with an inline error instead of failing at Review; editing a field clears its flag | `Field`, `authIcons`, React Query |
 | `components/steps/VerifyStep.tsx` | Steps 2 & 3 | **One component**, `channel='phone' \| 'email'`; 4-digit segmented `OtpField` with **synchronized `TracingBorder` + shimmer loader**; mock code `1234` | `OtpField`/`useOtp`, `Button`, `TracingBorder` |
-| `components/steps/CompanyDetailsStep.tsx` | Step 4 | Account-type cards (Buyer/Seller/Both) + org name + CR# + **CR certificate** + VAT# + **VAT certificate** uploads | `Field`, `FileDrop`, registerIcons |
+| `components/steps/CompanyDetailsStep.tsx` | Step 4 | Account-type cards (Buyer/Seller/Both) + org name + CR# + **CR certificate** + VAT# + **VAT certificate** uploads. On Continue, **CR uniqueness** via `api.checkAvailability` blocks a taken CR with an inline error | `Field`, `FileDrop`, registerIcons, React Query |
 | `components/steps/AddressPreferencesStep.tsx` | Step 5 | **Saudi National Address** (building 4-digit / additional 4 / zip 5 / unit digits) + categories | `Field`, `MultiSelect` |
 | `components/steps/ReviewStep.tsx` | Step 6 | Three summary cards (Account / Verification / Organization profile) + confirm → submit | `WizardFooter` |
 | `components/KycScreen.tsx` | Post-submit outcome | **Pending** = centered check + "Next steps" cards (invite / RFQ locked / dashboard); **approved/rejected** notice cards; preview links | `StepFrame`, `WizardFooter`, registerIcons |
@@ -396,6 +404,10 @@ flowchart LR
   (only names persist). Real File objects and a server-side draft would need the BFF.
 - Register step 5 enforces **Saudi National Address** formats (building/additional 4-digit,
   zip 5-digit, unit digits).
+- **Fail-fast uniqueness:** step 1 (email + mobile) and step 4 (CR) call
+  `api.checkAvailability` on Continue, so an already-registered identifier is caught at its
+  own step with an inline error — not at Review. `completeRegistration` stays the backstop
+  for a value taken mid-session; an unreachable check advances rather than trapping the user.
 - Legacy auth `RegisterPage` + its cards, and `PublicLayout`, are **orphaned**; safe to
   delete when convenient. `src/pages/HomePage.tsx` is not wired into the router.
 - Related docs: `docs/onboarding-alignment-plan.md`, `docs/mock-backend.md`,

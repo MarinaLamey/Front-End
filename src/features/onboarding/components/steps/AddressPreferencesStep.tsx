@@ -20,9 +20,15 @@ const BUILDING_RE = /^\d{4}$/ // e.g. 7201
 const ADDITIONAL_RE = /^\d{4}$/ // e.g. 2443
 const ZIP_RE = /^\d{5}$/ // e.g. 13315
 const UNIT_RE = /^\d{1,4}$/ // e.g. 12
+// Names (city / district / street): a letter (any script incl. Arabic) followed by letters,
+// spaces, or name punctuation (' . -). No digits or other symbols.
+const NAME_RE = /^\p{L}[\p{L}\s'.-]*$/u
 
 /** Strip to digits and clamp to `max` — for the numeric national-address fields. */
 const digits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max)
+
+/** True when a name field is non-empty and letters-only (validated on the trimmed value). */
+const isValidName = (value: string) => NAME_RE.test(value.trim())
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -40,9 +46,9 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
   const canContinue =
     BUILDING_RE.test(data.buildingNo) &&
     (data.additionalNo === '' || ADDITIONAL_RE.test(data.additionalNo)) &&
-    data.street.trim().length > 0 &&
-    data.district.trim().length > 0 &&
-    data.city.trim().length > 0 &&
+    isValidName(data.street) &&
+    isValidName(data.district) &&
+    isValidName(data.city) &&
     ZIP_RE.test(data.zip) &&
     UNIT_RE.test(data.unitNo) &&
     data.categories.length > 0
@@ -90,6 +96,11 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
             placeholder="King Fahd Road"
             value={data.street}
             onChange={(event) => patch({ street: event.target.value })}
+            error={
+              data.street.trim().length > 0 && !isValidName(data.street)
+                ? { title: t('validation.lettersOnly') }
+                : null
+            }
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
@@ -98,6 +109,11 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="As Sahafah"
               value={data.district}
               onChange={(event) => patch({ district: event.target.value })}
+              error={
+                data.district.trim().length > 0 && !isValidName(data.district)
+                  ? { title: t('validation.lettersOnly') }
+                  : null
+              }
             />
             <Field
               label={t('onboarding.address.cityName')}
@@ -105,6 +121,11 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               placeholder="Riyadh"
               value={data.city}
               onChange={(event) => patch({ city: event.target.value })}
+              error={
+                data.city.trim().length > 0 && !isValidName(data.city)
+                  ? { title: t('validation.lettersOnly') }
+                  : null
+              }
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

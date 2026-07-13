@@ -1,4 +1,5 @@
 import type {
+  AvailabilityResult,
   CrRecord,
   LoginResult,
   OnboardingApi,
@@ -73,6 +74,22 @@ function toOrganization(o: StoredOrg): Organization {
 }
 
 export const mockApi: OnboardingApi = {
+  async checkAvailability(query) {
+    await delay()
+    const result: AvailabilityResult = {}
+    if (query.email !== undefined) {
+      result.email = mockDb.findByEmail(query.email) ? 'taken' : 'available'
+    }
+    if (query.mobile !== undefined) {
+      result.mobile = mockDb.findByMobile(query.mobile) ? 'taken' : 'available'
+    }
+    if (query.cr !== undefined) {
+      // Magic value '0000000000' always reads as taken (mirrors register).
+      result.cr = query.cr === '0000000000' || mockDb.findByCr(query.cr) ? 'taken' : 'available'
+    }
+    return result
+  },
+
   async completeRegistration(input) {
     await delay()
     if (input.cr === '0000000000' || mockDb.findByCr(input.cr)) {
@@ -191,7 +208,7 @@ export const mockApi: OnboardingApi = {
       throw new ApiError('INVALID_CREDENTIALS', 'Incorrect email or password.', { field: 'password' })
     }
     const roles: LoginResult['roles'] = org.roles
-    return { orgId: org.id, roles, requiresContinueAs: roles.length > 1 }
+    return { orgId: org.id, roles }
   },
 
   async requestLoginOtp(identifier) {
@@ -218,7 +235,7 @@ export const mockApi: OnboardingApi = {
     const org = mockDb.getOrg(orgId)
     if (!org) throw new ApiError('NOT_FOUND', 'Account not found.')
     const roles: LoginResult['roles'] = org.roles
-    return { orgId: org.id, roles, requiresContinueAs: roles.length > 1 }
+    return { orgId: org.id, roles }
   },
 
   async validateCr(cr): Promise<CrRecord> {

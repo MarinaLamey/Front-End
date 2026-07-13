@@ -46,11 +46,11 @@ export function OnboardingStepper({ current, allDone = false, rejected = false }
   const { t } = useTranslation()
 
   return (
-    <div className="flex w-full flex-col gap-6">
+    <div className="flex w-full flex-col gap-6 pt-10 ">
       {GROUPS.map((group, groupIndex) => {
         const offset = GROUPS.slice(0, groupIndex).reduce((total, g) => total + g.steps.length, 0)
         return (
-          <div key={group.header} className="flex flex-col">
+          <div key={group.header} className="flex flex-col ">
             <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/50">
               {t(`onboarding.rail.${group.header}`)}
             </p>
@@ -78,12 +78,15 @@ export function OnboardingStepper({ current, allDone = false, rejected = false }
                   {/* Marker + connector column. */}
                   <div className="flex flex-col items-center">
                     <span
+                      // Staggered flash delay → the halo ripples down the done/current markers.
+                      style={{ animationDelay: `${(offset + stepIndex) * 1000}ms` }}
                       className={cn(
                         'relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-                        'transition-colors duration-300 motion-reduce:transition-none',
+                        'transition-colors duration-500 motion-reduce:transition-none',
                         state === 'upcoming' && 'bg-white/15 text-white/70 ring-1 ring-inset ring-white/25',
-                        state === 'done' && 'bg-white text-brand-primary',
-                        state === 'current' && 'bg-white text-brand-primary ring-2 ring-inset ring-white/60',
+                        state === 'done' && 'bg-white text-brand-primary motion-safe:animate-cell-flash-strong',
+                        state === 'current' &&
+                          'bg-white text-brand-primary ring-2 ring-inset ring-white/60 motion-safe:animate-cell-flash-strong',
                         state === 'error' && 'bg-white text-status-danger ring-1 ring-inset ring-status-danger/40',
                       )}
                     >

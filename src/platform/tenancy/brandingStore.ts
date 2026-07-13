@@ -16,13 +16,15 @@ import {
  */
 async function fetchMockBranding(tenantId: string): Promise<BrandingPayload> {
   await new Promise((resolve) => setTimeout(resolve, 150))
+  // v2: repaint to the mimony palette (purple primary / teal secondary). The bump forces
+  // clients holding the old v1 teal cache past the version gate so they actually re-apply.
   return {
     tenantId,
-    version: 1,
+    version: 2,
     palette: {
-      'brand-primary': '#0d9488',
-      'brand-primary-hover': '#0f766e',
-      'brand-secondary': '#9333ea',
+      'brand-primary': '#51489e',
+      'brand-primary-hover': '#473f8b',
+      'brand-secondary': '#00ab98',
     },
     copy: { appName: 'MI-Proc' },
   }

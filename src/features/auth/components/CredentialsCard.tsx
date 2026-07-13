@@ -10,10 +10,12 @@ import { AppleIcon, EyeIcon, EyeOffIcon, GoogleIcon, PhoneIcon, PlayIcon } from 
 import { AuthFormFrame } from './AuthFormFrame'
 import { useCredentialsCard } from '../useCredentialsCard'
 
-// Icon-only social / phone sign-in button (bordered surface, no label).
+// Icon-only social / phone sign-in button (bordered surface, no label). Lifts on hover and
+// dips on press — a small tactile micro-interaction (transform → GPU; gated for reduced motion).
 const socialIconButton =
   'inline-flex h-12 w-16 items-center justify-center rounded-xl border border-border-default ' +
-  'bg-bg-surface transition-colors hover:bg-interactive-hover'
+  'bg-bg-surface transition duration-200 hover:bg-interactive-hover hover:-translate-y-0.5 hover:shadow-md ' +
+  'active:translate-y-0 active:scale-95 motion-reduce:transition-none motion-reduce:hover:translate-y-0'
 
 interface CredentialsCardProps {
   /** Called with the login result once identity is verified. The flow takes it from here. */
@@ -35,6 +37,7 @@ export function CredentialsCard({ onAuthenticated, onPhoneLogin, onForgot }: Cre
     showPassword,
     toggleShowPassword,
     isSubmitting,
+    canSubmit,
     submitError,
     onSubmit,
     googleSignIn,
@@ -42,8 +45,8 @@ export function CredentialsCard({ onAuthenticated, onPhoneLogin, onForgot }: Cre
   } = useCredentialsCard({ onAuthenticated })
 
   return (
-    <AuthFormFrame title={t('auth.signIn')} subtitle={t('auth.signInSubtitle', { tenant: tenant.name })}>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+    <AuthFormFrame  title={t('auth.signIn')} subtitle={t('auth.signInSubtitle', { tenant: tenant.name })}>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col  gap-4" noValidate>
         <Field
           label={t('auth.email')}
           required
@@ -98,7 +101,7 @@ export function CredentialsCard({ onAuthenticated, onPhoneLogin, onForgot }: Cre
         )}
 
         <div className="relative">
-          <Button type="submit" size="lg" fullWidth disabled={isSubmitting}>
+          <Button type="submit" size="lg" fullWidth disabled={isSubmitting || !canSubmit}>
             {t('auth.signIn')}
           </Button>
           {isSubmitting && <TracingBorder radius={8} />}
