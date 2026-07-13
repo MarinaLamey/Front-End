@@ -19,6 +19,8 @@ interface OtpFieldProps {
    * all cells and the button as one. Boxes go read-only while it runs.
    */
   loading?: boolean
+  /** Verified → green outline and the boxes lock (read-only), so the code can't be changed. */
+  success?: boolean
 }
 
 /**
@@ -35,6 +37,7 @@ export function OtpField({
   error = null,
   autoFocus,
   loading = false,
+  success = false,
 }: OtpFieldProps) {
   const { cells, getCellProps } = useOtpField({ value, onChange, length })
 
@@ -52,14 +55,20 @@ export function OtpField({
               autoComplete={i === 0 ? 'one-time-code' : 'off'}
               autoFocus={autoFocus && i === 0}
               maxLength={1}
-              readOnly={loading}
+              // Lock the boxes once verified (or mid-verify) so the code can't be changed.
+              readOnly={loading || success}
               aria-label={`${label ?? 'Digit'} ${i + 1}`}
               aria-invalid={error ? true : undefined}
               className={cn(
                 'h-14 w-14 rounded-xl bg-bg-surface text-center text-2xl font-bold text-content-primary',
                 'outline outline-1 -outline-offset-1 transition-colors',
                 'focus:outline-2 focus:-outline-offset-2 focus:outline-border-focus',
-                error ? 'outline-border-danger' : 'outline-border-default',
+                success
+                  ? 'outline-status-success focus:outline-status-success'
+                  : error
+                    ? 'outline-border-danger'
+                    : 'outline-border-default',
+                success && 'cursor-default text-status-success',
               )}
             />
             {loading && <TracingBorder radius={12} />}

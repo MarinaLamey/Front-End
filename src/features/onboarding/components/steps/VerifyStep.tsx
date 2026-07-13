@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Button } from '@/shared/ui/Button'
 import { OtpField, useOtp } from '@/shared/ui/OtpField'
-import { TracingBorder } from '@/shared/ui/TracingBorder'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
 import type { OnboardingData } from '../../useOnboardingWizard'
@@ -27,29 +25,35 @@ function maskMobile(mobile: string): string {
 }
 
 /**
- * VerifyStep — steps 2 & 3. One component parameterised by channel (phone → email): a
- * 4-digit segmented OTP with a synchronized tracing-border loader across all cells and the
- * Verify button (they share the `.mp-trace` timeline). Mock: the code is 1234. Continue
+ * VerifyStep — steps 2 & 3. One component parameterised by channel (phone → email): a 4-digit
+ * segmented OTP that VERIFIES AUTOMATICALLY once the last cell is filled — there is no Verify
+ * button. A correct code (mock: 1234) marks the channel verified; a wrong one clears all four
+ * cells and refocuses the first (via the remount `key`) so the user can retype. Continue
  * unlocks once this channel is verified.
  */
 export function VerifyStep({ channel, data, patch, onNext, onBack }: VerifyStepProps) {
   const { t } = useTranslation()
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Bumped on a wrong code → remounts OtpField, which clears the boxes and refocuses the first.
+  const [attempt, setAttempt] = useState(0)
   const otp = useOtp()
 
   const verified = channel === 'phone' ? data.phoneVerified : data.emailVerified
   const destination = channel === 'phone' ? maskMobile(data.mobile) : data.email || 'your email'
 
-  const runVerify = () => {
-    if (!otp.isComplete || verifying) return
+  // Auto-verify the completed code (called from onChange when the 4th digit lands).
+  const runVerify = (code: string) => {
+    if (code.length !== otp.length || verifying || verified) return
     setVerifying(true)
     setError(null)
     // Mock verification — a short delay drives the synchronized loader, then 1234 passes.
     window.setTimeout(() => {
       setVerifying(false)
-      if (otp.code !== DEMO_CODE) {
+      if (code !== DEMO_CODE) {
         setError(t('onboarding.verify.invalid'))
+        otp.setCode('') // wipe what the user typed…
+        setAttempt((n) => n + 1) // …and refocus the first cell for a fresh try.
         return
       }
       patch(channel === 'phone' ? { phoneVerified: true } : { emailVerified: true })
@@ -70,22 +74,18 @@ export function VerifyStep({ channel, data, patch, onNext, onBack }: VerifyStepP
         </p>
 
         <OtpField
+          key={attempt}
           autoFocus
           value={otp.code}
           onChange={(digits) => {
             otp.setCode(digits)
             setError(null)
+            if (digits.length === otp.length) runVerify(digits)
           }}
           error={error ? { title: error } : null}
           loading={verifying}
+          success={verified}
         />
-
-        <div className="relative">
-          <Button size="lg" fullWidth onClick={runVerify} disabled={!otp.isComplete || verifying || verified}>
-            {t(`onboarding.verify.verify${channel === 'phone' ? 'Phone' : 'Email'}`)}
-          </Button>
-          {verifying && <TracingBorder radius={8} />}
-        </div>
 
         <p className="text-center text-sm text-content-secondary">
           {t('auth.alreadyHaveAccount')}{' '}
