@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/mi-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mi-proc</title>
+    <!--
+      No-FOUC theme handshake (runs synchronously before first paint).
+      Minimal mirror of src/platform/tenancy/branding.ts — keep the storage key,
+      token/value grammar, and apply logic in sync with that module. Pure-client
+      fallback; pairs with edge-injected CSS variables to also cover the first visit.
+    -->
+    <script>
+      // Set text direction before first paint to avoid an RTL flash.
+      ;(function () {
+        try {
+          var l = localStorage.getItem('miproc.locale')
+          if (l !== 'en' && l !== 'ar') l = 'ar'
+          document.documentElement.setAttribute('lang', l)
+          document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr')
+        } catch (e) {
+          /* default to the markup's lang/dir */
+        }
+      })()
+    </script>
+    <script>
+      ;(function () {
+        try {
+          var raw = localStorage.getItem('miproc.branding')
+          if (!raw) return
+          var palette = JSON.parse(raw).palette
+          if (!palette) return
+          var root = document.documentElement
+          var TOKEN = /^[a-z0-9-]+$/
+          var COLOR = /^#[0-9a-f]{3,8}$|^(?:rgb|rgba|hsl|hsla)\([0-9.,%\s/]+\)$/i
+          for (var token in palette) {
+            if (!Object.prototype.hasOwnProperty.call(palette, token)) continue
+            var value = palette[token]
+            if (typeof value === 'string' && TOKEN.test(token) && COLOR.test(value)) {
+              root.style.setProperty('--' + token, value)
+            }
+          }
+        } catch (e) {
+          /* disabled/corrupt storage → the default @theme tokens take over */
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

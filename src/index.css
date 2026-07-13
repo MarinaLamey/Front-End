@@ -1,0 +1,375 @@
+@import 'tailwindcss';
+
+/*
+ * DESIGN TOKENS — generated from the Figma variable export (Light.tokens.json /
+ * Dark.tokens.json). The raw palette lives in the `--mp-*` custom properties below
+ * (`:root` = Light, `.dark` = Dark). The Tailwind `@theme` block maps our semantic
+ * utility names onto those `--mp-*` vars, so:
+ *   • every utility (bg-bg-surface, text-content-primary, border-border-default, …)
+ *     reskins Light↔Dark with no rebuild (ThemeToggle flips `.dark` on <html>);
+ *   • whitelabel branding can still override by setting the un-prefixed var
+ *     (e.g. `--brand-primary`) on :root / a tenant subtree — it wins over the token.
+ * Custom properties resolve per element at use time, which is what makes the Dark
+ * override cascade through the `@theme` indirection.
+ */
+@theme {
+  /* Brand */
+  --color-brand-primary: var(--brand-primary, var(--mp-brand-primary));
+  --color-brand-primary-hover: var(--brand-primary-hover, var(--mp-brand-primary-hover));
+  --color-brand-primary-active: var(--brand-primary-active, var(--mp-brand-primary-active));
+  --color-brand-primary-on: var(--brand-primary-on, var(--mp-brand-primary-on));
+  --color-brand-secondary: var(--brand-secondary, var(--mp-brand-secondary));
+  --color-brand-secondary-hover: var(--brand-secondary-hover, var(--mp-brand-secondary-hover));
+  --color-brand-secondary-on: var(--brand-secondary-on, var(--mp-brand-secondary-on));
+  --color-brand-tertiary: var(--brand-tertiary, var(--mp-brand-tertiary));
+  --color-brand-strong: var(--brand-strong, var(--mp-text-brand));
+  --color-brand-subtle: var(--brand-subtle, var(--mp-brand-primary-subtle));
+  --color-brand-secondary-subtle: var(--mp-brand-secondary-subtle);
+
+  /* Content (text) */
+  --color-content-primary: var(--content-primary, var(--mp-text-primary));
+  --color-content-secondary: var(--content-secondary, var(--mp-text-secondary));
+  --color-content-tertiary: var(--content-tertiary, var(--mp-text-tertiary));
+  --color-content-disabled: var(--mp-text-disabled);
+  --color-content-inverse: var(--mp-text-inverse);
+  --color-content-brand: var(--mp-text-brand);
+  --color-content-link: var(--content-link, var(--mp-text-link));
+  --color-content-link-hover: var(--content-link-hover, var(--mp-text-link-hover));
+
+  /* Surfaces */
+  --color-bg-canvas: var(--bg-canvas, var(--mp-bg-canvas));
+  --color-bg-surface: var(--bg-surface, var(--mp-bg-surface));
+  --color-bg-surface-raised: var(--mp-bg-surface-raised);
+  --color-bg-surface-sunken: var(--bg-surface-sunken, var(--mp-bg-surface-sunken));
+  --color-bg-inverse: var(--mp-bg-inverse);
+
+  /* Borders */
+  --color-border-subtle: var(--border-subtle, var(--mp-border-subtle));
+  --color-border-default: var(--border-default, var(--mp-border-default));
+  --color-border-strong: var(--mp-border-strong);
+  --color-border-focus: var(--border-focus, var(--mp-border-focus));
+  --color-border-danger: var(--border-danger, var(--mp-border-danger));
+
+  /* Interactive surfaces */
+  --color-interactive-default: var(--mp-interactive-default);
+  --color-interactive-hover: var(--interactive-hover, var(--mp-interactive-hover));
+  --color-interactive-active: var(--mp-interactive-active);
+  --color-interactive-selected: var(--mp-interactive-selected);
+
+  /* Status */
+  --color-status-success: var(--status-success, var(--mp-status-success));
+  --color-status-success-subtle: var(--status-success-subtle, var(--mp-status-success-subtle));
+  --color-status-warning: var(--mp-status-warning);
+  --color-status-warning-subtle: var(--mp-status-warning-subtle);
+  --color-status-danger: var(--status-danger, var(--mp-status-danger));
+  --color-status-danger-hover: var(--status-danger-hover, var(--mp-status-danger-hover));
+  --color-status-danger-subtle: var(--mp-status-danger-subtle);
+  --color-status-danger-on: var(--status-danger-on, #ffffff);
+  --color-status-info: var(--mp-status-info);
+  --color-status-info-subtle: var(--mp-status-info-subtle);
+  --color-status-ai: var(--mp-status-ai);
+
+  /* Decorative motion (compositor-only; gate usage with motion-safe:) */
+  --animate-float: mp-float 9s ease-in-out infinite;
+  --animate-float-slow: mp-float 14s ease-in-out infinite;
+  /* Two-phase hero-card entrance: spring (easeOutBack overshoot) from a bundled,
+     scaled-down, off-toward-center state into the grid slot. Per-card direction comes
+     from --hero-from-x/y; stagger from animation-delay. `backwards` keeps each card
+     hidden until its turn. transform+opacity only → 60fps. */
+  --animate-hero-card: hero-card-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  /* Onboarding rail (OnboardingStepper): staggered entrance + a live pulse ring on the
+     current marker. transform/opacity only → 60fps; gate usage with motion-safe:. */
+  --animate-stepper-in: stepper-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --animate-stepper-pulse: stepper-pulse 1.9s ease-out infinite;
+}
+
+/* ── Palette · Light (default) — from Light.tokens.json ─────────────────────── */
+:root {
+  --mp-bg-canvas: #f8fafc;
+  --mp-bg-surface: #ffffff;
+  --mp-bg-surface-raised: #f8fafc;
+  --mp-bg-surface-sunken: #f1f5f9;
+  --mp-bg-surface-overlay: rgba(15, 23, 42, 0.6);
+  --mp-bg-inverse: #0f172a;
+
+  --mp-text-primary: #0f172a;
+  --mp-text-secondary: #475569;
+  --mp-text-tertiary: #64748b;
+  --mp-text-disabled: #94a3b8;
+  --mp-text-inverse: #ffffff;
+  --mp-text-brand: #473f8b;
+  --mp-text-ai: #9333ea;
+  --mp-text-success: #047857;
+  --mp-text-warning: #b45309;
+  --mp-text-danger: #dc2626;
+  --mp-text-link: #473f8b;
+  --mp-text-link-hover: #3f387b;
+  --mp-text-link-active: #322d62;
+
+  --mp-border-subtle: #e2e8f0;
+  --mp-border-default: #cbd5e1;
+  --mp-border-strong: #64748b;
+  --mp-border-focus: #51489e;
+  --mp-border-danger: #ef4444;
+  --mp-border-success: #10b981;
+
+  --mp-brand-primary: #51489e;
+  --mp-brand-primary-hover: #473f8b;
+  --mp-brand-primary-active: #3f387b;
+  --mp-brand-primary-subtle: #eae9f3;
+  --mp-brand-primary-on: #ffffff;
+  --mp-brand-secondary: #00ab98;
+  --mp-brand-secondary-hover: #009686;
+  --mp-brand-secondary-subtle: #e0f5f3;
+  --mp-brand-secondary-on: #0f172a;
+  --mp-brand-tertiary: #857fbb;
+  --mp-brand-tertiary-hover: #6b63ad;
+  --mp-brand-tertiary-subtle: #d4d1e7;
+
+  --mp-status-success: #059669;
+  --mp-status-warning: #f59e0b;
+  --mp-status-danger: #dc2626;
+  --mp-status-danger-hover: #b91c1c;
+  --mp-status-danger-active: #991b1b;
+  --mp-status-info: #2563eb;
+  --mp-status-ai: #a855f7;
+  --mp-status-success-subtle: #ecfdf5;
+  --mp-status-warning-subtle: #fffbeb;
+  --mp-status-danger-subtle: #fef2f2;
+  --mp-status-info-subtle: #eff6ff;
+  --mp-status-ai-subtle: #faf5ff;
+  --mp-status-success-border: #a7f3d0;
+  --mp-status-warning-border: #fde68a;
+  --mp-status-danger-border: #fecaca;
+  --mp-status-info-border: #bfdbfe;
+  --mp-status-ai-border: #e9d5ff;
+
+  --mp-finance-positive: #059669;
+  --mp-finance-negative: #dc2626;
+  --mp-finance-escrow-held: #d97706;
+  --mp-finance-pending: #64748b;
+  --mp-finance-settled: #047857;
+
+  --mp-interactive-default: #f1f5f9;
+  --mp-interactive-hover: #e2e8f0;
+  --mp-interactive-active: #cbd5e1;
+  --mp-interactive-selected: #f0fdfa;
+}
+
+/* ── Palette · Dark — from Dark.tokens.json (toggled by ThemeToggle → .dark) ── */
+.dark {
+  --mp-bg-canvas: #0a0a1a;
+  --mp-bg-surface: #0f1729;
+  --mp-bg-surface-raised: #12193a;
+  --mp-bg-surface-sunken: #06080f;
+  --mp-bg-surface-overlay: rgba(0, 0, 0, 0.7);
+  --mp-bg-inverse: #ffffff;
+
+  --mp-text-primary: #f8fafc;
+  --mp-text-secondary: #cbd5e1;
+  --mp-text-tertiary: #94a3b8;
+  --mp-text-disabled: #475569;
+  --mp-text-inverse: #0f172a;
+  --mp-text-brand: #857fbb;
+  --mp-text-ai: #d8b4fe;
+  --mp-text-success: #6ee7b7;
+  --mp-text-warning: #fcd34d;
+  --mp-text-danger: #fca5a5;
+  --mp-text-link: #857fbb;
+  --mp-text-link-hover: #9f9aca;
+  --mp-text-link-active: #d4d1e7;
+
+  --mp-border-subtle: rgba(255, 255, 255, 0.06);
+  --mp-border-default: rgba(255, 255, 255, 0.12);
+  --mp-border-strong: rgba(255, 255, 255, 0.24);
+  --mp-border-focus: #857fbb;
+  --mp-border-danger: #f87171;
+  --mp-border-success: #34d399;
+
+  --mp-brand-primary: #857fbb;
+  --mp-brand-primary-hover: #9f9aca;
+  --mp-brand-primary-active: #d4d1e7;
+  --mp-brand-primary-subtle: rgba(81, 72, 158, 0.18);
+  --mp-brand-primary-on: #0f172a;
+  --mp-brand-secondary: #4cc4b7;
+  --mp-brand-secondary-hover: #73d1c6;
+  --mp-brand-secondary-subtle: rgba(0, 171, 152, 0.18);
+  --mp-brand-secondary-on: #0f172a;
+  --mp-brand-tertiary: #9f9aca;
+  --mp-brand-tertiary-hover: #d4d1e7;
+  --mp-brand-tertiary-subtle: rgba(81, 72, 158, 0.12);
+
+  --mp-status-success: #34d399;
+  --mp-status-warning: #fbbf24;
+  --mp-status-danger: #f87171;
+  --mp-status-danger-hover: #fca5a5;
+  --mp-status-danger-active: #fecaca;
+  --mp-status-info: #60a5fa;
+  --mp-status-ai: #c084fc;
+  --mp-status-success-subtle: rgba(16, 185, 129, 0.12);
+  --mp-status-warning-subtle: rgba(245, 158, 11, 0.12);
+  --mp-status-danger-subtle: rgba(239, 68, 68, 0.12);
+  --mp-status-info-subtle: rgba(59, 130, 246, 0.12);
+  --mp-status-ai-subtle: rgba(168, 85, 247, 0.12);
+  --mp-status-success-border: #047857;
+  --mp-status-warning-border: #b45309;
+  --mp-status-danger-border: #b91c1c;
+  --mp-status-info-border: #1d4ed8;
+  --mp-status-ai-border: #7e22ce;
+
+  --mp-finance-positive: #34d399;
+  --mp-finance-negative: #f87171;
+  --mp-finance-escrow-held: #fbbf24;
+  --mp-finance-pending: #94a3b8;
+  --mp-finance-settled: #6ee7b7;
+
+  --mp-interactive-default: rgba(255, 255, 255, 0.04);
+  --mp-interactive-hover: rgba(255, 255, 255, 0.08);
+  --mp-interactive-active: rgba(255, 255, 255, 0.12);
+  --mp-interactive-selected: rgba(20, 184, 166, 0.16);
+}
+
+@keyframes mp-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -24px, 0) scale(1.08);
+  }
+}
+
+@keyframes hero-card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--hero-from-x, 0), var(--hero-from-y, 0), 0) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* One-time sheen that sweeps across a card once it has settled. The element is an inset
+   overlay carrying a diagonal light band; it sits off-screen left at rest (so it's
+   invisible for reduced-motion users) and the animation sweeps it across exactly once.
+   transform-only → 60fps. Drive the start with an inline animation-delay per card. */
+.hero-sheen {
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  transform: translate3d(-130%, 0, 0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-sheen {
+    animation: hero-sheen 0.9s ease-out both;
+  }
+}
+
+@keyframes hero-sheen {
+  from {
+    transform: translate3d(-130%, 0, 0);
+  }
+  to {
+    transform: translate3d(130%, 0, 0);
+  }
+}
+
+/* Onboarding rail motion. */
+@keyframes stepper-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stepper-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  70%,
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+  }
+}
+
+/* Check that draws itself in when a step completes. At rest (reduced motion) the dash is
+   longer than the path, so the tick shows fully with no animation. */
+@keyframes stepper-check {
+  from {
+    stroke-dashoffset: 22;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.stepper-check {
+  stroke-dasharray: 22;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stepper-check {
+    animation: stepper-check 0.45s ease-out 0.12s both;
+  }
+}
+
+/* Tracing border loader: a short gradient arc travels around a link's perimeter.
+   pathLength="100" normalizes the perimeter so this works at any size. */
+@keyframes mp-trace {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.mp-trace {
+  stroke-dasharray: 22 78;
+  stroke-linecap: round;
+  animation: mp-trace 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-trace {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}
+
+/* OTP verifying: a shimmering brand glow around each cell, hue-shifting purple↔teal in
+   sync with the tracing arc. box-shadow is a paint property, but it's only a few small
+   cells so it stays smooth; the ring inherits the cell's rounded corners. */
+@keyframes otp-shimmer {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--color-brand-primary),
+      0 0 16px 2px color-mix(in srgb, var(--color-brand-primary) 55%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--color-brand-secondary),
+      0 0 22px 3px color-mix(in srgb, var(--color-brand-secondary) 55%, transparent);
+  }
+}
+
+.otp-shimmer {
+  animation: otp-shimmer 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otp-shimmer {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--color-brand-primary);
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}

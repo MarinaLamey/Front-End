@@ -1,0 +1,155 @@
+/*
+ * Shimmer button — a single rim light that travels around the INSIDE edge of the button
+ * (a rotating conic mask over an inset glow). Contained: the button clips it
+ * (overflow: hidden), nothing spills outside.
+ *
+ * Two triggers (set via data-trigger):
+ *   hover — glows continuously while hovered/focused (and when [data-active]).
+ *   click — one sweep per click (driven by [data-burst], toggled in JS).
+ *
+ * IMPORTANT: the conic-gradient is written inline in the rule that animates, with
+ * `from var(--shimmer-mask)`. The animation drives --shimmer-mask on the SAME element
+ * (.shimmer::after), so the mask re-resolves every frame. Resolving the conic through an
+ * intermediate custom property on the parent freezes it (it substitutes the static angle
+ * once) — that breaks the motion.
+ *
+ * The conic mask repaints per frame, so it only runs while engaged — never idle — and all
+ * motion is gated behind prefers-reduced-motion.
+ */
+@property --shimmer-mask {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 33deg;
+}
+
+@keyframes shimmer-spin {
+  to {
+    --shimmer-mask: 360deg;
+  }
+}
+
+@keyframes shimmer-pop {
+  0%,
+  100% {
+    scale: 1;
+  }
+  35% {
+    scale: 1.06;
+  }
+}
+
+.shimmer-btn {
+  /* Rim hue: cyan, sitting between brand-primary (teal) and brand-secondary (purple). */
+  --shimmer-color: 196deg;
+  --spring-easing: linear(
+    0, 0.002, 0.01 0.9%, 0.038 1.8%, 0.156, 0.312 5.8%, 0.789 11.1%, 1.015 14.2%, 1.096,
+    1.157, 1.199, 1.224 20.3%, 1.231, 1.231, 1.226, 1.214 24.6%, 1.176 26.9%, 1.057 32.6%,
+    1.007 35.5%, 0.984, 0.968, 0.956, 0.949 42%, 0.946 44.1%, 0.95 46.5%, 0.998 57.2%,
+    1.007, 1.011 63.3%, 1.012 68.3%, 0.998 84%, 1
+  );
+  --spring-duration: 1.33s;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  scale: 1;
+  transition:
+    scale var(--spring-duration) var(--spring-easing),
+    color 0.3s ease,
+    background-color 0.3s ease;
+}
+
+/* Hover-mode links wear the brand gradient so the rim light has contrast. */
+.shimmer-btn[data-active='true'],
+.shimmer-btn[data-trigger='hover']:hover,
+.shimmer-btn[data-trigger='hover']:focus-visible {
+  background-image: linear-gradient(315deg, var(--color-brand-primary), var(--color-brand-secondary));
+  box-shadow: 0 2px 6px 1px hsl(180deg 50% 30% / 35%);
+}
+
+.shimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* The inset rim light itself; the mask animation below sweeps it around the edge. */
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px hsl(var(--shimmer-color) 90% 92%),
+    inset 0 0 6px 1px hsl(var(--shimmer-color) 100% 75%);
+}
+
+/* Reveal the rim: hover/focus (hover mode), the active item, or a click burst. */
+.shimmer-btn[data-trigger='hover']:hover .shimmer,
+.shimmer-btn[data-trigger='hover']:focus-visible .shimmer,
+.shimmer-btn[data-active='true'] .shimmer,
+.shimmer-btn[data-burst='true'] .shimmer {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Spring scale on hover (hover mode only). */
+  .shimmer-btn[data-trigger='hover']:hover:not(:active) {
+    scale: 1.06;
+    transition-duration: calc(var(--spring-duration) * 0.5);
+  }
+  .shimmer-btn[data-trigger='hover']:active {
+    scale: 1.03;
+    transition-duration: calc(var(--spring-duration) * 0.5);
+  }
+
+  /* One-shot scale pop on click. */
+  .shimmer-btn[data-burst='true'] {
+    animation: shimmer-pop var(--spring-duration) var(--spring-easing);
+  }
+
+  /*
+   * Mask the rim with the spinning conic — inlined (NOT via a parent custom property) so
+   * `from var(--shimmer-mask)` resolves on ::after, the element the animation updates.
+   */
+  .shimmer-btn[data-trigger='hover']:hover .shimmer::after,
+  .shimmer-btn[data-trigger='hover']:focus-visible .shimmer::after,
+  .shimmer-btn[data-active='true'] .shimmer::after,
+  .shimmer-btn[data-burst='true'] .shimmer::after {
+    -webkit-mask-image: conic-gradient(
+      from var(--shimmer-mask, 0deg),
+      transparent 0%,
+      transparent 25%,
+      black 40%,
+      black 50%,
+      transparent 65%,
+      transparent 100%
+    );
+    mask-image: conic-gradient(
+      from var(--shimmer-mask, 0deg),
+      transparent 0%,
+      transparent 25%,
+      black 40%,
+      black 50%,
+      transparent 65%,
+      transparent 100%
+    );
+    -webkit-mask-size: cover;
+    mask-size: cover;
+  }
+
+  /* Continuous sweep in hover mode / active. */
+  .shimmer-btn[data-trigger='hover']:hover .shimmer::after,
+  .shimmer-btn[data-trigger='hover']:focus-visible .shimmer::after,
+  .shimmer-btn[data-active='true'] .shimmer::after {
+    animation: shimmer-spin 3s linear infinite both;
+  }
+
+  /* One sweep on click. */
+  .shimmer-btn[data-burst='true'] .shimmer::after {
+    animation: shimmer-spin 1.2s linear both;
+  }
+}
