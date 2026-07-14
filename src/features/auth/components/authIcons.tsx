@@ -145,11 +145,21 @@ export function MessageIcon({ className }: IconProps) {
   )
 }
 
-/** Phone handset (stroked). */
+/** Smartphone (stroked) — the phone sign-in option. */
 export function PhoneIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" {...stroke24}>
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+    <svg
+      className={className}
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.66667}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14.1665 1.66663H5.83317C4.9127 1.66663 4.1665 2.41282 4.1665 3.33329V16.6666C4.1665 17.5871 4.9127 18.3333 5.83317 18.3333H14.1665C15.087 18.3333 15.8332 17.5871 15.8332 16.6666V3.33329C15.8332 2.41282 15.087 1.66663 14.1665 1.66663Z" />
+      <path d="M10 15H10.0083" />
     </svg>
   )
 }

@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
@@ -10,7 +9,6 @@ import { formatAddress, type OnboardingData, type WizardStep } from '../../useOn
 
 interface ReviewStepProps {
   data: OnboardingData
-  onBack: () => void
   onEdit: (step: WizardStep) => void
   onSubmit: () => void
   isSubmitting: boolean
@@ -55,7 +53,7 @@ function Badge({ children, tone }: { children: ReactNode; tone: 'success' | 'war
 }
 
 /** Step 6 — read-only summary across the three groups, then submit to create the org. */
-export function ReviewStep({ data, onBack, onEdit, onSubmit, isSubmitting, submitError }: ReviewStepProps) {
+export function ReviewStep({ data, onEdit, onSubmit, isSubmitting, submitError }: ReviewStepProps) {
   const { t } = useTranslation()
   const [confirmed, setConfirmed] = useState(false)
 
@@ -72,7 +70,6 @@ export function ReviewStep({ data, onBack, onEdit, onSubmit, isSubmitting, submi
       subtitle={t('onboarding.review.subtitle')}
       footer={
         <WizardFooter
-          onBack={onBack}
           continueLabel={t('onboarding.review.submit')}
           onContinue={onSubmit}
           disabled={!confirmed}
@@ -81,38 +78,23 @@ export function ReviewStep({ data, onBack, onEdit, onSubmit, isSubmitting, submi
       }
     >
       <div className="flex flex-col gap-4">
-        <SummaryCard title={t('onboarding.review.account')} editLabel={t('onboarding.edit')} onEdit={() => onEdit(1)}>
+        {/* Contact — full name / email / mobile live on step 1; edit jumps there. */}
+        <SummaryCard title={t('onboarding.review.contact')} editLabel={t('onboarding.edit')} onEdit={() => onEdit(1)}>
           <Row label={t('onboarding.account.fullName')}>{data.fullName || '—'}</Row>
           <Row label={t('onboarding.review.role')}>{roleLabel}</Row>
-          <Row label={t('onboarding.company.organization')}>{data.orgName || '—'}</Row>
-          <Row label={t('onboarding.company.crNumber')}>{data.cr || '—'}</Row>
-          <Row label={t('onboarding.company.crCertificate')}>
-            {data.crCertificate ? <span className="text-content-link">{data.crCertificate}</span> : '—'}
-          </Row>
           <Row label={t('onboarding.account.email')}>{data.email || '—'}</Row>
-          <Row label={t('onboarding.account.mobile')}>{data.mobile || '—'}</Row>
+          <Row label={t('onboarding.account.mobile')}>{data.mobile ? `+966 ${data.mobile}` : '—'}</Row>
         </SummaryCard>
 
-        <SummaryCard title={t('onboarding.review.verification')} editLabel={t('onboarding.edit')} onEdit={() => onEdit(2)}>
-          <Row label={t('onboarding.review.verifiedBy')}>
-            <span className="inline-flex items-center gap-2">
-              {t('onboarding.review.phoneAndEmail')}
-              {data.phoneVerified && data.emailVerified && <Badge tone="success">{t('auth.verified')}</Badge>}
-            </span>
-          </Row>
-          <Row label={t('onboarding.review.contact')}>{data.email || '—'}</Row>
-          <Row label={t('onboarding.review.kyc')}>
-            <Badge tone="warning">{t('onboarding.review.pendingReview')}</Badge>
-          </Row>
-        </SummaryCard>
-
+        {/* Organisation profile — org/CR/VAT are step 4 (edit target); address is step 5. */}
         <SummaryCard title={t('onboarding.review.orgProfile')} editLabel={t('onboarding.edit')} onEdit={() => onEdit(4)}>
+          <Row label={t('onboarding.company.orgName')}>{data.orgName || '—'}</Row>
+          <Row label={t('onboarding.company.crNumber')}>{data.cr || '—'}</Row>
           <Row label={t('onboarding.company.vatNumber')}>{data.vat || '—'}</Row>
-          <Row label={t('onboarding.company.vatCertificate')}>
-            {data.vatCertificate ? <span className="text-content-link">{data.vatCertificate}</span> : '—'}
+          <Row label={t('onboarding.review.companyAddress')}>{formatAddress(data) || '—'}</Row>
+          <Row label={t('onboarding.review.status')}>
+            <Badge tone="warning">{t('onboarding.review.pending')}</Badge>
           </Row>
-          <Row label={t('onboarding.address.address')}>{formatAddress(data) || '—'}</Row>
-          <Row label={t('onboarding.address.categories')}>{data.categories.join(', ') || '—'}</Row>
         </SummaryCard>
 
         <div className="flex items-start gap-2 rounded-lg border border-status-warning-border bg-status-warning-subtle p-3 text-sm text-status-warning">
@@ -136,12 +118,6 @@ export function ReviewStep({ data, onBack, onEdit, onSubmit, isSubmitting, submi
           </p>
         )}
 
-        <p className="text-center text-sm text-content-secondary">
-          {t('auth.alreadyHaveAccount')}{' '}
-          <Link to="/login" className="font-medium text-content-link hover:text-content-link-hover">
-            {t('auth.signIn')}
-          </Link>
-        </p>
       </div>
     </StepFrame>
   )

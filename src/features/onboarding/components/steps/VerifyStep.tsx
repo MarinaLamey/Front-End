@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { OtpField, useOtp } from '@/shared/ui/OtpField'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
@@ -13,7 +12,6 @@ interface VerifyStepProps {
   data: OnboardingData
   patch: (partial: Partial<OnboardingData>) => void
   onNext: () => void
-  onBack: () => void
 }
 
 const DEMO_CODE = '1234'
@@ -31,7 +29,7 @@ function maskMobile(mobile: string): string {
  * cells and refocuses the first (via the remount `key`) so the user can retype. Continue
  * unlocks once this channel is verified.
  */
-export function VerifyStep({ channel, data, patch, onNext, onBack }: VerifyStepProps) {
+export function VerifyStep({ channel, data, patch, onNext }: VerifyStepProps) {
   const { t } = useTranslation()
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +63,7 @@ export function VerifyStep({ channel, data, patch, onNext, onBack }: VerifyStepP
       title={t(`onboarding.verify.${channel}Title`)}
       subtitle={t(`onboarding.verify.${channel}Subtitle`)}
       footer={
-        <WizardFooter onBack={onBack} continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!verified} />
+        <WizardFooter continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!verified} />
       }
     >
       <div className="flex flex-col gap-5">
@@ -86,13 +84,6 @@ export function VerifyStep({ channel, data, patch, onNext, onBack }: VerifyStepP
           loading={verifying}
           success={verified}
         />
-
-        <p className="text-center text-sm text-content-secondary">
-          {t('auth.alreadyHaveAccount')}{' '}
-          <Link to="/login" className="font-medium text-content-link hover:text-content-link-hover">
-            {t('auth.signIn')}
-          </Link>
-        </p>
       </div>
     </StepFrame>
   )

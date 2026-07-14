@@ -1,7 +1,6 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Field } from '@/shared/ui/Field'
-import { MultiSelect } from '@/shared/ui/MultiSelect'
 import { isNameOnly } from '@/shared/lib/validators'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
@@ -11,10 +10,7 @@ interface AddressPreferencesStepProps {
   data: OnboardingData
   patch: (partial: Partial<OnboardingData>) => void
   onNext: () => void
-  onBack: () => void
 }
-
-const CATEGORIES = ['Construction', 'Logistics', 'Electrical', 'Industrial', 'IT & Software', 'Facilities']
 
 // Saudi National Address formats.
 const BUILDING_RE = /^\d{4}$/ // e.g. 7201
@@ -34,8 +30,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-/** Step 5 — Saudi National Address + preferred product categories. */
-export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressPreferencesStepProps) {
+/** Step 5 — Saudi National Address. */
+export function AddressPreferencesStep({ data, patch, onNext }: AddressPreferencesStepProps) {
   const { t } = useTranslation()
 
   const canContinue =
@@ -45,15 +41,14 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
     isNameOnly(data.district) &&
     isNameOnly(data.city) &&
     ZIP_RE.test(data.zip) &&
-    UNIT_RE.test(data.unitNo) &&
-    data.categories.length > 0
+    UNIT_RE.test(data.unitNo)
 
   return (
     <StepFrame
       title={t('onboarding.address.title')}
       subtitle={t('onboarding.address.subtitle')}
       footer={
-        <WizardFooter onBack={onBack} continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!canContinue} />
+        <WizardFooter continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!canContinue} />
       }
     >
       <div className="flex flex-col gap-6">
@@ -150,18 +145,6 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               error={data.unitNo.length > 0 && !UNIT_RE.test(data.unitNo) ? { title: t('validation.unitNoInvalid') } : null}
             />
           </div>
-        </Section>
-
-        <Section title={t('onboarding.address.preferences')}>
-          <MultiSelect
-            label={t('onboarding.address.categories')}
-            required
-            options={CATEGORIES}
-            value={data.categories}
-            onChange={(categories) => patch({ categories })}
-            placeholder={t('onboarding.address.categoriesPlaceholder')}
-            removeLabel={t('onboarding.company.remove')}
-          />
         </Section>
       </div>
     </StepFrame>

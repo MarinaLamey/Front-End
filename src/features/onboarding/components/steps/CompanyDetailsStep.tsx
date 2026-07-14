@@ -14,7 +14,6 @@ interface CompanyDetailsStepProps {
   data: OnboardingData
   patch: (partial: Partial<OnboardingData>) => void
   onNext: () => void
-  onBack: () => void
 }
 
 const TYPES: { id: RegisterRole; Icon: typeof CartIcon; labelKey: string }[] = [
@@ -26,7 +25,7 @@ const TYPES: { id: RegisterRole; Icon: typeof CartIcon; labelKey: string }[] = [
 const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 
 /** Step 4 — account type + organization identity, CR/VAT numbers and certificate uploads. */
-export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetailsStepProps) {
+export function CompanyDetailsStep({ data, patch, onNext }: CompanyDetailsStepProps) {
   const { t } = useTranslation()
   // CR uniqueness, checked once when the step is completed — not per keystroke.
   const [crTaken, setCrTaken] = useState(false)
@@ -71,7 +70,6 @@ export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetai
       subtitle={t('onboarding.company.subtitle')}
       footer={
         <WizardFooter
-          onBack={onBack}
           continueLabel={t('onboarding.continue')}
           onContinue={handleContinue}
           disabled={!canContinue}

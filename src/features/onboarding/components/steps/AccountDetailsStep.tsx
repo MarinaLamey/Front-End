@@ -16,7 +16,12 @@ interface AccountDetailsStepProps {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MOBILE_RE = /^(?:\+9665\d{8}|05\d{8}|5\d{8})$/
+// Saudi mobile entered after the +966 prefix: 9 digits starting with 5 (no leading 0).
+const MOBILE_RE = /^5\d{8}$/
+
+/** Keep digits only; drop a pasted 966 country code and any leading 0; clamp to 9 digits. */
+const cleanMobile = (raw: string) =>
+  raw.replace(/\D/g, '').replace(/^966/, '').replace(/^0+/, '').slice(0, 9)
 
 /** Step 1 — the login details. Role now lives on the Company details step. */
 export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepProps) {
@@ -42,7 +47,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
     if (taken.email) setTaken((prev) => ({ ...prev, email: false }))
   }
   const setMobile = (mobile: string) => {
-    patch({ mobile })
+    patch({ mobile: cleanMobile(mobile) })
     if (taken.mobile) setTaken((prev) => ({ ...prev, mobile: false }))
   }
 

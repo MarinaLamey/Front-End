@@ -56,21 +56,20 @@ export function OnboardingPage() {
     <OnboardingLayout current={wizard.step}>
       {wizard.step === 1 && <AccountDetailsStep data={wizard.data} patch={wizard.patch} onNext={wizard.next} />}
       {wizard.step === 2 && (
-        <VerifyStep channel="phone" data={wizard.data} patch={wizard.patch} onNext={wizard.next} onBack={wizard.back} />
+        <VerifyStep channel="phone" data={wizard.data} patch={wizard.patch} onNext={wizard.next} />
       )}
       {wizard.step === 3 && (
-        <VerifyStep channel="email" data={wizard.data} patch={wizard.patch} onNext={wizard.next} onBack={wizard.back} />
+        <VerifyStep channel="email" data={wizard.data} patch={wizard.patch} onNext={wizard.next} />
       )}
       {wizard.step === 4 && (
-        <CompanyDetailsStep data={wizard.data} patch={wizard.patch} onNext={wizard.next} onBack={wizard.back} />
+        <CompanyDetailsStep data={wizard.data} patch={wizard.patch} onNext={wizard.next} />
       )}
       {wizard.step === 5 && (
-        <AddressPreferencesStep data={wizard.data} patch={wizard.patch} onNext={wizard.next} onBack={wizard.back} />
+        <AddressPreferencesStep data={wizard.data} patch={wizard.patch} onNext={wizard.next} />
       )}
       {wizard.step === 6 && (
         <ReviewStep
           data={wizard.data}
-          onBack={wizard.back}
           onEdit={wizard.goTo}
           onSubmit={wizard.submit}
           isSubmitting={wizard.isSubmitting}

@@ -22,9 +22,7 @@ function Spinner({ className }: { className?: string }) {
 function SuccessCheck() {
   return (
     <span aria-hidden="true" className="inline-flex shrink-0 text-status-success motion-safe:animate-check-pop">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <path d="m5 10.5 3.5 3.5 6-8" />
-      </svg>
+      
     </span>
   )
 }
