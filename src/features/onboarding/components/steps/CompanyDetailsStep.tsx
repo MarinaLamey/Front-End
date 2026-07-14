@@ -5,6 +5,7 @@ import { api } from '@/platform/api'
 import { cn } from '@/shared/lib/cn'
 import { Field } from '@/shared/ui/Field'
 import { FileDrop } from '@/shared/ui/FileDrop'
+import { isNameOnly } from '@/shared/lib/validators'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
 import { CartIcon, StoreIcon, RepeatIcon, UploadIcon } from '../registerIcons'
@@ -32,7 +33,7 @@ export function CompanyDetailsStep({ data, patch, onNext }: CompanyDetailsStepPr
   const availability = useMutation({ mutationFn: api.checkAvailability })
 
   const canContinue =
-    data.orgName.trim().length > 0 &&
+    isNameOnly(data.orgName) &&
     /^\d{10}$/.test(data.cr) &&
     data.crCertificate.length > 0 &&
     /^\d{15}$/.test(data.vat) &&
@@ -116,7 +117,12 @@ export function CompanyDetailsStep({ data, patch, onNext }: CompanyDetailsStepPr
             placeholder={t('onboarding.company.orgNamePlaceholder')}
             value={data.orgName}
             onChange={(event) => patch({ orgName: event.target.value })}
-            success={data.orgName.trim().length > 0}
+            error={
+              data.orgName.trim().length > 0 && !isNameOnly(data.orgName)
+                ? { title: t('validation.lettersOnly') }
+                : null
+            }
+            success={isNameOnly(data.orgName)}
           />
 
           <Field
