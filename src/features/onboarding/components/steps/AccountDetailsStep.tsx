@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@/platform/api'
 import { Field } from '@/shared/ui/Field'
-import { isNameOnly } from '@/shared/lib/validators'
+import { isNameOnly, isSaudiMobile, cleanMobile } from '@/shared/lib/validators'
 import { EyeIcon, EyeOffIcon } from '@/features/auth/components/authIcons'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
@@ -16,12 +17,6 @@ interface AccountDetailsStepProps {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-// Saudi mobile entered after the +966 prefix: 9 digits starting with 5 (no leading 0).
-const MOBILE_RE = /^5\d{8}$/
-
-/** Keep digits only; drop a pasted 966 country code and any leading 0; clamp to 9 digits. */
-const cleanMobile = (raw: string) =>
-  raw.replace(/\D/g, '').replace(/^966/, '').replace(/^0+/, '').slice(0, 9)
 
 /** Step 1 — the login details. Role now lives on the Company details step. */
 export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepProps) {
@@ -36,7 +31,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
   const canContinue =
     isNameOnly(data.fullName) &&
     EMAIL_RE.test(data.email) &&
-    MOBILE_RE.test(data.mobile.replace(/\s/g, '')) &&
+    isSaudiMobile(data.mobile) &&
     data.password.length >= 8 &&
     passwordsMatch &&
     data.terms
@@ -72,7 +67,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
         ? { title: t('validation.emailTaken') }
         : null
   const mobileError =
-    data.mobile.length > 0 && !MOBILE_RE.test(data.mobile.replace(/\s/g, ''))
+    data.mobile.length > 0 && !isSaudiMobile(data.mobile)
       ? { title: t('validation.mobileInvalid') }
       : taken.mobile
         ? { title: t('validation.mobileTaken') }
@@ -131,7 +126,7 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
           value={data.mobile}
           onChange={(event) => setMobile(event.target.value)}
           error={mobileError}
-          success={MOBILE_RE.test(data.mobile.replace(/\s/g, ''))}
+          success={isSaudiMobile(data.mobile)}
         />
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -181,7 +176,24 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
             onChange={(event) => patch({ terms: event.target.checked })}
             className="mt-0.5 h-[18px] w-[18px] shrink-0 rounded border-border-default accent-brand-primary"
           />
-          {t('auth.agreeTerms')}
+          <span>
+            {/* The policy links live inside the <label>, so stopPropagation keeps a click from
+                toggling the checkbox; they open in a new tab so wizard progress isn't lost. */}
+            <Trans
+              i18nKey="auth.agreeTerms"
+              components={{
+                privacy: (
+                  <Link
+                    to="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(event) => event.stopPropagation()}
+                    className="font-medium text-content-link underline underline-offset-2 hover:text-content-link-hover"
+                  />
+                ),
+              }}
+            />
+          </span>
         </label>
       </div>
     </StepFrame>

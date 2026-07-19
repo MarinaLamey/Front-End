@@ -17,10 +17,10 @@ interface StepFrameProps {
  */
 export function StepFrame({ title, subtitle, children, footer }: StepFrameProps) {
   return (
-    // Content-height (no inner scroll): the body grows with its content and the footer sits
-    // below it. If a long step exceeds the viewport, the whole PAGE scrolls — not this box.
+    // The card is a fixed height (SplitShell); the body fills the space above the pinned footer
+    // and CENTERS its content vertically, so short steps don't leave a gap. No inner scroll.
     <div className="flex h-full min-h-[560px] flex-col">
-      <div className="auth-stagger flex-1 px-6 py-6 sm:px-10 sm:py-8 lg:px-12">
+      <div className="auth-stagger flex min-h-0 flex-1 flex-col justify-center px-6 py-6 sm:px-10 sm:py-8 lg:px-12">
         <BrandHeader title={title} subtitle={subtitle} />
         <div className="mt-6">{children}</div>
       </div>

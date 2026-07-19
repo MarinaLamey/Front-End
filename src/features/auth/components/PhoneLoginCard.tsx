@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/ui/Button'
 import { Field } from '@/shared/ui/Field'
+import { cleanMobile, isSaudiMobile } from '@/shared/lib/validators'
 import { OtpField, formatCountdown } from '@/shared/ui/OtpField'
 import { TracingBorder } from '@/shared/ui/TracingBorder'
 import type { LoginResult } from '@/platform/api'
@@ -76,12 +77,17 @@ export function PhoneLoginCard({ onAuthenticated, onBack }: PhoneLoginCardProps)
     )
   }
 
+  // Same Saudi-mobile rule as register: digits only, +966/leading-0 stripped, 9 digits from 5.
+  const mobileValid = isSaudiMobile(phone.mobile)
+  const mobileError =
+    phone.mobile.length > 0 && !mobileValid ? { title: t('validation.mobileInvalid') } : phone.requestError
+
   return (
     <AuthFormFrame title={t('auth.phoneScreenTitle')} subtitle={t('auth.phoneScreenSubtitle')}>
       <form
         onSubmit={(event) => {
           event.preventDefault()
-          if (phone.mobile.trim()) phone.requestOtp()
+          if (mobileValid) phone.requestOtp()
         }}
         className="flex flex-col gap-4"
       >
@@ -94,12 +100,13 @@ export function PhoneLoginCard({ onAuthenticated, onBack }: PhoneLoginCardProps)
           leftIcon={<span className="text-xs font-medium text-content-tertiary">+966</span>}
           placeholder={t('auth.mobileHint')}
           value={phone.mobile}
-          onChange={(event) => phone.setMobile(event.target.value)}
-          error={phone.requestError}
+          onChange={(event) => phone.setMobile(cleanMobile(event.target.value))}
+          error={mobileError}
+          success={mobileValid}
         />
 
         <div className="relative">
-          <Button type="submit" size="lg" fullWidth disabled={!phone.mobile.trim() || phone.isRequesting}>
+          <Button type="submit" size="lg" fullWidth disabled={!mobileValid || phone.isRequesting}>
             {t('auth.sendCode')}
           </Button>
           {phone.isRequesting && <TracingBorder radius={8} />}

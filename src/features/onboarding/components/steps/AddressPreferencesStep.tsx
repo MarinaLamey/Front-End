@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Field } from '@/shared/ui/Field'
+import { SearchSelect } from '@/shared/ui/SearchSelect'
 import { isNameOnly } from '@/shared/lib/validators'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
@@ -10,6 +11,7 @@ interface AddressPreferencesStepProps {
   data: OnboardingData
   patch: (partial: Partial<OnboardingData>) => void
   onNext: () => void
+  onBack: () => void
 }
 
 // Saudi National Address formats.
@@ -31,8 +33,11 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** Step 5 — Saudi National Address. */
-export function AddressPreferencesStep({ data, patch, onNext }: AddressPreferencesStepProps) {
+export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressPreferencesStepProps) {
   const { t } = useTranslation()
+
+  // The 13 Saudi administrative regions (localised) — the City field is a searchable select.
+  const cities = t('onboarding.address.cities', { returnObjects: true }) as string[]
 
   const canContinue =
     BUILDING_RE.test(data.buildingNo) &&
@@ -48,7 +53,7 @@ export function AddressPreferencesStep({ data, patch, onNext }: AddressPreferenc
       title={t('onboarding.address.title')}
       subtitle={t('onboarding.address.subtitle')}
       footer={
-        <WizardFooter continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!canContinue} />
+        <WizardFooter onBack={onBack} continueLabel={t('onboarding.continue')} onContinue={onNext} disabled={!canContinue} />
       }
     >
       <div className="flex flex-col gap-6">
@@ -109,18 +114,16 @@ export function AddressPreferencesStep({ data, patch, onNext }: AddressPreferenc
                   : null
               }
             />
-            <Field
+            <SearchSelect
               label={t('onboarding.address.cityName')}
               required
-              placeholder="Riyadh"
+              options={cities}
               value={data.city}
-              onChange={(event) => patch({ city: event.target.value })}
-              success={isNameOnly(data.city)}
-              error={
-                data.city.trim().length > 0 && !isNameOnly(data.city)
-                  ? { title: t('validation.lettersOnly') }
-                  : null
-              }
+              onChange={(city) => patch({ city })}
+              placeholder={t('onboarding.address.cityPlaceholder')}
+              searchPlaceholder={t('onboarding.address.searchCity')}
+              emptyLabel={t('onboarding.address.noCity')}
+              success={data.city.length > 0}
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

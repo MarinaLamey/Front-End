@@ -27,7 +27,7 @@ export interface OnboardingData {
   crCertificate: string
   vat: string
   vatCertificate: string
-  // Step 5 — Address & preferences
+  // Step 5 — Address details
   buildingNo: string
   additionalNo: string
   street: string

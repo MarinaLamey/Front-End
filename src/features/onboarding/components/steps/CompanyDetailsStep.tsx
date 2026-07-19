@@ -15,6 +15,7 @@ interface CompanyDetailsStepProps {
   data: OnboardingData
   patch: (partial: Partial<OnboardingData>) => void
   onNext: () => void
+  onBack: () => void
 }
 
 const TYPES: { id: RegisterRole; Icon: typeof CartIcon; labelKey: string }[] = [
@@ -25,19 +26,14 @@ const TYPES: { id: RegisterRole; Icon: typeof CartIcon; labelKey: string }[] = [
 
 const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 
-/** Step 4 — account type + organization identity, CR/VAT numbers and certificate uploads. */
-export function CompanyDetailsStep({ data, patch, onNext }: CompanyDetailsStepProps) {
+/** Step 3 — account type + organization identity, CR number and certificate. VAT is step 4. */
+export function CompanyDetailsStep({ data, patch, onNext, onBack }: CompanyDetailsStepProps) {
   const { t } = useTranslation()
   // CR uniqueness, checked once when the step is completed — not per keystroke.
   const [crTaken, setCrTaken] = useState(false)
   const availability = useMutation({ mutationFn: api.checkAvailability })
 
-  const canContinue =
-    isNameOnly(data.orgName) &&
-    /^\d{10}$/.test(data.cr) &&
-    data.crCertificate.length > 0 &&
-    /^\d{15}$/.test(data.vat) &&
-    data.vatCertificate.length > 0
+  const canContinue = isNameOnly(data.orgName) && /^\d{10}$/.test(data.cr) && data.crCertificate.length > 0
 
   // Editing the CR clears its stale "already registered" flag.
   const setCr = (cr: string) => {
@@ -71,6 +67,7 @@ export function CompanyDetailsStep({ data, patch, onNext }: CompanyDetailsStepPr
       subtitle={t('onboarding.company.subtitle')}
       footer={
         <WizardFooter
+          onBack={onBack}
           continueLabel={t('onboarding.continue')}
           onContinue={handleContinue}
           disabled={!canContinue}
@@ -145,29 +142,6 @@ export function CompanyDetailsStep({ data, patch, onNext }: CompanyDetailsStepPr
             icon={<UploadIcon className="h-5 w-5" />}
             fileName={data.crCertificate || undefined}
             onFile={(file) => patch({ crCertificate: file?.name ?? '' })}
-            removeLabel={t('onboarding.company.remove')}
-          />
-
-          <Field
-            label={t('onboarding.company.vatNumber')}
-            required
-            inputMode="numeric"
-            placeholder={t('auth.vatPlaceholder')}
-            value={data.vat}
-            onChange={(event) => patch({ vat: event.target.value.replace(/\D/g, '').slice(0, 15) })}
-            error={data.vat.length > 0 && !/^\d{15}$/.test(data.vat) ? { title: t('validation.vatInvalid') } : null}
-            success={/^\d{15}$/.test(data.vat)}
-          />
-
-          <FileDrop
-            label={t('onboarding.company.vatCertificate')}
-            required
-            prompt={t('onboarding.company.uploadPrompt')}
-            hint={t('onboarding.company.uploadHint')}
-            accept={UPLOAD_ACCEPT}
-            icon={<UploadIcon className="h-5 w-5" />}
-            fileName={data.vatCertificate || undefined}
-            onFile={(file) => patch({ vatCertificate: file?.name ?? '' })}
             removeLabel={t('onboarding.company.remove')}
           />
 

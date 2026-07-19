@@ -26,7 +26,7 @@ export function AuthShell({ children }: AuthShellProps) {
       }
       aside={<HowItWorksPanel />}
       // Same panel as registration: the shared mimony gradient + matching width.
-      asideClassName={cn('w-1/2', BRAND_PANEL_GRADIENT)}
+      asideClassName={cn('w-[435px]', BRAND_PANEL_GRADIENT)}
     >
       {children}
     </SplitShell>

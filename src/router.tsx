@@ -6,6 +6,7 @@ import { BUYER_PORTAL } from '@/app/portals'
 import { RequireAuth } from '@/platform/auth'
 import { LoginPage } from '@/features/auth'
 import { OnboardingPage } from '@/features/onboarding'
+import { PrivacyPolicyPage } from '@/features/legal/PrivacyPolicyPage'
 import { DashboardPage } from '@/features/dashboard'
 import { CataloguePage } from '@/features/catalogue'
 import { RfqListPage, RfqCreatePage } from '@/features/rfq'
@@ -20,6 +21,9 @@ export const router = createBrowserRouter([
   // Sign-in and register are their own full-screen split-shell pages.
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <OnboardingPage /> },
+
+  // Public legal document.
+  { path: '/privacy', element: <PrivacyPolicyPage /> },
 
   // Buyer portal (auth-gated).
   {

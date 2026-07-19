@@ -4,8 +4,8 @@ import type { WizardStep } from '../useOnboardingWizard'
 
 /** The six phases, split into the two rail groups shown in the Figma. */
 const GROUPS = [
-  { header: 'createAccount', steps: ['account', 'verifyPhone', 'verifyEmail'] },
-  { header: 'organization', steps: ['company', 'address', 'review'] },
+  { header: 'createAccount', steps: ['account', 'verify'] },
+  { header: 'organization', steps: ['company', 'tax', 'address', 'review'] },
 ] as const
 
 type StepState = 'done' | 'current' | 'upcoming' | 'error'
@@ -35,22 +35,39 @@ function CrossMark() {
   )
 }
 
+/** A vertical rail segment: a faint track with a white fill that grows in once `filled`. */
+function Connector({ filled, className }: { filled: boolean; className?: string }) {
+  return (
+    <span aria-hidden="true" className={cn('relative w-px overflow-hidden', className)}>
+      <span className="absolute inset-0 bg-white/20" />
+      <span
+        className={cn(
+          'absolute inset-0 origin-top bg-white/70 transition-transform duration-500 ease-out motion-reduce:transition-none',
+          filled ? 'scale-y-100' : 'scale-y-0',
+        )}
+      />
+    </span>
+  )
+}
+
 /**
  * OnboardingStepper — the vertical progress rail in the wizard's side panel, grouped under
- * CREATE ACCOUNT / ORGANIZATION headers. Presentational: given the current step it renders
- * each phase as done / current / upcoming (or the final step as failed for a rejected KYC).
- * Rows stagger in with the shared `stepper-in` keyframe; the panel gradient is owned by the
- * SplitShell via OnboardingLayout.
+ * CREATE ACCOUNT / ORGANISATION headers that sit on top of each section. Presentational:
+ * given the current step it renders each phase as done / current / upcoming (or the final
+ * step as failed for a rejected KYC). Every marker but the last carries a connector below it
+ * — including the last step of a group, so the line descends into the next section. Rows
+ * stagger in with the shared `stepper-in` keyframe; the panel gradient is owned by SplitShell.
  */
 export function OnboardingStepper({ current, allDone = false, rejected = false }: OnboardingStepperProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="flex w-full flex-col gap-6 pt-10 ">
+    <div className="flex w-full flex-col pt-10">
       {GROUPS.map((group, groupIndex) => {
         const offset = GROUPS.slice(0, groupIndex).reduce((total, g) => total + g.steps.length, 0)
+        const isLastGroup = groupIndex === GROUPS.length - 1
         return (
-          <div key={group.header} className="flex flex-col ">
+          <div key={group.header} className="flex flex-col">
             <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/50">
               {t(`onboarding.rail.${group.header}`)}
             </p>
@@ -59,70 +76,68 @@ export function OnboardingStepper({ current, allDone = false, rejected = false }
               {group.steps.map((key, stepIndex) => {
                 const position = (offset + stepIndex + 1) as WizardStep
                 const isLastInGroup = stepIndex === group.steps.length - 1
+                const isLastOverall = isLastGroup && isLastInGroup
 
-              const state: StepState =
-                rejected && position === 6
-                  ? 'error'
-                  : allDone || position < current
-                    ? 'done'
-                    : position === current
-                      ? 'current'
-                      : 'upcoming'
+                const state: StepState =
+                  rejected && position === 6
+                    ? 'error'
+                    : allDone || position < current
+                      ? 'done'
+                      : position === current
+                        ? 'current'
+                        : 'upcoming'
 
-              return (
-                <li
-                  key={key}
-                  style={{ animationDelay: `${(offset + stepIndex) * 80}ms` }}
-                  className="flex gap-4 motion-safe:animate-stepper-in"
-                >
-                  {/* Marker + connector column. */}
-                  <div className="flex flex-col items-center">
-                    <span
-                      // Staggered flash delay → the halo ripples down the done/current markers.
-                      style={{ animationDelay: `${(offset + stepIndex) * 1000}ms` }}
+                return (
+                  <li
+                    key={key}
+                    style={{ animationDelay: `${(offset + stepIndex) * 80}ms` }}
+                    className="flex gap-4 motion-safe:animate-stepper-in"
+                  >
+                    {/* Marker + connector column. */}
+                    <div className="flex flex-col items-center">
+                      <span
+                        // Staggered flash delay → the halo ripples down the done/current markers.
+                        style={{ animationDelay: `${(offset + stepIndex) * 1000}ms` }}
+                        className={cn(
+                          'relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
+                          'transition-colors duration-500 motion-reduce:transition-none',
+                          state === 'upcoming' && 'bg-white/15 text-white/70 ring-1 ring-inset ring-white/25',
+                          state === 'done' && 'bg-white text-brand-primary motion-safe:animate-cell-flash-strong',
+                          state === 'current' &&
+                            'bg-white text-brand-primary ring-2 ring-inset ring-white/60 motion-safe:animate-cell-flash-strong',
+                          state === 'error' && 'bg-white text-status-danger ring-1 ring-inset ring-status-danger/40',
+                        )}
+                      >
+                        {state === 'done' ? <CheckMark /> : state === 'error' ? <CrossMark /> : position}
+                      </span>
+
+                      {/* Draw a connector below every marker but the very last — the last step of
+                          a group gets one too, so the line runs down toward the next section. */}
+                      {!isLastOverall && (
+                        <Connector
+                          filled={allDone || position < current}
+                          className={cn('mt-1.5', isLastInGroup ? 'h-6' : 'flex-1')}
+                        />
+                      )}
+                    </div>
+
+                    {/* Text column. */}
+                    <div
                       className={cn(
-                        'relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-                        'transition-colors duration-500 motion-reduce:transition-none',
-                        state === 'upcoming' && 'bg-white/15 text-white/70 ring-1 ring-inset ring-white/25',
-                        state === 'done' && 'bg-white text-brand-primary motion-safe:animate-cell-flash-strong',
-                        state === 'current' &&
-                          'bg-white text-brand-primary ring-2 ring-inset ring-white/60 motion-safe:animate-cell-flash-strong',
-                        state === 'error' && 'bg-white text-status-danger ring-1 ring-inset ring-status-danger/40',
+                        'pb-6 transition-opacity duration-300 motion-reduce:transition-none',
+                        state === 'upcoming' && 'opacity-80',
                       )}
                     >
-                      {state === 'done' ? <CheckMark /> : state === 'error' ? <CrossMark /> : position}
-                    </span>
-
-                    {!isLastInGroup && (
-                      <span aria-hidden="true" className="relative mt-1.5 w-px flex-1 overflow-hidden">
-                        <span className="absolute inset-0 bg-white/20" />
-                        <span
-                          className={cn(
-                            'absolute inset-0 origin-top bg-white/70 transition-transform duration-500 ease-out motion-reduce:transition-none',
-                            state === 'done' ? 'scale-y-100' : 'scale-y-0',
-                          )}
-                        />
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Text column. */}
-                  <div
-                    className={cn(
-                      'pb-6 transition-opacity duration-300 motion-reduce:transition-none',
-                      state === 'upcoming' && 'opacity-80',
-                    )}
-                  >
-                    <p className="text-sm font-medium text-white">{t(`onboarding.rail.steps.${key}.title`)}</p>
-                    <p className="mt-0.5 text-sm text-white/70">{t(`onboarding.rail.steps.${key}.desc`)}</p>
-                  </div>
-                </li>
-              )
-            })}
+                      <p className="text-sm font-medium text-white">{t(`onboarding.rail.steps.${key}.title`)}</p>
+                      <p className="mt-0.5 text-sm text-white/70">{t(`onboarding.rail.steps.${key}.desc`)}</p>
+                    </div>
+                  </li>
+                )
+              })}
             </ol>
           </div>
-          )
-        })}
+        )
+      })}
     </div>
   )
 }

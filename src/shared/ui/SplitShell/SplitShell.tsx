@@ -39,9 +39,12 @@ export function SplitShell({ topBar, aside, asideClassName, children }: SplitShe
           same position on sign-in and register regardless of card height. */}
       <div className="flex flex-1 items-start mt-2   justify-center">
         {/* Card shape from Figma: TL/BL 24, TR 0, BR 120 (the big sweep). Logical corners so
-            the sweep sits on the panel's far-bottom corner and flips in RTL. */}
-        <div className="flex w-full max-w-[500px] overflow-hidden rounded-ss-[24px] rounded-es-[24px] rounded-ee-[24px] border border-border-subtle bg-bg-surface shadow-[0px_25px_50px_rgba(16,24,40,0.25),0px_20px_25px_rgba(16,24,40,0.10)] motion-safe:animate-card-in lg:max-w-[1024px] lg:rounded-ee-[120px]">
-          {/* Form side — grows with its content (no inner scroll). */}
+            the sweep sits on the panel's far-bottom corner and flips in RTL.
+            Fixed height at lg (lg:h-[760px]) so the card is a constant size across every step /
+            screen instead of resizing to its content. Below lg the panel is hidden and the page
+            flows naturally. */}
+        <div className="flex w-full max-w-[500px] overflow-hidden rounded-ss-[24px] rounded-es-[24px] rounded-ee-[24px] border border-border-subtle bg-bg-surface shadow-[0px_25px_50px_rgba(16,24,40,0.25),0px_20px_25px_rgba(16,24,40,0.10)] motion-safe:animate-card-in lg:h-[760px] lg:max-w-[1024px] lg:rounded-ee-[120px]">
+          {/* Form side — fills the fixed card height; its own body scrolls if content is tall. */}
           <div className="flex min-w-0 flex-1 flex-col">{children}</div>
 
           {/* Gradient panel — stretches to the card height; content vertically centered. */}
