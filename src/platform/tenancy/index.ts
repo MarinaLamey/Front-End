@@ -1,5 +1,4 @@
-export { TenantProvider, TenantContext, type Tenant, type TenantContextValue } from './TenantProvider'
-export { useTenant } from './useTenant'
+export { useTenant, type Tenant } from './tenantStore'
 export { useBrandingStore } from './brandingStore'
 export {
   applyPalette,

@@ -1,10 +1,12 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Field } from '@/shared/ui/Field'
+import { FileDrop } from '@/shared/ui/FileDrop'
 import { SearchSelect } from '@/shared/ui/SearchSelect'
 import { isNameOnly } from '@/shared/lib/validators'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
+import { UploadIcon } from '../registerIcons'
 import type { OnboardingData } from '../../useOnboardingWizard'
 
 interface AddressPreferencesStepProps {
@@ -19,6 +21,8 @@ const BUILDING_RE = /^\d{4}$/ // e.g. 7201
 const ADDITIONAL_RE = /^\d{4}$/ // e.g. 2443
 const ZIP_RE = /^\d{5}$/ // e.g. 13315
 const UNIT_RE = /^\d{1,4}$/ // e.g. 12
+
+const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 
 /** Strip to digits and clamp to `max` — for the numeric national-address fields. */
 const digits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max)
@@ -46,7 +50,8 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
     isNameOnly(data.district) &&
     isNameOnly(data.city) &&
     ZIP_RE.test(data.zip) &&
-    UNIT_RE.test(data.unitNo)
+    UNIT_RE.test(data.unitNo) &&
+    data.addressCertificate.length > 0
 
   return (
     <StepFrame
@@ -148,6 +153,19 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               error={data.unitNo.length > 0 && !UNIT_RE.test(data.unitNo) ? { title: t('validation.unitNoInvalid') } : null}
             />
           </div>
+
+          {/* Same field the Review step shows — replacing it there and re-uploading here stay in sync. */}
+          <FileDrop
+            label={t('onboarding.address.certificate')}
+            required
+            prompt={t('onboarding.company.uploadPrompt')}
+            hint={t('onboarding.company.uploadHint')}
+            accept={UPLOAD_ACCEPT}
+            icon={<UploadIcon className="h-5 w-5" />}
+            fileName={data.addressCertificate || undefined}
+            onFile={(file) => patch({ addressCertificate: file?.name ?? '' })}
+            removeLabel={t('onboarding.company.remove')}
+          />
         </Section>
       </div>
     </StepFrame>

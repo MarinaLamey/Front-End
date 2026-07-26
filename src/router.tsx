@@ -1,16 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { LandingPage } from '@/features/marketing'
-import { PortalLayout } from '@/app/layouts/PortalLayout'
+import { PortalShell } from '@/app/layouts/PortalShell'
+import { ComingSoonPage } from '@/app/ComingSoonPage'
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { BUYER_PORTAL } from '@/app/portals'
 import { RequireAuth } from '@/platform/auth'
 import { LoginPage } from '@/features/auth'
 import { OnboardingPage } from '@/features/onboarding'
 import { PrivacyPolicyPage } from '@/features/legal/PrivacyPolicyPage'
-import { DashboardPage } from '@/features/dashboard'
-import { CataloguePage } from '@/features/catalogue'
-import { RfqListPage, RfqCreatePage } from '@/features/rfq'
-import { SettlementPage } from '@/features/settlement'
+import { TermsPage } from '@/features/legal/TermsPage'
+import { BuyerDashboardPage } from '@/features/dashboard'
+import { SubscriptionPlansPage, SubscriptionCheckoutPage } from '@/features/subscription'
+import { RfqCreatePage } from '@/features/rfq'
 import { ButtonShowcase } from '@/dev/ButtonShowcase'
 import { InputShowcase } from '@/dev/InputShowcase'
 import { FieldShowcase } from '@/dev/FieldShowcase'
@@ -24,21 +25,28 @@ export const router = createBrowserRouter([
 
   // Public legal document.
   { path: '/privacy', element: <PrivacyPolicyPage /> },
+  { path: '/terms', element: <TermsPage /> },
 
-  // Buyer portal (auth-gated).
+  // Buyer portal (auth-gated). VerificationProvider drives the pending/verified/rejected states.
   {
     path: '/buyer',
     element: (
       <RequireAuth>
-        <PortalLayout portal={BUYER_PORTAL} />
+        <PortalShell portal={BUYER_PORTAL} />
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <DashboardPage /> },
-      { path: 'catalogue', element: <CataloguePage /> },
-      { path: 'rfqs', element: <RfqListPage /> },
+      { index: true, element: <BuyerDashboardPage /> },
+      { path: 'rfqs', element: <ComingSoonPage /> },
       { path: 'rfqs/new', element: <RfqCreatePage /> },
-      { path: 'settlement', element: <SettlementPage /> },
+      { path: 'bids', element: <ComingSoonPage /> },
+      { path: 'negotiations', element: <ComingSoonPage /> },
+      { path: 'orders', element: <ComingSoonPage /> },
+      { path: 'suppliers', element: <ComingSoonPage /> },
+      { path: 'documents', element: <ComingSoonPage /> },
+      { path: 'analytics', element: <ComingSoonPage /> },
+      { path: 'subscription', element: <SubscriptionPlansPage /> },
+      { path: 'subscription/checkout', element: <SubscriptionCheckoutPage /> },
     ],
   },
 

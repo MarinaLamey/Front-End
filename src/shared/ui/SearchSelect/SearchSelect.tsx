@@ -15,6 +15,8 @@ interface SearchSelectProps {
   searchPlaceholder?: string
   /** Shown when the query matches no option. */
   emptyLabel?: string
+  /** Hide the search box (short fixed lists like a role picker). Default true. */
+  searchable?: boolean
   error?: UiError | null
   success?: boolean
 }
@@ -70,6 +72,7 @@ export function SearchSelect({
   placeholder,
   searchPlaceholder,
   emptyLabel = 'No results',
+  searchable = true,
   error = null,
   success = false,
 }: SearchSelectProps) {
@@ -162,6 +165,10 @@ export function SearchSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : openPanel())}
+        // Without a search box, focus stays on the trigger — drive ↑/↓/Enter from here.
+        onKeyDown={(event) => {
+          if (open && !searchable) onSearchKeyDown(event)
+        }}
         className={cn(
           'flex h-10 w-full items-center gap-2 rounded-lg bg-bg-surface px-3 text-start outline outline-1 [outline-offset:-1px] transition-colors',
           success
@@ -186,23 +193,25 @@ export function SearchSelect({
             style={{ position: 'absolute', top: rect.top, left: rect.left, width: rect.width }}
             className="z-[100] origin-top rounded-xl border border-border-subtle bg-bg-surface p-1 shadow-xl motion-safe:animate-card-in"
           >
-            <div className="flex items-center gap-2 rounded-lg bg-bg-surface-sunken px-2.5 py-2">
-              <SearchIcon className="h-4 w-4 shrink-0 text-content-tertiary" />
-              <input
-                autoFocus
-                type="text"
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value)
-                  setActive(0)
-                }}
-                onKeyDown={onSearchKeyDown}
-                placeholder={searchPlaceholder}
-                className="w-full bg-transparent text-sm text-content-primary outline-none placeholder:text-content-tertiary"
-              />
-            </div>
+            {searchable && (
+              <div className="flex items-center gap-2 rounded-lg bg-bg-surface-sunken px-2.5 py-2">
+                <SearchIcon className="h-4 w-4 shrink-0 text-content-tertiary" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={query}
+                  onChange={(event) => {
+                    setQuery(event.target.value)
+                    setActive(0)
+                  }}
+                  onKeyDown={onSearchKeyDown}
+                  placeholder={searchPlaceholder}
+                  className="w-full bg-transparent text-sm text-content-primary outline-none placeholder:text-content-tertiary"
+                />
+              </div>
+            )}
 
-            <ul role="listbox" className="mt-1 max-h-60 overflow-auto">
+            <ul role="listbox" className={cn('max-h-60 overflow-auto', searchable && 'mt-1')}>
               {filtered.length === 0 ? (
                 <li className="px-3 py-6 text-center text-sm text-content-tertiary">{emptyLabel}</li>
               ) : (

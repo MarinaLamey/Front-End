@@ -6,8 +6,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MOBILE_RE = /^(?:\+9665\d{8}|05\d{8}|5\d{8})$/
 
 interface UseForgotPasswordOptions {
-  /** The reset code has been "sent" → advance to the OTP step, carrying the destination. */
-  onCodeSent: (destination: string) => void
+  /**
+   * The reset code has been "sent" → advance to the OTP step, carrying the destination and the
+   * channel it went to (the OTP screen needs the channel to size the code: SMS 4, email 6).
+   */
+  onCodeSent: (destination: string, channel: ResetChannel) => void
 }
 
 /** State for the reset-request card, with no markup. */
@@ -46,7 +49,7 @@ export function useForgotPassword({ onCodeSent }: UseForgotPasswordOptions): Use
     const destination = channel === 'email' ? email : mobile
     window.setTimeout(() => {
       setIsSending(false)
-      onCodeSent(destination)
+      onCodeSent(destination, channel)
     }, 700)
   }
 

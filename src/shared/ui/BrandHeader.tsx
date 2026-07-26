@@ -23,9 +23,9 @@ export function BrandHeader({ title, subtitle, media, centered = false }: BrandH
     <>
       {/* In a flex column an <img> won't sit at the start on its own — pin it there unless the
           frame is the centered (success) variant, where the parent's items-center takes over. */}
-      <BrandLogo className={cn('h-[70px] w-auto', !centered && 'self-start')} />
-      {media && <div className="mt-6">{media}</div>}
-      {title && <h1 className="mt-4 text-2xl font-semibold leading-8 text-content-primary">{title}</h1>}
+      <BrandLogo className={cn('h-[60px] w-auto', !centered && 'self-start')} />
+      {media && <div className="mt-5">{media}</div>}
+      {title && <h1 className="mt-3 text-2xl font-semibold leading-8 text-content-primary">{title}</h1>}
       {subtitle && (  
         <p className={cn('mt-1.5 text-base text-content-secondary', centered && 'max-w-sm')}>{subtitle}</p>
       )}

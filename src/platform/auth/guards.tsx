@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { useAuth } from './useAuth'
+import { useAuth } from './authStore'
 import type { Role } from './roles'
 
 /** Gate a route on authentication. Client-side only — the BFF re-authorizes too. */

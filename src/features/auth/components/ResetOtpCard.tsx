@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/ui/Button'
-import { OtpField, useOtp, formatCountdown } from '@/shared/ui/OtpField'
+import { OtpField, useOtp, formatCountdown, otpLengthFor } from '@/shared/ui/OtpField'
 import { AuthFormFrame } from './AuthFormFrame'
+import type { ResetChannel } from '../useForgotPassword'
 
-const DEMO_CODE = '1234'
+/** Mock codes — the SMS code is 4 digits, the email code 6 (matches the backend contract). */
+const DEMO_CODE = { sms: '1234', email: '123456' } as const
 
 interface ResetOtpCardProps {
   /** Where the code was sent (email or mobile) — shown in the subtitle. */
   destination: string
+  /** Which channel it went to — sizes the code (SMS 4 digits, email 6). */
+  channel: ResetChannel
   /** Code verified → go to choose-new-password. */
   onVerified: () => void
   /** Back to the reset-request step. */
@@ -16,13 +20,15 @@ interface ResetOtpCardProps {
 }
 
 /** Reset step 2 — verify the code sent to the chosen destination (mock: accepts 123456). */
-export function ResetOtpCard({ destination, onVerified, onBack }: ResetOtpCardProps) {
+export function ResetOtpCard({ destination, channel, onVerified, onBack }: ResetOtpCardProps) {
   const { t } = useTranslation()
   const [error, setError] = useState<string | null>(null)
+  const length = otpLengthFor(channel)
 
   const otp = useOtp({
+    length,
     onVerify: (code) => {
-      if (code !== DEMO_CODE) {
+      if (code !== DEMO_CODE[channel]) {
         setError(t('onboarding.verify.invalid'))
         return
       }
@@ -42,7 +48,7 @@ export function ResetOtpCard({ destination, onVerified, onBack }: ResetOtpCardPr
   }
 
   return (
-    <AuthFormFrame title={t('auth.otpVerifyTitle')} subtitle={t('auth.otpSubtitle', { destination })}>
+    <AuthFormFrame title={t('auth.otpVerifyTitle')} subtitle={t('auth.otpSubtitle', { destination, length })}>
       <form
         onSubmit={(event) => {
           event.preventDefault()
@@ -52,6 +58,7 @@ export function ResetOtpCard({ destination, onVerified, onBack }: ResetOtpCardPr
       >
         <OtpField
           label={t('auth.otpLabel')}
+          length={length}
           autoFocus
           value={otp.code}
           onChange={(digits) => {

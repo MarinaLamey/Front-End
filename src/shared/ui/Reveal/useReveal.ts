@@ -35,16 +35,16 @@ export interface UseRevealResult {
  */
 export function useReveal({ delay = 0, from = 'up' }: UseRevealOptions): UseRevealResult {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+  // Reduced motion → start visible. Resolving it in the initialiser (rather than setting state
+  // from the effect) avoids a cascading re-render, and skips the observer entirely.
+  const [visible, setVisible] = useState(
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
 
   useEffect(() => {
+    if (visible) return
     const element = ref.current
     if (!element) return
-
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setVisible(true)
-      return
-    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -59,7 +59,7 @@ export function useReveal({ delay = 0, from = 'up' }: UseRevealOptions): UseReve
     )
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [visible])
 
   return {
     ref,

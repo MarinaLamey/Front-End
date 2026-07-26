@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/ui/Button'
 import { Field } from '@/shared/ui/Field'
 import { cleanMobile, isSaudiMobile } from '@/shared/lib/validators'
-import { OtpField, formatCountdown } from '@/shared/ui/OtpField'
+import { OtpField, formatCountdown, SMS_OTP_LENGTH } from '@/shared/ui/OtpField'
 import { TracingBorder } from '@/shared/ui/TracingBorder'
 import type { LoginResult } from '@/platform/api'
 import { AuthFormFrame } from './AuthFormFrame'
@@ -23,7 +23,7 @@ export function PhoneLoginCard({ onAuthenticated, onBack }: PhoneLoginCardProps)
     return (
       <AuthFormFrame
         title={t('auth.verifyPhoneTitle')}
-        subtitle={t('auth.otpSubtitle', { destination: phone.mobile })}
+        subtitle={t('auth.otpSubtitle', { destination: phone.mobile, length: SMS_OTP_LENGTH })}
       >
         <form
           onSubmit={(event) => {
@@ -34,6 +34,7 @@ export function PhoneLoginCard({ onAuthenticated, onBack }: PhoneLoginCardProps)
         >
           <OtpField
             label={t('auth.otpLabel')}
+            length={SMS_OTP_LENGTH}
             autoFocus
             value={phone.code}
             onChange={phone.setCode}

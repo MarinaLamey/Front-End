@@ -17,15 +17,16 @@ interface StepFrameProps {
  */
 export function StepFrame({ title, subtitle, children, footer }: StepFrameProps) {
   return (
-    // The card is a fixed height (SplitShell); the body fills the space above the pinned footer
-    // and CENTERS its content vertically, so short steps don't leave a gap. No inner scroll.
+    // The card is a fixed height (SplitShell); content is TOP-aligned so the logo/header sit at
+    // the same position on every step regardless of how many fields the step has (a step with
+    // fewer inputs just leaves space above the pinned footer). No inner scroll.
     <div className="flex h-full min-h-[560px] flex-col">
-      <div className="auth-stagger flex min-h-0 flex-1 flex-col justify-center px-6 py-6 sm:px-10 sm:py-8 lg:px-12">
+      <div className="auth-stagger flex-1 px-6 py-5 sm:px-10 lg:px-12">
         <BrandHeader title={title} subtitle={subtitle} />
-        <div className="mt-6">{children}</div>
+        <div className="mt-4">{children}</div>
       </div>
 
-      {footer && <div className="shrink-0 border-t border-border-subtle px-6 py-4 sm:px-10 lg:px-12">{footer}</div>}
+      {footer && <div className="shrink-0 border-t border-border-subtle px-6 py-3.5 sm:px-10 lg:px-12">{footer}</div>}
     </div>
   )
 }

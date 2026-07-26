@@ -9,7 +9,7 @@ import { useForgotPassword, type ResetChannel } from '../useForgotPassword'
 
 interface ForgotPasswordCardProps {
   /** Code "sent" → go to the OTP step with the destination it went to. */
-  onCodeSent: (destination: string) => void
+  onCodeSent: (destination: string, channel: ResetChannel) => void
   /** Back to the main sign-in card. */
   onBack: () => void
 }

@@ -20,14 +20,15 @@ interface AuthFormFrameProps {
  */
 export function AuthFormFrame({ title, subtitle, centered = false, media, children }: AuthFormFrameProps) {
   return (
-    // Content-height (no inner scroll): fills the card and vertically centers the short auth
-    // content, with a min-height baseline. If content ever exceeds the viewport, the page scrolls.
+    // Content is TOP-aligned so the logo/header sit at the same position on every auth screen
+    // regardless of how many fields it has. The `centered` success screen is the exception —
+    // it centers both axes. No inner scroll; a min-height baseline keeps short screens tall.
     <div
       className={cn(
         // w-full + max-w caps the form narrow; mx-auto centers it in the (wider) form column.
         // auth-stagger cascades the logo → title → subtitle → form in on mount / step change.
-        'auth-stagger mx-auto flex h-full min-h-[560px] w-full max-w-[500px] flex-col justify-center px-6 py-10 sm:px-10',
-        centered && 'items-center text-center',
+        'auth-stagger mx-auto flex h-full min-h-[560px] w-full max-w-[500px] flex-col px-6 py-6 sm:px-10',
+        centered && 'items-center justify-center text-center',
       )}
     >
       <BrandHeader title={title} subtitle={subtitle} media={media} centered={centered} />

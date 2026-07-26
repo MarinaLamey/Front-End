@@ -1,54 +1,13 @@
-import { type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
-import { BrandLogo } from '@/shared/ui/BrandLogo'
-
-/** A titled policy section: numbered heading + its body (paragraphs / bullet lists). */
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold text-content-primary">{title}</h2>
-      <div className="flex flex-col gap-2 text-sm leading-6 text-content-secondary">{children}</div>
-    </section>
-  )
-}
-
-/** Bulleted list from an array of nodes. */
-function List({ items }: { items: ReactNode[] }) {
-  return (
-    <ul className="flex list-disc flex-col gap-2 ps-5 marker:text-content-tertiary">
-      {items.map((item, i) => (
-        <li key={i}>{item}</li>
-      ))}
-    </ul>
-  )
-}
+import { LegalPage, Section, List } from './LegalDocument'
 
 /**
  * PrivacyPolicyPage — the MI Technology privacy policy, rendered in-app at `/privacy`.
- * A standalone public document page (its own header + back link); opened in a new tab from the
- * register agree-terms link so a user in the wizard never loses their progress.
+ * A standalone public document (see {@link LegalPage}); opened in a new tab from the register
+ * agree-terms link so a user in the wizard never loses their progress.
  */
 export function PrivacyPolicyPage() {
   return (
-    // dir="ltr": the policy text is English-only, so it must read left-to-right even when the
-    // app is in Arabic (otherwise the document inherits RTL and the punctuation/numbering flips).
-    <div dir="ltr" className="min-h-screen bg-bg-canvas">
-      <header className="sticky top-0 z-10 border-b border-border-subtle bg-bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link to="/" aria-label="mimony home">
-            <BrandLogo className="h-10 w-auto" />
-          </Link>
-          <Link to="/" className="text-sm font-medium text-content-link hover:text-content-link-hover">
-            ← Back to home
-          </Link>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <h1 className="text-3xl font-bold text-content-primary">Privacy Policy for MI Technology</h1>
-        <p className="mt-2 text-sm text-content-tertiary">Last Updated: July 14, 2026</p>
-
-        <div className="mt-8 flex flex-col gap-8">
+    <LegalPage title="Privacy Policy for MI Technology" updated="July 14, 2026">
           <Section title="1. Preface">
             <List
               items={[
@@ -210,8 +169,6 @@ export function PrivacyPolicyPage() {
               <span className="font-medium text-content-primary">Address:</span> Dammam, Kingdom of Saudi Arabia
             </p>
           </Section>
-        </div>
-      </main>
-    </div>
+    </LegalPage>
   )
 }

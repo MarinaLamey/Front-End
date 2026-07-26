@@ -37,6 +37,7 @@ export function LoginPage() {
       {flow.step === 'resetOtp' && (
         <ResetOtpCard
           destination={flow.resetDestination}
+          channel={flow.resetChannel}
           onVerified={flow.resetOtpVerified}
           onBack={flow.backToForgot}
         />

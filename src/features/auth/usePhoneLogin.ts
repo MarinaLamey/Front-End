@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { api, toUiError, type LoginResult } from '@/platform/api'
 import type { UiError } from '@/shared/ui/types'
-import { useOtp } from '@/shared/ui/OtpField'
+import { useOtp, SMS_OTP_LENGTH } from '@/shared/ui/OtpField'
 
 interface UsePhoneLoginOptions {
   /** Called with the resolved session once the OTP is verified. */
@@ -45,7 +45,8 @@ export function usePhoneLogin({ onAuthenticated }: UsePhoneLoginOptions): UsePho
   const [mobile, setMobile] = useState('')
   const [orgId, setOrgId] = useState<string | null>(null)
 
-  const otp = useOtp()
+  // Phone login is always an SMS code → 4 digits.
+  const otp = useOtp({ length: SMS_OTP_LENGTH })
 
   const requestMutation = useMutation({
     mutationFn: () => api.requestLoginOtp(mobile),

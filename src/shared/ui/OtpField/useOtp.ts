@@ -1,7 +1,19 @@
 import { useEffect, useState } from 'react'
 
+/**
+ * Code length by delivery channel — the backend sends a 4-digit SMS code and a 6-digit email
+ * code, so every OTP screen derives its length from the channel it's verifying rather than
+ * hard-coding a number.
+ */
+export const SMS_OTP_LENGTH = 4
+export const EMAIL_OTP_LENGTH = 6
+
+/** Digits expected for a channel: SMS/mobile → 4, email → 6. */
+export const otpLengthFor = (channel: 'sms' | 'email') =>
+  channel === 'email' ? EMAIL_OTP_LENGTH : SMS_OTP_LENGTH
+
 interface UseOtpOptions {
-  /** Number of digits (default 4). */
+  /** Number of digits (default 4 — an SMS code). */
   length?: number
   /** Resend cooldown window in seconds (default 30). */
   resendSeconds?: number

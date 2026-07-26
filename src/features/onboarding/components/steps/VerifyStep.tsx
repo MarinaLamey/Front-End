@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/lib/cn'
-import { OtpField, useOtp } from '@/shared/ui/OtpField'
+import { OtpField, useOtp, otpLengthFor } from '@/shared/ui/OtpField'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
 import { CheckIcon, LockIcon } from '../registerIcons'
@@ -21,7 +21,8 @@ const CHANNELS: { id: Channel; labelKey: string }[] = [
   { id: 'email', labelKey: 'onboarding.verify.emailTab' },
 ]
 
-const DEMO_CODE = '1234'
+/** Mock codes — the SMS code is 4 digits, the email code 6 (matches the backend contract). */
+const DEMO_CODE = { phone: '1234', email: '123456' } as const
 
 /** Pause after a correct phone code so its green success reads before the email tab takes over. */
 const HANDOVER_MS = 700
@@ -47,7 +48,9 @@ export function VerifyStep({ data, patch, onNext, onBack }: VerifyStepProps) {
   // Bumped on a wrong code / channel switch → remounts OtpField, clearing the boxes and
   // refocusing the first.
   const [attempt, setAttempt] = useState(0)
-  const otp = useOtp()
+  // SMS codes are 4 digits, email codes 6 — the field and its completeness follow the channel.
+  const length = otpLengthFor(channel === 'phone' ? 'sms' : 'email')
+  const otp = useOtp({ length })
 
   const verified = channel === 'phone' ? data.phoneVerified : data.emailVerified
   const destination = channel === 'phone' ? maskMobile(data.mobile) : data.email || 'your email'
@@ -68,7 +71,7 @@ export function VerifyStep({ data, patch, onNext, onBack }: VerifyStepProps) {
     // Mock verification — a short delay drives the synchronized loader, then 1234 passes.
     window.setTimeout(() => {
       setVerifying(false)
-      if (code !== DEMO_CODE) {
+      if (code !== DEMO_CODE[channel]) {
         setError(t('onboarding.verify.invalid'))
         otp.setCode('') // wipe what the user typed…
         setAttempt((n) => n + 1) // …and refocus the first cell for a fresh try.
@@ -133,11 +136,12 @@ export function VerifyStep({ data, patch, onNext, onBack }: VerifyStepProps) {
         </div>
 
         <p className="text-sm text-content-tertiary">
-          {t(`onboarding.verify.sentTo${channel === 'phone' ? 'Phone' : 'Email'}`, { destination })}
+          {t(`onboarding.verify.sentTo${channel === 'phone' ? 'Phone' : 'Email'}`, { destination, length })}
         </p>
 
         <OtpField
           key={`${channel}-${attempt}`}
+          length={length}
           autoFocus
           value={otp.code}
           onChange={(digits) => {

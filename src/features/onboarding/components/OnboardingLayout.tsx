@@ -13,18 +13,21 @@ interface OnboardingLayoutProps {
   allDone?: boolean
   /** Mark the final rail step as failed (KYC "needs attention"). */
   rejected?: boolean
-  /** Replace the step rail with a custom panel (e.g. the Review / Pending summary). */
+  /** Replace the step rail with a custom panel (e.g. the KYC-pending summary). */
   panel?: ReactNode
+  /** No panel at all — a full-width, content-height card (the editable Review step). */
+  fullWidth?: boolean
   children: ReactNode
 }
 
 /**
  * OnboardingLayout — the registration/KYC shell. It's just {@link SplitShell} with the
  * language + theme controls in the top bar and, by default, the {@link OnboardingStepper} as
- * the panel — the Review and KYC-pending screens pass their own `panel` instead. Sign-in
- * reuses the very same SplitShell via AuthShell, so the card lives in one place.
+ * the panel — the KYC-pending screen passes its own `panel`, and the editable Review step
+ * drops the panel entirely (`fullWidth`). Sign-in reuses the very same SplitShell via
+ * AuthShell, so the card lives in one place.
  */
-export function OnboardingLayout({ current, allDone, rejected, panel, children }: OnboardingLayoutProps) {
+export function OnboardingLayout({ current, allDone, rejected, panel, fullWidth = false, children }: OnboardingLayoutProps) {
   return (
     <SplitShell
       topBar={
@@ -33,7 +36,7 @@ export function OnboardingLayout({ current, allDone, rejected, panel, children }
           <ThemeToggle />
         </>
       }
-      aside={panel ?? <OnboardingStepper current={current} allDone={allDone} rejected={rejected} />}
+      aside={fullWidth ? undefined : (panel ?? <OnboardingStepper current={current} allDone={allDone} rejected={rejected} />)}
       asideClassName={cn('w-[435px]', BRAND_PANEL_GRADIENT)}
     >
       {children}

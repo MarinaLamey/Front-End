@@ -70,6 +70,12 @@
   --color-status-danger: var(--status-danger, var(--mp-status-danger));
   --color-status-danger-hover: var(--status-danger-hover, var(--mp-status-danger-hover));
   --color-status-danger-subtle: var(--mp-status-danger-subtle);
+  /* Strong status text/icon — the darker on-surface variants (·/700 light, ·/300 dark),
+     readable on the matching subtle surface. Used for verification status (pill, banner,
+     document rows) so text + icon stay legible and consistent. */
+  --color-status-success-strong: var(--mp-text-success);
+  --color-status-warning-strong: var(--mp-text-warning);
+  --color-status-danger-strong: var(--mp-text-danger);
   --color-status-danger-on: var(--status-danger-on, #ffffff);
   --color-status-info: var(--mp-status-info);
   --color-status-info-subtle: var(--mp-status-info-subtle);
@@ -242,6 +248,21 @@
   --mp-interactive-hover: rgba(255, 255, 255, 0.08);
   --mp-interactive-active: rgba(255, 255, 255, 0.12);
   --mp-interactive-selected: rgba(20, 184, 166, 0.16);
+}
+
+/* Neutralise the browser autofill styling. On reload with saved credentials Chrome paints
+   its own (grey/yellow) background on the email + password inputs; the inset box-shadow
+   trick keeps the field's real surface colour and text, and the long transition stops the
+   autofill colour from flashing back in. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-bg-surface) inset;
+  box-shadow: 0 0 0 1000px var(--color-bg-surface) inset;
+  -webkit-text-fill-color: var(--color-content-primary);
+  caret-color: var(--color-content-primary);
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 @keyframes mp-float {
@@ -486,6 +507,15 @@ html,
 body,
 #root {
   height: 100%;
+}
+
+/* Paint the page background with the app canvas so any area beyond the min-h-screen shell
+   (e.g. when a portaled dropdown grows the document and it scrolls) matches the rest of the
+   screen instead of showing the bare white body. Theme-aware via the token; paint-only, so
+   no layout/reflow/re-render cost. */
+html,
+body {
+  background-color: var(--color-bg-canvas);
 }
 
 /* Theme switch — the whole UI crossfades between palettes via the View Transitions API

@@ -60,8 +60,13 @@ function loadGsi(): Promise<void> {
  */
 export function useGoogleSignIn(onSuccess: (user: GoogleUser) => void) {
   const clientRef = useRef<TokenClient | null>(null)
+  // Latest-ref pattern: the GSI callback is created once but must always call the CURRENT
+  // handler. Assigning in an effect (not during render) keeps render side-effect free — the
+  // ref is only ever read from the async callback, long after commit.
   const onSuccessRef = useRef(onSuccess)
-  onSuccessRef.current = onSuccess
+  useEffect(() => {
+    onSuccessRef.current = onSuccess
+  }, [onSuccess])
 
   const isConfigured = Boolean(getConfig().googleClientId)
 

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/platform/auth'
+import { useTenant } from '@/platform/tenancy'
 import { OnboardingLayout } from './components/OnboardingLayout'
 import { AccountDetailsStep } from './components/steps/AccountDetailsStep'
 import { VerifyStep } from './components/steps/VerifyStep'
@@ -7,24 +8,28 @@ import { CompanyDetailsStep } from './components/steps/CompanyDetailsStep'
 import { TaxDetailsStep } from './components/steps/TaxDetailsStep'
 import { AddressPreferencesStep } from './components/steps/AddressPreferencesStep'
 import { ReviewStep } from './components/steps/ReviewStep'
-import { KycScreen } from './components/KycScreen'
-import { OnboardingSummaryPanel } from './components/OnboardingSummaryPanel'
+import { PlansStep } from './components/PlansStep'
 import { ResumePrompt } from './components/ResumePrompt'
 import { useOnboardingWizard, rolesFor } from './useOnboardingWizard'
 
 /**
- * OnboardingPage — the 6-step registration wizard + KYC outcome. The OnboardingLayout
- * (progress rail + chrome) stays mounted; only the left content swaps as the step / KYC
- * state changes. Flow: Account → Verify (phone + email) → Company → Tax → Address → Review.
+ * OnboardingPage — the 6-step registration wizard + the Plans screen. The OnboardingLayout
+ * (progress rail + chrome) stays mounted; only the left content swaps as the step changes.
+ * Flow: Account → Verify (phone + email) → Company → Tax → Address → Review → Plans
+ * (verification continues in the background — there are no KYC outcome screens).
  */
 export function OnboardingPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { setTenant } = useTenant()
   const wizard = useOnboardingWizard()
 
   const goToDashboard = () => {
     const primary = rolesFor(wizard.data.role)[0]
-    login(primary)
+    // Carry the real name/org captured in the wizard into the session so the portal shows the
+    // actual signed-in person and organisation (no placeholder user).
+    setTenant({ name: wizard.data.orgName })
+    login(primary, { name: wizard.data.fullName, email: wizard.data.email })
     navigate(`/${primary}`)
   }
 
@@ -37,25 +42,11 @@ export function OnboardingPage() {
     )
   }
 
-  // Once submitted, the same shell shows the KYC outcome.
-  if (wizard.kyc) {
+  // Once submitted → the Plans screen (full-width, like Review); review runs in the background.
+  if (wizard.completed) {
     return (
-      <OnboardingLayout
-        current={6}
-        allDone={wizard.kyc !== 'rejected'}
-        rejected={wizard.kyc === 'rejected'}
-        // Pending shows the "Under review" summary; approved/rejected keep the step rail.
-        panel={wizard.kyc === 'pending' ? <OnboardingSummaryPanel variant="review" /> : undefined}
-      >
-        <KycScreen
-          status={wizard.kyc}
-          onGoToDashboard={goToDashboard}
-          onPreview={wizard.setKyc}
-          onResubmit={() => {
-            wizard.setKyc(null)
-            wizard.goTo(3)
-          }}
-        />
+      <OnboardingLayout current={6} fullWidth>
+        <PlansStep onGoToDashboard={goToDashboard} />
       </OnboardingLayout>
     )
   }
@@ -63,8 +54,8 @@ export function OnboardingPage() {
   return (
     <OnboardingLayout
       current={wizard.step}
-      // The Review step (6) swaps the rail for the "all steps complete" summary.
-      panel={wizard.step === 6 ? <OnboardingSummaryPanel variant="complete" /> : undefined}
+      // The editable Review step (6) is a full-width card — no rail, no side panel.
+      fullWidth={wizard.step === 6}
     >
       {wizard.step === 1 && <AccountDetailsStep data={wizard.data} patch={wizard.patch} onNext={wizard.next} />}
       {wizard.step === 2 && (
@@ -82,7 +73,7 @@ export function OnboardingPage() {
       {wizard.step === 6 && (
         <ReviewStep
           data={wizard.data}
-          onEdit={wizard.goTo}
+          patch={wizard.patch}
           onSubmit={wizard.submit}
           isSubmitting={wizard.isSubmitting}
           submitError={wizard.submitError}

@@ -6,7 +6,6 @@ import type { UiError } from '@/shared/ui/types'
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6
 /** Account type. 'supplier' is labelled "Seller" in the UI. */
 export type RegisterRole = 'buyer' | 'supplier' | 'both'
-export type KycStatus = 'pending' | 'approved' | 'rejected'
 
 /** Everything collected across the six steps; submitted at Review. */
 export interface OnboardingData {
@@ -27,7 +26,8 @@ export interface OnboardingData {
   crCertificate: string
   vat: string
   vatCertificate: string
-  // Step 5 — Address details
+  // Step 5 — Address details. The certificate is optional and uploaded from the Review step.
+  addressCertificate: string
   buildingNo: string
   additionalNo: string
   street: string
@@ -53,6 +53,7 @@ const INITIAL_DATA: OnboardingData = {
   crCertificate: '',
   vat: '',
   vatCertificate: '',
+  addressCertificate: '',
   buildingNo: '',
   additionalNo: '',
   street: '',
@@ -125,14 +126,12 @@ export interface UseOnboardingWizardResult {
   patch: (partial: Partial<OnboardingData>) => void
   next: () => void
   back: () => void
-  goTo: (step: WizardStep) => void
-  /** Submit at Review → creates the org → moves to the KYC outcome. */
+  /** Submit at Review → creates the org → moves to the Plans screen. */
   submit: () => void
   isSubmitting: boolean
   submitError: UiError | null
-  /** Non-null once submitted; drives the KYC outcome screen. */
-  kyc: KycStatus | null
-  setKyc: (status: KycStatus | null) => void
+  /** True once submitted — the flow shows the Plans screen. */
+  completed: boolean
   /** A saved draft exists → show the Resume / Start-over prompt before the wizard. */
   resumeAvailable: boolean
   /** The step the saved draft was left on (for the rail on the resume prompt). */
@@ -146,10 +145,10 @@ export interface UseOnboardingWizardResult {
 /**
  * useOnboardingWizard — the registration wizard's state, with no markup.
  *
- * Holds the data collected across all six steps (Account → Verify phone → Verify email →
- * Company → Address → Review) and the current step; steps read/patch it. Review submits
- * everything via the mock/BFF `completeRegistration`, then the flow shows the KYC outcome
- * (pending by default; the demo can preview approved/rejected).
+ * Holds the data collected across the six steps (Account → Verify → Company → Tax → Address →
+ * Review) and the current step; steps read/patch it. Review submits everything via the
+ * mock/BFF `completeRegistration`, then the flow shows the Plans screen (verification runs
+ * in the background).
  */
 export function useOnboardingWizard(): UseOnboardingWizardResult {
   // Read any saved draft once, at mount, before the persist effect can overwrite it.
@@ -161,17 +160,17 @@ export function useOnboardingWizard(): UseOnboardingWizardResult {
 
   const [step, setStep] = useState<WizardStep>(1)
   const [data, setData] = useState<OnboardingData>(INITIAL_DATA)
-  const [kyc, setKyc] = useState<KycStatus | null>(null)
+  const [completed, setCompleted] = useState(false)
 
   // Persist progress as they go — once the resume choice is made and before submission.
   useEffect(() => {
-    if (!resumeResolved || kyc) return
+    if (!resumeResolved || completed) return
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, data }))
     } catch {
       /* storage unavailable — ignore */
     }
-  }, [step, data, resumeResolved, kyc])
+  }, [step, data, resumeResolved, completed])
 
   const patch: UseOnboardingWizardResult['patch'] = (partial) =>
     setData((prev) => ({ ...prev, ...partial }))
@@ -195,10 +194,10 @@ export function useOnboardingWizard(): UseOnboardingWizardResult {
         expiryDate: '',
         productCategories: data.categories,
       }),
-    // Registration submitted → the draft is done.
+    // Registration submitted → the draft is done; the flow moves to the Plans screen.
     onSuccess: () => {
       clearDraft()
-      setKyc('pending')
+      setCompleted(true)
     },
   })
 
@@ -208,12 +207,10 @@ export function useOnboardingWizard(): UseOnboardingWizardResult {
     patch,
     next: () => setStep((s) => clampStep(s + 1)),
     back: () => setStep((s) => clampStep(s - 1)),
-    goTo: (target) => setStep(target),
     submit: () => submitMutation.mutate(),
     isSubmitting: submitMutation.isPending,
     submitError: submitMutation.error ? toUiError(submitMutation.error) : null,
-    kyc,
-    setKyc,
+    completed,
     resumeAvailable,
     resumeStep: savedDraft?.step ?? 1,
     resume: () => {

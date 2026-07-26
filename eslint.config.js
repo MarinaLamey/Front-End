@@ -18,5 +18,19 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // Honour the `_` prefix as "intentionally unused" — e.g. a mock that keeps a parameter
+      // the real implementation will need, so the signature stays honest.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          // Destructuring a prop purely to keep it OUT of `...rest` is deliberate, not dead code.
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
   },
 ])

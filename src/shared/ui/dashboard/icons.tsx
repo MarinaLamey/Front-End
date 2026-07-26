@@ -1,0 +1,262 @@
+/* ────────────────────────────────────────────────────────────────────────────
+ * Dashboard icon set — the line icons used across the portal shell and the
+ * dashboard kit (nav, stat tiles, list rows, quick actions). All 24×24, drawn
+ * with `currentColor` so they inherit text colour and theme automatically.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+interface IconProps {
+  className?: string
+}
+
+function Svg({ className, children }: IconProps & { children: React.ReactNode }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      {children}
+    </svg>
+  )
+}
+
+/* ── Sidebar nav ──────────────────────────────────────────────────────────── */
+
+export function GridIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </Svg>
+  )
+}
+
+export function FileIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+    </Svg>
+  )
+}
+
+export function ChecklistIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="4" y="4" width="16" height="16" rx="2.5" />
+      <path d="m8.5 12 2 2 4-4.5" />
+    </Svg>
+  )
+}
+
+export function ChatIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z" />
+    </Svg>
+  )
+}
+
+export function BoxIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M21 8 12 3 3 8v8l9 5 9-5V8z" />
+      <path d="m3 8 9 5 9-5M12 13v8" />
+    </Svg>
+  )
+}
+
+export function UsersIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11" />
+    </Svg>
+  )
+}
+
+export function ShieldDocIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="m9 12 2 2 4-4" />
+    </Svg>
+  )
+}
+
+export function ChartIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M3 3v18h18" />
+      <path d="m7 14 3-3 3 3 5-6" />
+    </Svg>
+  )
+}
+
+/* ── Topbar & misc ────────────────────────────────────────────────────────── */
+
+export function BellIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </Svg>
+  )
+}
+
+export function ChevronDownIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="m6 9 6 6 6-6" />
+    </Svg>
+  )
+}
+
+export function ArrowUpRightIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M7 17 17 7M8 7h9v9" />
+    </Svg>
+  )
+}
+
+export function PlusIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M12 5v14M5 12h14" />
+    </Svg>
+  )
+}
+
+export function LockIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </Svg>
+  )
+}
+
+export function RefreshIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+      <path d="M21 3v5h-5" />
+    </Svg>
+  )
+}
+
+export function EyeIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </Svg>
+  )
+}
+
+export function TruckIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z" />
+      <circle cx="7" cy="18" r="1.6" />
+      <circle cx="17.5" cy="18" r="1.6" />
+    </Svg>
+  )
+}
+
+export function BarsIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M6 20V10M12 20V4M18 20v-6" />
+    </Svg>
+  )
+}
+
+export function SparkleIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M12 3v4M12 17v4M5 12H1M23 12h-4M6.3 6.3 4 4M20 20l-2.3-2.3M6.3 17.7 4 20M20 4l-2.3 2.3" />
+      <circle cx="12" cy="12" r="2.5" />
+    </Svg>
+  )
+}
+
+export function BoltIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M13 2 4 14h6l-1 8 9-12h-6z" />
+    </svg>
+  )
+}
+
+export function ClockIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </Svg>
+  )
+}
+
+export function CheckCircleIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12 2.5 2.5 4.5-5" />
+    </Svg>
+  )
+}
+
+export function CreditCardIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+      <path d="M2.5 10h19" />
+    </Svg>
+  )
+}
+
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M20 6 9 17l-5-5" />
+    </Svg>
+  )
+}
+
+export function PercentBadgeIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 14 16 10" />
+      <path d="M9 9h.01M15 15h.01" />
+    </Svg>
+  )
+}
+
+export function XCircleIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15 9-6 6M9 9l6 6" />
+    </Svg>
+  )
+}
+
+export function AlertTriangleIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+      <path d="M12 9v4M12 17h.01" />
+    </Svg>
+  )
+}

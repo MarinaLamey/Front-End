@@ -12,8 +12,12 @@ export const BRAND_PANEL_GRADIENT =
 interface SplitShellProps {
   /** Top-right controls (language + theme). Omitted → no top bar. */
   topBar?: ReactNode
-  /** Right-panel content: the progress rail (register) or the marketing timeline (auth). */
-  aside: ReactNode
+  /**
+   * Right-panel content: the progress rail (register) or the marketing timeline (auth).
+   * Omit for a FULL-WIDTH card (e.g. the editable Review step): no panel, uniform corners,
+   * content-driven height.
+   */
+  aside?: ReactNode
   /** Width / gradient / extra classes for the gradient panel. */
   asideClassName?: string
   children: ReactNode
@@ -38,19 +42,27 @@ export function SplitShell({ topBar, aside, asideClassName, children }: SplitShe
       {/* items-start (not center) so the card sits DIRECTLY under the top bar with no gap — the
           same position on sign-in and register regardless of card height. */}
       <div className="flex flex-1 items-start mt-2   justify-center">
-        {/* Card shape from Figma: TL/BL 24, TR 0, BR 120 (the big sweep). Logical corners so
-            the sweep sits on the panel's far-bottom corner and flips in RTL.
-            Fixed height at lg (lg:h-[760px]) so the card is a constant size across every step /
-            screen instead of resizing to its content. Below lg the panel is hidden and the page
-            flows naturally. */}
-        <div className="flex w-full max-w-[500px] overflow-hidden rounded-ss-[24px] rounded-es-[24px] rounded-ee-[24px] border border-border-subtle bg-bg-surface shadow-[0px_25px_50px_rgba(16,24,40,0.25),0px_20px_25px_rgba(16,24,40,0.10)] motion-safe:animate-card-in lg:h-[760px] lg:max-w-[1024px] lg:rounded-ee-[120px]">
+        {/* With a panel: the Figma card shape (TL/BL 24, TR 0, BR 120 sweep — logical corners so
+            it flips in RTL) at a FIXED height (lg:h-[760px]) so the card is a constant size
+            across steps. Without a panel (full-width screens like the editable Review): uniform
+            24px corners and CONTENT height — the page scrolls if it's tall. */}
+        <div
+          className={cn(
+            'flex w-full max-w-[500px] overflow-hidden border border-border-subtle bg-bg-surface shadow-[0px_25px_50px_rgba(16,24,40,0.25),0px_20px_25px_rgba(16,24,40,0.10)] motion-safe:animate-card-in lg:max-w-[1024px]',
+            aside
+              ? 'rounded-ss-[24px] rounded-es-[24px] rounded-ee-[24px] lg:h-[760px] lg:rounded-ee-[120px]'
+              : 'rounded-[24px]',
+          )}
+        >
           {/* Form side — fills the fixed card height; its own body scrolls if content is tall. */}
           <div className="flex min-w-0 flex-1 flex-col">{children}</div>
 
           {/* Gradient panel — stretches to the card height; content vertically centered. */}
-          <aside className={cn('hidden shrink-0 p-10 lg:flex lg:items-center lg:rounded-ss-[120px]', asideClassName)}>
-            {aside}
-          </aside>
+          {aside && (
+            <aside className={cn('hidden shrink-0 p-10 lg:flex lg:items-center lg:rounded-ss-[120px]', asideClassName)}>
+              {aside}
+            </aside>
+          )}
         </div>
       </div>
     </div>

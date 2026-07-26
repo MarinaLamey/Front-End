@@ -182,6 +182,15 @@ export function AccountDetailsStep({ data, patch, onNext }: AccountDetailsStepPr
             <Trans
               i18nKey="auth.agreeTerms"
               components={{
+                terms: (
+                  <Link
+                    to="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(event) => event.stopPropagation()}
+                    className="font-medium text-content-link underline underline-offset-2 hover:text-content-link-hover"
+                  />
+                ),
                 privacy: (
                   <Link
                     to="/privacy"

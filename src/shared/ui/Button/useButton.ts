@@ -27,6 +27,11 @@ const styleConfig = {
       'bg-brand-secondary text-brand-secondary-on hover:bg-brand-secondary-hover focus-visible:ring-brand-secondary',
     ghost:
       'bg-transparent text-content-primary hover:bg-interactive-hover focus-visible:ring-interactive-hover',
+    // White surface, subtle border, brand-primary text/icon (e.g. "Check verification status").
+    // Theme-aware: `bg-surface` is white in light, the dark surface in dark. The 1px border is
+    // added here since the structural BASE is border-less.
+    outline:
+      'border border-border-subtle bg-bg-surface text-brand-primary hover:bg-bg-surface-sunken focus-visible:ring-brand-primary',
     danger:
       'bg-status-danger text-status-danger-on hover:bg-status-danger-hover focus-visible:ring-status-danger',
     link: 'bg-transparent text-content-link hover:text-content-link-hover focus-visible:ring-content-link',
