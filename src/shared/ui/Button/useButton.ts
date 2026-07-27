@@ -27,6 +27,9 @@ const styleConfig = {
       'bg-brand-secondary text-brand-secondary-on hover:bg-brand-secondary-hover focus-visible:ring-brand-secondary',
     ghost:
       'bg-transparent text-content-primary hover:bg-interactive-hover focus-visible:ring-interactive-hover',
+    // Neutral grey fill (#E2E8F0 light) — e.g. the locked "Create RFQ" CTA on the pending state.
+    neutral:
+      'bg-interactive-hover text-content-secondary hover:bg-interactive-active focus-visible:ring-interactive-active',
     // White surface, subtle border, brand-primary text/icon (e.g. "Check verification status").
     // Theme-aware: `bg-surface` is white in light, the dark surface in dark. The 1px border is
     // added here since the structural BASE is border-less.

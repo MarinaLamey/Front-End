@@ -4,12 +4,13 @@ import { PortalShell } from '@/app/layouts/PortalShell'
 import { ComingSoonPage } from '@/app/ComingSoonPage'
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { BUYER_PORTAL } from '@/app/portals'
-import { RequireAuth } from '@/platform/auth'
+import { RequireAuth, RequireRole } from '@/platform/auth'
 import { LoginPage } from '@/features/auth'
 import { OnboardingPage } from '@/features/onboarding'
 import { PrivacyPolicyPage } from '@/features/legal/PrivacyPolicyPage'
 import { TermsPage } from '@/features/legal/TermsPage'
 import { BuyerDashboardPage } from '@/features/dashboard'
+import { AdminShell, AdminVerificationsPage } from '@/features/admin'
 import { SubscriptionPlansPage, SubscriptionCheckoutPage } from '@/features/subscription'
 import { RfqCreatePage } from '@/features/rfq'
 import { ButtonShowcase } from '@/dev/ButtonShowcase'
@@ -47,6 +48,22 @@ export const router = createBrowserRouter([
       { path: 'analytics', element: <ComingSoonPage /> },
       { path: 'subscription', element: <SubscriptionPlansPage /> },
       { path: 'subscription/checkout', element: <SubscriptionCheckoutPage /> },
+    ],
+  },
+
+  // Super-admin (back-office) console — role-gated. Entered via `enterAdmin()` from the portal.
+  {
+    path: '/admin',
+    element: (
+      <RequireAuth>
+        <RequireRole role="SuperAdmin">
+          <AdminShell />
+        </RequireRole>
+      </RequireAuth>
+    ),
+    children: [
+      { index: true, element: <AdminVerificationsPage /> },
+      { path: 'verifications', element: <AdminVerificationsPage /> },
     ],
   },
 

@@ -1,6 +1,7 @@
 export const en = {
   common: {
     signOut: 'Sign Out',
+    cancel: 'Cancel',
     or: 'OR',
     loading: 'Loading…',
     comingSoon: 'UI coming soon',
@@ -103,6 +104,24 @@ export const en = {
     agree: 'By continuing, you agree to the',
     terms: 'Terms & Conditions.',
     confirm: 'Confirm subscription',
+  },
+  admin: {
+    badge: 'Back office',
+    title: 'Verification console',
+    exit: 'Sign out',
+    queueTitle: 'Verification queue',
+    queueSubtitle: 'Review each organisation’s CR and VAT documents, then approve or reject each one.',
+    loading: 'Loading requests…',
+    empty: 'No verification requests yet. New registrations appear here.',
+    approve: 'Approve',
+    reject: 'Reject',
+    confirmReject: 'Reject document',
+    reasonPlaceholder: 'Reason for rejection — shown to the buyer…',
+    docStatus: {
+      verifying: 'Verifying',
+      verified: 'Verified',
+      rejected: 'Rejected',
+    },
   },
   auth: {
     signIn: 'Log In',

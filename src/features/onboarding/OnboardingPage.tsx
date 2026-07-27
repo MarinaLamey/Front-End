@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/platform/auth'
 import { useTenant } from '@/platform/tenancy'
+import { verificationApi } from '@/platform/api/verification'
 import { OnboardingLayout } from './components/OnboardingLayout'
 import { AccountDetailsStep } from './components/steps/AccountDetailsStep'
 import { VerifyStep } from './components/steps/VerifyStep'
@@ -21,15 +22,23 @@ import { useOnboardingWizard, rolesFor } from './useOnboardingWizard'
 export function OnboardingPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
-  const { setTenant } = useTenant()
+  const { tenant, setTenant } = useTenant()
   const wizard = useOnboardingWizard()
 
-  const goToDashboard = () => {
+  const goToDashboard = async () => {
     const primary = rolesFor(wizard.data.role)[0]
     // Carry the real name/org captured in the wizard into the session so the portal shows the
     // actual signed-in person and organisation (no placeholder user).
     setTenant({ name: wizard.data.orgName })
     login(primary, { name: wizard.data.fullName, email: wizard.data.email })
+    // File the KYB request so the org lands in the super-admin queue (pending) with its real
+    // CR + VAT — the admin's per-document decisions then drive this org's dashboard.
+    await verificationApi.openRequest({
+      orgId: tenant.id,
+      orgName: wizard.data.orgName,
+      cr: wizard.data.cr,
+      vat: wizard.data.vat,
+    })
     navigate(`/${primary}`)
   }
 

@@ -1,6 +1,7 @@
 export const ar = {
   common: {
     signOut: 'تسجيل الخروج',
+    cancel: 'إلغاء',
     or: 'أو',
     loading: 'جارٍ التحميل…',
     comingSoon: 'الواجهة قيد الإنشاء',
@@ -103,6 +104,24 @@ export const ar = {
     agree: 'بالمتابعة، فإنك توافق على',
     terms: 'الشروط والأحكام.',
     confirm: 'تأكيد الاشتراك',
+  },
+  admin: {
+    badge: 'المكتب الخلفي',
+    title: 'وحدة التحقق',
+    exit: 'تسجيل الخروج',
+    queueTitle: 'قائمة طلبات التحقق',
+    queueSubtitle: 'راجع مستندات السجل التجاري وشهادة ضريبة القيمة المضافة لكل منشأة، ثم اعتمد أو ارفض كل مستند.',
+    loading: 'جارٍ تحميل الطلبات…',
+    empty: 'لا توجد طلبات تحقق بعد. تظهر التسجيلات الجديدة هنا.',
+    approve: 'اعتماد',
+    reject: 'رفض',
+    confirmReject: 'رفض المستند',
+    reasonPlaceholder: 'سبب الرفض — يظهر للمشتري…',
+    docStatus: {
+      verifying: 'قيد التحقق',
+      verified: 'موثّق',
+      rejected: 'مرفوض',
+    },
   },
   auth: {
     signIn: 'تسجيل الدخول',

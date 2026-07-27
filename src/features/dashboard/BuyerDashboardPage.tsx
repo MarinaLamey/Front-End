@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { useVerification } from '@/platform/verification'
+import { useCurrentOrgMeta, useOrgVerification, useResubmitDoc } from '@/features/verification'
+import { DOC_KEYS, type DocKey, type OrgVerification } from '@/platform/api/verification'
 import {
   StatCard,
   StatusBadge,
@@ -32,6 +34,7 @@ import {
   RefreshIcon,
 } from '@/shared/ui/dashboard'
 import { Button } from '@/shared/ui/Button'
+import { Spinner } from '@/shared/ui/Spinner'
 import { useBuyerDashboard } from './useBuyerDashboard'
 import { WelcomeHero } from './components/WelcomeHero'
 import { VerificationStatusCard } from './components/VerificationStatusCard'
@@ -69,11 +72,48 @@ const MUTED_STATS = [
 export function BuyerDashboardPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { status } = useVerification()
+  const orgMeta = useCurrentOrgMeta()
+  const { data: record, isLoading: verificationLoading } = useOrgVerification(orgMeta)
   const data = useBuyerDashboard()
+  const status = record?.status ?? 'pending'
   const verified = status === 'verified'
 
+  // The green "verified" banner is a one-time celebration: it shows when the org first becomes
+  // verified, then is dismissed on the next refresh so the dashboard is the clean verified view.
+  const [notYetSeenVerified] = useState(() => {
+    try {
+      return localStorage.getItem(`miproc.verifiedSeen.${orgMeta.orgId}`) !== 'true'
+    } catch {
+      return true
+    }
+  })
+  useEffect(() => {
+    if (verified && notYetSeenVerified) {
+      try {
+        localStorage.setItem(`miproc.verifiedSeen.${orgMeta.orgId}`, 'true')
+      } catch {
+        /* storage unavailable */
+      }
+    }
+  }, [verified, notYetSeenVerified, orgMeta.orgId])
+  const showVerifiedBanner = verified && notYetSeenVerified
+
+  // The banner's rejected message is the reason on the first rejected document (admin's typed note).
+  const rejectionReason =
+    (record && DOC_KEYS.map((doc) => record.documents[doc]).find((d) => d.status === 'rejected')?.reason) ||
+    data.rejectionReason
+
   const createRfq = () => navigate('/buyer/rfqs/new')
+
+  // Until the real verification status is loaded, show a spinner rather than defaulting to the
+  // pending view — otherwise a verified org briefly flashes the pending dashboard on login.
+  if (verificationLoading) {
+    return (
+      <div className="mx-auto flex max-w-6xl items-center justify-center py-24">
+        <Spinner />
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -90,11 +130,11 @@ export function BuyerDashboardPage() {
         <VerificationBanner
           state="rejected"
           title={t('dashboard.banner.rejectedTitle')}
-          message={data.rejectionReason}
+          message={rejectionReason}
           badgeLabel={t('dashboard.status.rejected')}
         />
       )}
-      {verified && (
+      {showVerifiedBanner && (
         <VerificationBanner
           state="verified"
           title={t('dashboard.banner.verifiedTitle')}
@@ -106,7 +146,7 @@ export function BuyerDashboardPage() {
       {verified ? (
         <VerifiedDashboard data={data} onCreateRfq={createRfq} />
       ) : (
-        <PreVerifiedDashboard status={status} rejectionReason={data.rejectionReason} />
+        <PreVerifiedDashboard record={record} status={status} />
       )}
     </div>
   )
@@ -312,30 +352,40 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
 
 /* ── Pending & rejected ───────────────────────────────────────────────────── */
 
-function PreVerifiedDashboard({ status, rejectionReason }: { status: 'pending' | 'rejected'; rejectionReason: string }) {
+function PreVerifiedDashboard({ record, status }: { record?: OrgVerification; status: 'pending' | 'rejected' }) {
   const { t } = useTranslation()
+  const resubmit = useResubmitDoc()
   const rejected = status === 'rejected'
 
-  const verificationItems =
-    status === 'pending'
-      ? [
-          { title: t('dashboard.docs.cr'), meta: `1010567890 · ${t('dashboard.verification.checkingWathiq')}`, state: 'verifying' as const },
-          { title: t('dashboard.docs.vat'), meta: `300012345600003 · ${t('dashboard.verification.checkingZatca')}`, state: 'verifying' as const },
-        ]
-      : [
-          {
-            title: t('dashboard.docs.cr'),
-            meta: '1010567890',
-            state: 'rejected' as const,
-            reason: t('dashboard.verification.crMismatch'),
-            action: (
-              <Button variant="primary" size="sm" onClick={() => undefined}>
+  // The "checking …" hint shown next to a document while it's still under review.
+  const checking: Record<DocKey, string> = {
+    cr: t('dashboard.verification.checkingWathiq'),
+    vat: t('dashboard.verification.checkingZatca'),
+  }
+
+  // Real CR / VAT rows straight from the admin's per-document decisions.
+  const verificationItems = record
+    ? DOC_KEYS.map((doc) => {
+        const review = record.documents[doc]
+        return {
+          title: t(`dashboard.docs.${doc}`),
+          meta: review.status === 'verifying' ? `${review.number} · ${checking[doc]}` : review.number,
+          state: review.status,
+          reason: review.reason,
+          action:
+            review.status === 'rejected' ? (
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={resubmit.isPending && resubmit.variables?.doc === doc}
+                onClick={() => resubmit.mutate({ orgId: record.orgId, doc })}
+              >
                 {t('dashboard.verification.reupload')}
               </Button>
-            ),
-          },
-          { title: t('dashboard.docs.vat'), meta: '300012345600003', state: 'verified' as const },
-        ]
+            ) : undefined,
+        }
+      })
+    : []
 
   return (
     <>
@@ -373,7 +423,7 @@ function PreVerifiedDashboard({ status, rejectionReason }: { status: 'pending' |
           icon={<FileIcon />}
           message={rejected ? t('dashboard.emptyRfqs.rejected') : t('dashboard.emptyRfqs.pending')}
           action={
-            <Button variant="secondary" size="sm" disabled leftIcon={<LockIcon className="h-4 w-4" />} onClick={() => undefined}>
+            <Button variant="neutral" size="sm" disabled leftIcon={<LockIcon className="h-4 w-4" />} onClick={() => undefined}>
               {t('dashboard.createRfq')}
             </Button>
           }
@@ -389,9 +439,6 @@ function PreVerifiedDashboard({ status, rejectionReason }: { status: 'pending' |
           { icon: <ShieldDocIcon />, label: t('dashboard.actions.completeProfile'), accent: 'success' },
         ]}
       />
-
-      {/* rejectionReason is surfaced in the banner (BuyerDashboardPage); referenced to keep the prop honest. */}
-      <span className="hidden">{rejectionReason}</span>
     </>
   )
 }

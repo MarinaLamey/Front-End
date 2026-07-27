@@ -6,6 +6,9 @@ import type { ResetChannel } from './useForgotPassword'
 
 export type LoginStep = 'credentials' | 'phone' | 'forgot' | 'resetOtp' | 'newPassword' | 'passwordUpdated'
 
+/** The seeded super-admin account (mock DB). Logging in with it opens the back-office console. */
+const SUPERADMIN_ORG_ID = 'org_superadmin'
+
 /** The login flow's state + transitions, with no markup. */
 export interface UseLoginFlowResult {
   step: LoginStep
@@ -46,6 +49,13 @@ export function useLoginFlow(): UseLoginFlowResult {
   const [resetChannel, setResetChannel] = useState<ResetChannel>('email')
 
   const onAuthenticated = (result: LoginResult) => {
+    // The system super-admin (back-office) → the admin console, not a tenant portal. It has no
+    // buyer/supplier role, so it's identified by account, and login('back-office') grants SuperAdmin.
+    if (result.orgId === SUPERADMIN_ORG_ID) {
+      login('back-office', { name: 'System Admin' })
+      navigate('/admin/verifications')
+      return
+    }
     const portal = result.roles[0]
     login(portal)
     navigate(`/${portal}`)

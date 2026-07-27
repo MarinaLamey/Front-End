@@ -39,6 +39,26 @@ interface MockDb {
   otp: Record<string, StoredOtp>
 }
 
+/**
+ * The system super-admin (back-office) account. It is NOT a tenant — it has no buyer/supplier
+ * role (`roles: []`); logging in with it opens the admin console, routed purely by its id in
+ * useLoginFlow. Kept as a helper so it is both seeded and ensured on load (DBs created before this
+ * account existed get it too).
+ */
+function superAdminOrg(now: number): StoredOrg {
+  return {
+    id: 'org_superadmin',
+    name: 'System Admin',
+    email: 'admin@mi-proc.sa',
+    mobile: '+966500000009',
+    cr: '0000000000',
+    password: 'password',
+    roles: [],
+    status: 'active',
+    createdAt: now,
+  }
+}
+
 /** Demo accounts so login + the dual-role split work the moment the app loads. */
 function seedDb(): MockDb {
   const now = Date.now()
@@ -65,6 +85,7 @@ function seedDb(): MockDb {
       status: 'active',
       createdAt: now,
     },
+    superAdminOrg(now),
   ]
   return {
     version: 1,
@@ -83,6 +104,11 @@ function load(): MockDb {
       const parsed = JSON.parse(raw) as MockDb
       if (parsed?.version === 1) {
         cache = parsed
+        // Ensure the super-admin account exists on DBs created before it was added.
+        if (!cache.organizations.org_superadmin) {
+          cache.organizations.org_superadmin = superAdminOrg(Date.now())
+          persist()
+        }
         return cache
       }
     }

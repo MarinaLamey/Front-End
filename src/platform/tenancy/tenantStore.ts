@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 export interface Tenant {
   id: string
@@ -19,12 +20,23 @@ interface TenantState {
  * platform brand and is filled in with the real org name once the user registers/logs in.
  * Branding is loaded separately (see AppProviders) keyed off `tenant.id`.
  */
-export const useTenant = create<TenantState>((set, get) => ({
-  tenant: {
-    id: 'tenant_demo',
-    name: 'MI-Proc',
-    flags: { 'rfq.create': true, 'procurement.enabled': true },
-  },
-  isFlagEnabled: (flag) => get().tenant.flags[flag] ?? false,
-  setTenant: (patch) => set((state) => ({ tenant: { ...state.tenant, ...patch } })),
-}))
+export const useTenant = create<TenantState>()(
+  persist(
+    (set, get) => ({
+      tenant: {
+        id: 'tenant_demo',
+        name: 'MI-Proc',
+        flags: { 'rfq.create': true, 'procurement.enabled': true },
+      },
+      isFlagEnabled: (flag) => get().tenant.flags[flag] ?? false,
+      setTenant: (patch) => set((state) => ({ tenant: { ...state.tenant, ...patch } })),
+    }),
+    {
+      // Per-tab (sessionStorage) like the auth session, so an admin tab and a buyer tab don't share
+      // one org identity. Keeps the real name/id (and the verification query key) across a refresh.
+      name: 'miproc.tenant.v1',
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({ tenant: state.tenant }),
+    },
+  ),
+)
