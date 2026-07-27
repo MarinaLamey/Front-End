@@ -50,8 +50,8 @@ export function FileIcon({ className }: IconProps) {
 export function ChecklistIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
-      <rect x="4" y="4" width="16" height="16" rx="2.5" />
-      <path d="m8.5 12 2 2 4-4.5" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      <path d="m9 11 3 3 10-10" />
     </Svg>
   )
 }
@@ -59,7 +59,7 @@ export function ChecklistIcon({ className }: IconProps) {
 export function ChatIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
-      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z" />
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </Svg>
   )
 }
@@ -92,11 +92,22 @@ export function ShieldDocIcon({ className }: IconProps) {
   )
 }
 
+/** Document with a checkmark — "Documents & Compliance" nav. */
+export function DocCheckIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+      <path d="m8.5 14 2 2 4-4" />
+    </Svg>
+  )
+}
+
 export function ChartIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
       <path d="M3 3v18h18" />
-      <path d="m7 14 3-3 3 3 5-6" />
+      <path d="m18.5 8-5 5-2.5-2.5-4 4" />
     </Svg>
   )
 }

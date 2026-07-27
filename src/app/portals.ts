@@ -7,9 +7,8 @@ import {
   ChatIcon,
   BoxIcon,
   UsersIcon,
-  ShieldDocIcon,
+  DocCheckIcon,
   ChartIcon,
-  CreditCardIcon,
 } from '@/shared/ui/dashboard'
 
 export interface NavItem {
@@ -42,8 +41,8 @@ export const BUYER_PORTAL: PortalConfig = {
     { label: 'nav.negotiations', to: '/buyer/negotiations', icon: ChatIcon },
     { label: 'nav.orders', to: '/buyer/orders', icon: BoxIcon, expandable: true },
     { label: 'nav.suppliers', to: '/buyer/suppliers', icon: UsersIcon, expandable: true },
-    { label: 'nav.documents', to: '/buyer/documents', icon: ShieldDocIcon },
+    { label: 'nav.documents', to: '/buyer/documents', icon: DocCheckIcon },
     { label: 'nav.analytics', to: '/buyer/analytics', icon: ChartIcon },
-    { label: 'nav.subscription', to: '/buyer/subscription', icon: CreditCardIcon },
+    { label: 'nav.subscription', to: '/buyer/subscription', icon: GridIcon },
   ],
 }
