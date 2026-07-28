@@ -1,6 +1,8 @@
 import { type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/shared/lib/cn'
+import { BRAND_PANEL_GRADIENT } from '@/shared/ui/SplitShell'
 import { Reveal } from '@/shared/ui/Reveal'
 import { ShimmerButton } from '@/shared/ui/ShimmerButton'
 import { MorphButton } from '@/shared/ui/MorphButton'
@@ -22,13 +24,15 @@ export function LandingHero() {
   // Let the click shimmer sweep before the route swaps the page out.
   const goAfterShimmer = (path: string) => window.setTimeout(() => navigate(path), 650)
 
+  // The hero uses the SAME brand gradient (purple → teal) as the login/register side panel,
+  // pulled from the shared `BRAND_PANEL_GRADIENT` so the three stay in lockstep.
   return (
-    <section className="relative overflow-hidden bg-[linear-gradient(101deg,#0E938D_0%,#325AE1_100%)] px-6 py-16 md:px-20 md:py-[72px]">
-      {/* Decorative drifting blobs — compositor-only, paused under reduced motion. */}
+    <section className={cn(BRAND_PANEL_GRADIENT, 'relative overflow-hidden px-6 py-16 md:px-20 md:py-18')}>
+      {/* Decorative drifting blobs — compositor-only, paused under reduced motion. Tinted to the gradient. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <span className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl motion-safe:animate-float" />
-        <span className="absolute -right-16 top-8 h-80 w-80 rounded-full bg-[#325AE1]/30 blur-3xl motion-safe:animate-float-slow" />
-        <span className="absolute -bottom-24 left-1/3 h-72 w-72 rounded-full bg-[#0E938D]/40 blur-3xl motion-safe:animate-float" />
+        <span className="absolute -right-16 top-8 h-80 w-80 rounded-full bg-[#51489E]/30 blur-3xl motion-safe:animate-float-slow" />
+        <span className="absolute -bottom-24 left-1/3 h-72 w-72 rounded-full bg-[#00AB98]/40 blur-3xl motion-safe:animate-float" />
       </div>
 
       <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-14 lg:flex-row">

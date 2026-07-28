@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/lib/cn'
 import { ShimmerButton } from '@/shared/ui/ShimmerButton'
 
-const NAV_KEYS = ['home', 'solutions', 'howItWorks', 'pricing', 'about'] as const
+// Only the Home link is shown in the landing header for now (the rest are hidden).
+const NAV_KEYS = ['home'] as const
 
 /**
  * Marketing nav. Each link is a ShimmerButton: a spinning conic glow ring reveals on
