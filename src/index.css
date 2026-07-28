@@ -104,6 +104,9 @@
   --animate-check-pop: check-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   /* Loading dots — opacity+scale pulse (compositor-only). Staggered via per-dot animation-delay. */
   --animate-dot-pulse: dot-pulse 1.2s ease-in-out infinite;
+  /* Track-order stepper: the connector line draws itself downward for completed steps (scaleY,
+     compositor-only). `backwards` keeps it hidden until its staggered turn. */
+  --animate-connector-draw: connector-draw 0.45s ease-out backwards;
 }
 
 /* ── Palette · Light (default) — from Light.tokens.json ─────────────────────── */
@@ -252,6 +255,13 @@
   --mp-interactive-selected: rgba(20, 184, 166, 0.16);
 }
 
+/* Every enabled button shows the pointer cursor — native <button>s default to the arrow. Disabled
+   / busy buttons keep their own cursor (the Button component sets cursor-not-allowed / progress,
+   which win on specificity), and the `:not(:disabled)` guard skips truly-disabled buttons. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 /* Neutralise the browser autofill styling. On reload with saved credentials Chrome paints
    its own (grey/yellow) background on the email + password inputs; the inset box-shadow
    trick keeps the field's real surface colour and text, and the long transition stops the
@@ -346,6 +356,16 @@ input:-webkit-autofill:active {
   100% {
     transform: scale(1.75);
     opacity: 0;
+  }
+}
+
+/* Track-order connector: grows from the top so completed steps "draw" the line down. */
+@keyframes connector-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
   }
 }
 

@@ -70,7 +70,7 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
   const { user, logout } = useAuth()
   const { tenant } = useTenant()
   const meta = useCurrentOrgMeta()
-  const { data: verification } = useOrgVerification(meta)
+  const { data: verification, isLoading: verificationLoading } = useOrgVerification(meta)
   const status: VerificationStatus = verification?.status ?? 'pending'
 
   const [bellOpen, setBellOpen] = useState(false)
@@ -128,11 +128,16 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
             })}
           </div>
 
-          {/* Verification pill — reflects the org's real KYB status from the API (read-only). */}
-          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold', pill.tone)}>
-            <PillIcon className="h-4 w-4 stroke-2" />
-            {t(pill.key)}
-          </span>
+          {/* Verification pill — reflects the org's real KYB status from the API (read-only). While
+              the status is loading, show a neutral skeleton instead of a misleading "Pending". */}
+          {verificationLoading ? (
+            <span aria-hidden className="inline-block h-6 w-24 rounded-full bg-bg-surface-sunken motion-safe:animate-pulse" />
+          ) : (
+            <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold', pill.tone)}>
+              <PillIcon className="h-4 w-4 stroke-2" />
+              {t(pill.key)}
+            </span>
+          )}
 
           {/* Notification bell */}
           <div ref={bellRef} className="relative">
