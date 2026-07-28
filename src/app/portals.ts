@@ -46,3 +46,20 @@ export const BUYER_PORTAL: PortalConfig = {
     { label: 'nav.subscription', to: '/buyer/subscription', icon: GridIcon },
   ],
 }
+
+export const SUPPLIER_PORTAL: PortalConfig = {
+  id: 'supplier',
+  label: 'portals.supplier',
+  basePath: '/supplier',
+  nav: [
+    { label: 'nav.supplierDashboard', to: '/supplier', icon: GridIcon, end: true },
+    { label: 'nav.availableRfqs', to: '/supplier/rfqs', icon: FileIcon },
+    { label: 'nav.myBids', to: '/supplier/bids', icon: ChecklistIcon },
+    { label: 'nav.negotiations', to: '/supplier/negotiations', icon: ChatIcon },
+    { label: 'nav.orders', to: '/supplier/orders', icon: BoxIcon, expandable: true },
+    { label: 'nav.buyers', to: '/supplier/buyers', icon: UsersIcon, expandable: true },
+    { label: 'nav.documents', to: '/supplier/documents', icon: DocCheckIcon },
+    { label: 'nav.analytics', to: '/supplier/analytics', icon: ChartIcon },
+    { label: 'nav.subscription', to: '/supplier/subscription', icon: GridIcon },
+  ],
+}

@@ -56,8 +56,10 @@ export function useLoginFlow(): UseLoginFlowResult {
       navigate('/admin/verifications')
       return
     }
+    // `result.roles` are the buyer/supplier memberships — land on the first and remember all of
+    // them so the Buyer/Supplier switch only exposes the role(s) this account registered for.
     const portal = result.roles[0]
-    login(portal)
+    login(portal, undefined, result.roles)
     navigate(`/${portal}`)
   }
 

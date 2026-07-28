@@ -53,6 +53,12 @@ const STATUS_TONE: Record<string, Tone> = {
   pending: 'warning',
   verifying: 'warning',
   rejected: 'danger',
+  // supplier bid lifecycle
+  invited: 'info',
+  'quote submitted': 'brand',
+  won: 'success',
+  'in payout': 'warning',
+  paid: 'success',
 }
 
 interface StatusBadgeProps {

@@ -3,13 +3,13 @@ import { LandingPage } from '@/features/marketing'
 import { PortalShell } from '@/app/layouts/PortalShell'
 import { ComingSoonPage } from '@/app/ComingSoonPage'
 import { NotFoundPage } from '@/app/NotFoundPage'
-import { BUYER_PORTAL } from '@/app/portals'
+import { BUYER_PORTAL, SUPPLIER_PORTAL } from '@/app/portals'
 import { RequireAuth, RequireRole } from '@/platform/auth'
 import { LoginPage } from '@/features/auth'
 import { OnboardingPage } from '@/features/onboarding'
 import { PrivacyPolicyPage } from '@/features/legal/PrivacyPolicyPage'
 import { TermsPage } from '@/features/legal/TermsPage'
-import { BuyerDashboardPage } from '@/features/dashboard'
+import { BuyerDashboardPage, SupplierDashboardPage } from '@/features/dashboard'
 import { AdminShell, AdminVerificationsPage } from '@/features/admin'
 import { SubscriptionPlansPage, SubscriptionCheckoutPage } from '@/features/subscription'
 import { RfqCreatePage } from '@/features/rfq'
@@ -44,6 +44,28 @@ export const router = createBrowserRouter([
       { path: 'negotiations', element: <ComingSoonPage /> },
       { path: 'orders', element: <ComingSoonPage /> },
       { path: 'suppliers', element: <ComingSoonPage /> },
+      { path: 'documents', element: <ComingSoonPage /> },
+      { path: 'analytics', element: <ComingSoonPage /> },
+      { path: 'subscription', element: <SubscriptionPlansPage /> },
+      { path: 'subscription/checkout', element: <SubscriptionCheckoutPage /> },
+    ],
+  },
+
+  // Supplier portal (auth-gated). Shares the shell + verification flow with the buyer.
+  {
+    path: '/supplier',
+    element: (
+      <RequireAuth>
+        <PortalShell portal={SUPPLIER_PORTAL} />
+      </RequireAuth>
+    ),
+    children: [
+      { index: true, element: <SupplierDashboardPage /> },
+      { path: 'rfqs', element: <ComingSoonPage /> },
+      { path: 'bids', element: <ComingSoonPage /> },
+      { path: 'negotiations', element: <ComingSoonPage /> },
+      { path: 'orders', element: <ComingSoonPage /> },
+      { path: 'buyers', element: <ComingSoonPage /> },
       { path: 'documents', element: <ComingSoonPage /> },
       { path: 'analytics', element: <ComingSoonPage /> },
       { path: 'subscription', element: <SubscriptionPlansPage /> },

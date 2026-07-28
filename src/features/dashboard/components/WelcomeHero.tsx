@@ -11,6 +11,8 @@ interface WelcomeHeroProps {
   subtitle: string
   onCreateRfq: () => void
   createDisabled?: boolean
+  /** CTA label — defaults to "Create RFQ" (buyer); the supplier passes "Browse RFQs". */
+  ctaLabel?: string
 }
 
 /**
@@ -18,7 +20,7 @@ interface WelcomeHeroProps {
  * org name + type chip, subtitle, and the primary "Create RFQ" action. Text is white over the
  * brand gradient; the gradient is a flat brand sweep (distinct from the auth split-panel one).
  */
-export function WelcomeHero({ greeting, orgName, orgType, subtitle, onCreateRfq, createDisabled }: WelcomeHeroProps) {
+export function WelcomeHero({ greeting, orgName, orgType, subtitle, onCreateRfq, createDisabled, ctaLabel }: WelcomeHeroProps) {
   const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-4 rounded-2xl bg-[linear-gradient(120deg,#4A3F8F_0%,#51489E_45%,#6D63C6_100%)] p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -42,7 +44,7 @@ export function WelcomeHero({ greeting, orgName, orgType, subtitle, onCreateRfq,
         )}
       >
         <PlusIcon className="h-4 w-4" />
-        {t('dashboard.createRfq')}
+        {ctaLabel ?? t('dashboard.createRfq')}
       </button>
     </div>
   )

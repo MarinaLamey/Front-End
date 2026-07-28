@@ -84,6 +84,8 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
   const pill = PILL[status]
   const PillIcon = pill.icon
   const monogram = initials(user?.name || tenant.name)
+  // The buyer/supplier portals this account registered for — drives the switch below.
+  const memberships = user?.memberships ?? [portal.id]
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-canvas">
@@ -98,14 +100,32 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Buyer / Supplier switch — supplier is inert until that portal ships. */}
+          {/* Buyer / Supplier switch — only the role(s) this account registered for are reachable. */}
           <div className="flex rounded-[9px] bg-bg-surface-sunken p-1 text-sm">
-            <span className="rounded-[9px] bg-bg-surface px-3 py-1 font-medium text-brand-primary shadow-sm">
-              {t('portals.buyer')}
-            </span>
-            <span className="cursor-not-allowed px-3 py-1 text-content-tertiary" title={t('dashboard.comingSoon')}>
-              {t('portals.supplier')}
-            </span>
+            {(['buyer', 'supplier'] as const).map((p) => {
+              const active = portal.id === p
+              const available = memberships.includes(p)
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={!available}
+                  onClick={() => available && !active && navigate(`/${p}`)}
+                  title={available ? undefined : t('dashboard.roleUnavailable')}
+                  className={cn(
+                    'rounded-[9px] px-3 py-1 transition-colors motion-reduce:transition-none',
+                    active
+                      ? 'bg-bg-surface font-medium text-brand-primary shadow-sm'
+                      : available
+                        ? 'text-content-tertiary hover:text-content-secondary'
+                        : 'cursor-not-allowed text-content-disabled',
+                  )}
+                >
+                  {t(`portals.${p}`)}
+                </button>
+              )
+            })}
           </div>
 
           {/* Verification pill — reflects the org's real KYB status from the API (read-only). */}

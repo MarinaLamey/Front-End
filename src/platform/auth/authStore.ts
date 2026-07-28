@@ -10,6 +10,8 @@ export interface AuthUser {
   portal: Portal
   roles: Role[]
   tenantId: string
+  /** The portals this account can access — the buyer/supplier role(s) chosen at registration. */
+  memberships: Portal[]
 }
 
 /** What we know about the user when they authenticate (dynamic — never hard-coded). */
@@ -23,8 +25,12 @@ interface AuthState {
   isAuthenticated: boolean
   /** True once the persisted session has been read back from storage — guards wait for this. */
   hasHydrated: boolean
-  /** Sign in to a portal, carrying whatever profile we have (name/email from register or the API). */
-  login: (portal: Portal, profile?: AuthProfile) => void
+  /**
+   * Sign in to a portal, carrying whatever profile we have (name/email from register or the API).
+   * `memberships` is the set of portals the account can access (defaults to just `portal`) — it
+   * drives the Buyer/Supplier switch so a user only reaches the role(s) they registered for.
+   */
+  login: (portal: Portal, profile?: AuthProfile, memberships?: Portal[]) => void
   logout: () => void
   hasRole: (role: Role) => boolean
   setHasHydrated: (value: boolean) => void
@@ -42,7 +48,7 @@ export const useAuth = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       hasHydrated: false,
-      login: (portal, profile) =>
+      login: (portal, profile, memberships) =>
         set({
           user: {
             id: 'u_current',
@@ -51,6 +57,7 @@ export const useAuth = create<AuthState>()(
             portal,
             roles: [...ROLES[portal]] as Role[],
             tenantId: 'tenant_current',
+            memberships: memberships && memberships.length > 0 ? memberships : [portal],
           },
           isAuthenticated: true,
         }),
