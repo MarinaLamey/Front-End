@@ -84,7 +84,7 @@ export function ThemeToggle({ variant = 'icon' }: ThemeToggleProps = {}) {
     return (
       <div
         dir="ltr"
-        className="inline-flex w-full items-center gap-1 rounded-lg border border-border-subtle bg-bg-surface p-1"
+        className="inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-bg-surface p-1"
       >
         {options.map(({ value, labelKey, Icon }) => {
           const active = theme === value
@@ -95,7 +95,7 @@ export function ThemeToggle({ variant = 'icon' }: ThemeToggleProps = {}) {
               aria-pressed={active}
               onClick={() => changeTheme(value)}
               className={cn(
-                'flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 motion-reduce:transition-none',
+                'flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-200 motion-reduce:transition-none',
                 active
                   ? 'bg-brand-primary text-brand-primary-on'
                   : 'text-content-secondary hover:text-content-primary',

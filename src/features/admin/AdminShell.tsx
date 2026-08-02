@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/platform/auth'
+import { ThemeToggle } from '@/platform/theme/ThemeToggle'
 import { BrandLogo } from '@/shared/ui/BrandLogo'
 import { Button } from '@/shared/ui/Button'
 import { ShieldDocIcon } from '@/shared/ui/dashboard'
@@ -34,6 +35,7 @@ export function AdminShell() {
         </div>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle variant="labeled" />
           <span className="hidden text-sm text-content-secondary sm:block">{user?.name}</span>
           <Button variant="ghost" size="sm" onClick={handleExit}>
             {t('admin.exit')}
