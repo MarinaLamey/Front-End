@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/lib/cn'
 import { SunIcon, MoonIcon } from '@/features/onboarding/components/onboardingIcons'
 
@@ -37,7 +38,13 @@ function initialTheme(): Theme {
  * soft spring overshoot and the active icon pops — pure CSS transform, no library. Pinned
  * `dir="ltr"` for a stable path in RTL; reduced-motion drops the motion to an instant swap.
  */
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  /** 'icon' = compact sun/moon slider (auth). 'labeled' = "Light | Dark" segmented (sidebar). */
+  variant?: 'icon' | 'labeled'
+}
+
+export function ThemeToggle({ variant = 'icon' }: ThemeToggleProps = {}) {
+  const { t } = useTranslation()
   const [theme, setTheme] = useState<Theme>(initialTheme)
 
   useEffect(() => {
@@ -65,11 +72,43 @@ export function ThemeToggle() {
     })
   }
 
-  const options: { value: Theme; label: string; Icon: typeof SunIcon }[] = [
-    { value: 'light', label: 'Light', Icon: SunIcon },
-    { value: 'dark', label: 'Dark', Icon: MoonIcon },
+  const options: { value: Theme; labelKey: string; Icon: typeof SunIcon }[] = [
+    { value: 'light', labelKey: 'common.light', Icon: SunIcon },
+    { value: 'dark', labelKey: 'common.dark', Icon: MoonIcon },
   ]
   const activeIndex = theme === 'light' ? 0 : 1
+
+  // Labeled variant — the "Light | Dark" segmented pill used in the portal sidebar. Same theme
+  // logic; the active segment fills with the brand colour (matches the buyer/supplier screens).
+  if (variant === 'labeled') {
+    return (
+      <div
+        dir="ltr"
+        className="inline-flex w-full items-center gap-1 rounded-lg border border-border-subtle bg-bg-surface p-1"
+      >
+        {options.map(({ value, labelKey, Icon }) => {
+          const active = theme === value
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={active}
+              onClick={() => changeTheme(value)}
+              className={cn(
+                'flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 motion-reduce:transition-none',
+                active
+                  ? 'bg-brand-primary text-brand-primary-on'
+                  : 'text-content-secondary hover:text-content-primary',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {t(labelKey)}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -82,13 +121,13 @@ export function ThemeToggle() {
         className="absolute bottom-1 left-1 top-1 w-[30px] rounded-md bg-brand-primary transition-transform duration-300 ease-[cubic-bezier(0.34,1.5,0.64,1)] motion-reduce:transition-none"
         style={{ transform: `translateX(${activeIndex * STEP}px)` }}
       />
-      {options.map(({ value, label, Icon }) => {
+      {options.map(({ value, labelKey, Icon }) => {
         const active = theme === value
         return (
           <button
             key={value}
             type="button"
-            aria-label={label}
+            aria-label={t(labelKey)}
             aria-pressed={active}
             onClick={() => changeTheme(value)}
             className={cn(

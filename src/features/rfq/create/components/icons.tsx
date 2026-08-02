@@ -134,3 +134,46 @@ export function AlertIcon({ className = 'h-4 w-4' }: IconProps) {
     </svg>
   )
 }
+
+/** Tabby brand tile — mint-green square with the black "t" mark (BNPL provider). */
+export function TabbyMark({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <defs>
+        <linearGradient id="mp-tabby" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#63F2C4" />
+          <stop offset="1" stopColor="#22C892" />
+        </linearGradient>
+      </defs>
+      <rect width="24" height="24" rx="6" fill="url(#mp-tabby)" />
+      <path
+        d="M13 5.4v9.9a2.3 2.3 0 0 0 2.3 2.3h1"
+        stroke="#0B0B0B"
+        strokeWidth="3.3"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path d="M9.2 9.1h6.1" stroke="#0B0B0B" strokeWidth="3" strokeLinecap="round" />
+      <path d="M12.7 5.2 15.4 4" stroke="#0B0B0B" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** Tamara brand tile — pastel-gradient square with the two black "eye" marks (BNPL provider). */
+export function TamaraMark({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <defs>
+        <linearGradient id="mp-tamara" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#FBC79F" />
+          <stop offset="0.4" stopColor="#F5A6C8" />
+          <stop offset="0.7" stopColor="#CBB6F0" />
+          <stop offset="1" stopColor="#A6D9F2" />
+        </linearGradient>
+      </defs>
+      <rect width="24" height="24" rx="6" fill="url(#mp-tamara)" />
+      <path d="M7.6 8.2a3.4 3.4 0 0 1 3.4 3.4H7.6z" fill="#0B0B0B" />
+      <circle cx="15.4" cy="12.4" r="3.4" fill="#0B0B0B" />
+    </svg>
+  )
+}

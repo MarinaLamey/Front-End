@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/lib/cn'
 import { useAuth } from '@/platform/auth'
 import { useTenant } from '@/platform/tenancy'
+import { ThemeToggle } from '@/platform/theme/ThemeToggle'
 import type { VerificationStatus } from '@/platform/verification'
 import { useCurrentOrgMeta, useOrgVerification } from '@/features/verification'
 import { BrandLogo } from '@/shared/ui/BrandLogo'
@@ -195,8 +196,8 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
 
       {/* Below the header — config-driven sidebar nav + routed content. */}
       <div className="flex min-h-0 flex-1">
-        <aside className="w-64 shrink-0 border-e border-border-subtle bg-bg-surface">
-          <nav className="space-y-1 p-3">
+        <aside className="flex w-64 shrink-0 flex-col border-e border-border-subtle bg-bg-surface">
+          <nav className="flex-1 space-y-1 overflow-auto p-3">
             {portal.nav.map((item) => (
               <NavLink
                 key={item.to}
@@ -217,6 +218,9 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
               </NavLink>
             ))}
           </nav>
+          <div className="border-t border-border-subtle p-3">
+            <ThemeToggle variant="labeled" />
+          </div>
         </aside>
 
         <main className="flex-1 overflow-auto p-6">

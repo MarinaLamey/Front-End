@@ -12,7 +12,7 @@ import {
   type PaymentPreset,
 } from '../paymentRules'
 import { PaymentSplitBar, SEGMENT_CLASS } from './PaymentSplitBar'
-import { CheckIcon, CloseIcon, InfoIcon, PlusIcon } from './icons'
+import { CheckIcon, CloseIcon, InfoIcon, PlusIcon, TabbyMark, TamaraMark } from './icons'
 
 interface PaymentTermsEditorProps {
   budget: number
@@ -281,7 +281,10 @@ export function PaymentTermsEditor({
       <p className="text-xs text-content-tertiary">{t('rfq.create.payment.privateEstimate')}</p>
 
       <div className="flex items-center gap-2 rounded-lg bg-bg-surface-sunken px-3 py-2 text-xs text-content-secondary">
-        <span className="h-4 w-7 shrink-0 rounded bg-gradient-to-r from-teal-400 to-brand-primary" />
+        <span className="flex shrink-0 items-center gap-1">
+          <TabbyMark className="h-5 w-5" />
+          <TamaraMark className="h-5 w-5" />
+        </span>
         {t('rfq.create.payment.comingSoon')}
       </div>
     </div>

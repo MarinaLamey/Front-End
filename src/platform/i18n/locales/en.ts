@@ -6,6 +6,8 @@ export const en = {
     loading: 'Loading…',
     comingSoon: 'UI coming soon',
     noResults: 'No results',
+    light: 'Light',
+    dark: 'Dark',
     goHome: 'Go home',
     notFoundTitle: '404',
     notFoundBody: 'This page doesn’t exist.',

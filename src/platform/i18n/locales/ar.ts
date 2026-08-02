@@ -6,6 +6,8 @@ export const ar = {
     loading: 'جارٍ التحميل…',
     comingSoon: 'الواجهة قيد الإنشاء',
     noResults: 'لا توجد نتائج',
+    light: 'فاتح',
+    dark: 'داكن',
     goHome: 'العودة للرئيسية',
     notFoundTitle: '٤٠٤',
     notFoundBody: 'هذه الصفحة غير موجودة.',
