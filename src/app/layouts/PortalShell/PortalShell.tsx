@@ -89,7 +89,7 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
   const memberships = user?.memberships ?? [portal.id]
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg-canvas">
+    <div className="flex h-screen flex-col overflow-hidden bg-bg-canvas">
       {/* Full-width top header — logo, Beta badge, page title + account controls. */}
       <header className="flex items-center justify-between gap-4 border-b border-border-subtle bg-bg-surface px-6 ">
         <div className="flex items-center gap-3">
