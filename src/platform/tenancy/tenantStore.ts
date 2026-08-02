@@ -4,6 +4,9 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 export interface Tenant {
   id: string
   name: string
+  /** Company national address captured at registration — the default RFQ delivery address. */
+  address?: string
+  city?: string
   flags: Record<string, boolean>
 }
 

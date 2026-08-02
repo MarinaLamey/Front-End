@@ -146,7 +146,7 @@ export function BuyerDashboardPage() {
       {verified ? (
         <VerifiedDashboard data={data} onCreateRfq={createRfq} />
       ) : (
-        <PreVerifiedDashboard record={record} status={status} />
+        <PreVerifiedDashboard record={record} status={status} onCreateRfq={createRfq} />
       )}
     </div>
   )
@@ -352,7 +352,15 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
 
 /* ── Pending & rejected ───────────────────────────────────────────────────── */
 
-function PreVerifiedDashboard({ record, status }: { record?: OrgVerification; status: 'pending' | 'rejected' }) {
+function PreVerifiedDashboard({
+  record,
+  status,
+  onCreateRfq,
+}: {
+  record?: OrgVerification
+  status: 'pending' | 'rejected'
+  onCreateRfq: () => void
+}) {
   const { t } = useTranslation()
   const resubmit = useResubmitDoc()
   const rejected = status === 'rejected'
@@ -423,17 +431,17 @@ function PreVerifiedDashboard({ record, status }: { record?: OrgVerification; st
           icon={<FileIcon />}
           message={rejected ? t('dashboard.emptyRfqs.rejected') : t('dashboard.emptyRfqs.pending')}
           action={
-            <Button variant="neutral" size="sm" disabled leftIcon={<LockIcon className="h-4 w-4" />} onClick={() => undefined}>
+            <Button variant="primary" size="sm" leftIcon={<PlusIcon className="h-4 w-4" />} onClick={onCreateRfq}>
               {t('dashboard.createRfq')}
             </Button>
           }
         />
       </SectionCard>
 
-      {/* Quick actions (pre-verified set; Create is locked). */}
+      {/* Quick actions — Create RFQ is reachable while unverified (drafts only; publish gated). */}
       <QuickActions
         items={[
-          { icon: <PlusIcon />, label: t('dashboard.actions.createNewRfq'), accent: 'brand', locked: true },
+          { icon: <PlusIcon />, label: t('dashboard.actions.createNewRfq'), accent: 'brand', onClick: onCreateRfq },
           { icon: <FileIcon />, label: t('dashboard.actions.browseCategories'), accent: 'success' },
           { icon: <EyeIcon />, label: t('dashboard.actions.howAnonymity'), accent: 'info' },
           { icon: <ShieldDocIcon />, label: t('dashboard.actions.completeProfile'), accent: 'success' },

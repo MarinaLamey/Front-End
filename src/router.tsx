@@ -12,7 +12,7 @@ import { TermsPage } from '@/features/legal/TermsPage'
 import { BuyerDashboardPage, SupplierDashboardPage } from '@/features/dashboard'
 import { AdminShell, AdminVerificationsPage } from '@/features/admin'
 import { SubscriptionPlansPage, SubscriptionCheckoutPage } from '@/features/subscription'
-import { RfqCreatePage } from '@/features/rfq'
+import { RfqCreatePage, RfqListPage } from '@/features/rfq'
 import { ButtonShowcase } from '@/dev/ButtonShowcase'
 import { InputShowcase } from '@/dev/InputShowcase'
 import { FieldShowcase } from '@/dev/FieldShowcase'
@@ -38,7 +38,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <BuyerDashboardPage /> },
-      { path: 'rfqs', element: <ComingSoonPage /> },
+      { path: 'rfqs', element: <RfqListPage /> },
       { path: 'rfqs/new', element: <RfqCreatePage /> },
       { path: 'bids', element: <ComingSoonPage /> },
       { path: 'negotiations', element: <ComingSoonPage /> },

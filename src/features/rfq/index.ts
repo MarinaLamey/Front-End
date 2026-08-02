@@ -1,3 +1,3 @@
 export { RfqListPage } from './RfqListPage'
-export { RfqCreatePage } from './RfqCreatePage'
-export type { Rfq, RfqStatus, CreateRfqInput } from './types'
+export { RfqCreatePage } from './create/RfqCreatePage'
+export type { Rfq, RfqStatus, RfqDraft, RfqOutcome } from './types'

@@ -11,7 +11,7 @@ import { AddressPreferencesStep } from './components/steps/AddressPreferencesSte
 import { ReviewStep } from './components/steps/ReviewStep'
 import { PlansStep } from './components/PlansStep'
 import { ResumePrompt } from './components/ResumePrompt'
-import { useOnboardingWizard, rolesFor } from './useOnboardingWizard'
+import { useOnboardingWizard, rolesFor, formatAddress } from './useOnboardingWizard'
 
 /**
  * OnboardingPage — the 6-step registration wizard + the Plans screen. The OnboardingLayout
@@ -31,7 +31,11 @@ export function OnboardingPage() {
     // Carry the real name/org captured in the wizard into the session so the portal shows the
     // actual signed-in person and organisation (no placeholder user). `memberships` are the
     // buyer/supplier role(s) chosen at registration — they drive which dashboards are reachable.
-    setTenant({ name: wizard.data.orgName })
+    setTenant({
+      name: wizard.data.orgName,
+      address: formatAddress(wizard.data),
+      city: wizard.data.city,
+    })
     login(primary, { name: wizard.data.fullName, email: wizard.data.email }, memberships)
     // File the KYB request so the org lands in the super-admin queue (pending) with its real
     // CR + VAT — the admin's per-document decisions then drive this org's dashboard.
