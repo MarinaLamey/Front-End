@@ -45,6 +45,8 @@ export interface RfqDraft {
   id: string
   reference: string
   status: RfqStatus
+  /** Number of supplier bids received (0 until a live RFQ attracts bids). */
+  bids: number
 
   // Step 1 — Requirement
   sourcing: SourcingType

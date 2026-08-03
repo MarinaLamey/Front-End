@@ -11,9 +11,9 @@
  * ──────────────────────────────────────────────────────────────────────────── */
 
 import { presetMilestones } from '../create/paymentRules'
-import type { RfqAddress, RfqDraft, RfqOutcome, RfqStatus, SourcingType } from '../types'
+import type { LineInputMethod, RfqAddress, RfqDraft, RfqOutcome, RfqStatus, SourcingType } from '../types'
 
-const STORE_KEY = 'miproc.rfqs.v1'
+const STORE_KEY = 'miproc.rfqs.v2'
 const LATENCY = 400
 const REFERENCE_SEED = 231
 
@@ -55,18 +55,15 @@ function nextReference(): string {
   return `RFQ-${year}-${String(sequence).padStart(4, '0')}`
 }
 
-/** A fresh, rule-valid draft the wizard starts from (client-side; not yet persisted). */
-export function createBlankDraft(): RfqDraft {
-  const now = new Date().toISOString()
+/** The constant, non-identifying defaults shared by a blank draft and every seeded record. */
+function draftDefaults() {
   return {
-    id: id('rfq'),
-    reference: nextReference(),
-    status: 'draft',
-    sourcing: 'goods' satisfies SourcingType,
+    bids: 0,
+    sourcing: 'goods' as SourcingType,
     category: '',
     title: '',
     budget: 0,
-    lineInputMethod: 'manual',
+    lineInputMethod: 'manual' as LineInputMethod,
     lineItems: [],
     scopeOfWork: '',
     deliverables: [],
@@ -76,15 +73,26 @@ export function createBlankDraft(): RfqDraft {
     requiredDeliveryDate: '',
     closingDate: '',
     partialDeliveryAllowed: true,
-    paymentPreset: 'staged',
+    paymentPreset: 'staged' as const,
     milestones: presetMilestones('staged'),
     acceptanceCriteria: '',
     specDocumentName: '',
-    certifications: [],
+    certifications: [] as string[],
     minimumWarranty: '',
     ndaRequired: false,
-    regions: [],
+    regions: [] as string[],
     favouritesOnly: false,
+  }
+}
+
+/** A fresh, rule-valid draft the wizard starts from (client-side; not yet persisted). */
+export function createBlankDraft(): RfqDraft {
+  const now = new Date().toISOString()
+  return {
+    id: id('rfq'),
+    reference: nextReference(),
+    status: 'draft',
+    ...draftDefaults(),
     createdAt: now,
     updatedAt: now,
   }
@@ -113,6 +121,55 @@ function upsert(draft: RfqDraft): RfqDraft {
   return record
 }
 
+/** Demo RFQs so a fresh session's list looks lived-in. Only seeded when the store is empty; the
+ * buyer's own created RFQs then append to these. Dates are relative to first load. */
+function seedRfqs(): RfqDraft[] {
+  const now = Date.now()
+  const DAY = 86_400_000
+  const at = (offsetDays: number) => new Date(now + offsetDays * DAY).toISOString()
+  const make = (
+    reference: string,
+    title: string,
+    category: string,
+    status: RfqStatus,
+    bids: number,
+    createdDaysAgo: number,
+    closingInDays: number,
+  ): RfqDraft => ({
+    id: reference,
+    reference,
+    status,
+    ...draftDefaults(),
+    title,
+    category,
+    bids,
+    closingDate: at(closingInDays),
+    createdAt: at(-createdDaysAgo),
+    updatedAt: at(-createdDaysAgo),
+  })
+
+  return [
+    make('RFQ-2026-0142', 'Steel Rebar, Grade 60', 'Construction & building materials', 'open', 7, 2, 3),
+    make('RFQ-2026-0141', 'Cement Supply, Q3', 'Cement, concrete & aggregates', 'open', 4, 3, 5),
+    make('RFQ-2026-0140', 'Water Tanks, GRP', 'Water & wastewater treatment', 'open', 5, 4, 7),
+    make('RFQ-2026-0139', 'IT Networking Refresh', 'IT, networking & software', 'open', 2, 5, 4),
+    make('RFQ-2026-0138', 'Office Furniture, 120 Workstations', 'Furniture & fixtures', 'open', 3, 4, 6),
+    make('RFQ-2026-0137', 'Catering, Staff Canteen', 'Food, beverage & catering', 'open', 3, 3, 9),
+    make('RFQ-2026-0131', 'HVAC Maintenance, 12 months', 'Facility management services', 'awarded', 11, 20, -2),
+    make('RFQ-2026-0130', 'Diesel Generators ×4', 'Heavy equipment & machinery', 'awarded', 8, 25, -3),
+    make('RFQ-2026-0129', 'Steel Pipes, API 5L', 'Steel, metals & fabrication', 'awarded', 9, 22, -4),
+    make('RFQ-2026-0128', 'Consulting, Process Audit', 'Professional & consulting services', 'awarded', 4, 24, -5),
+    make('RFQ-2026-0127', 'Safety Equipment, PPE Bundle', 'Safety, security & PPE', 'pending_approval', 0, 1, 8),
+    make('RFQ-2026-0126', 'Uniforms, 300 Sets', 'Uniforms & textiles', 'pending_approval', 0, 1, 10),
+    make('RFQ-2026-0119', 'Fleet Tyres, Heavy Duty', 'Vehicles & automotive parts', 'draft', 0, 3, 0),
+    make('RFQ-2026-0118', 'Solar Panels, Rooftop', 'Solar & renewable energy', 'draft', 0, 1, 0),
+    make('RFQ-2026-0117', 'Office Stationery, Q3', 'Office supplies & stationery', 'draft', 0, 1, 0),
+    make('RFQ-2026-0112', 'Warehouse Racking System', 'Construction & building materials', 'closed', 5, 30, -5),
+    make('RFQ-2026-0111', 'Cleaning Services, Annual', 'Cleaning & janitorial', 'closed', 6, 28, -6),
+    make('RFQ-2026-0110', 'Forklift Spare Parts', 'MRO & industrial spare parts', 'closed', 2, 26, -7),
+  ]
+}
+
 export const rfqApi = {
   /** Saved delivery addresses for the "Deliver to" picker. */
   getAddresses(): Promise<RfqAddress[]> {
@@ -129,8 +186,13 @@ export const rfqApi = {
     return delay(upsert({ ...draft, status: statusFor(outcome) }))
   },
 
-  /** The RFQ list read-model. */
+  /** The RFQ list read-model — seeds demo RFQs on first load so the list isn't empty. */
   listRfqs(): Promise<RfqDraft[]> {
-    return delay(readStore().slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
+    let records = readStore()
+    if (records.length === 0) {
+      records = seedRfqs()
+      writeStore(records)
+    }
+    return delay(records.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
   },
 }
