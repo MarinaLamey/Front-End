@@ -7,7 +7,7 @@ import { isNameOnly } from '@/shared/lib/validators'
 import { StepFrame } from '../StepFrame'
 import { WizardFooter } from '../WizardFooter'
 import type { UiError } from '@/shared/ui/types'
-import { formatAddress, type OnboardingData, type RegisterRole } from '../../useOnboardingWizard'
+import type { OnboardingData, RegisterRole } from '../../useOnboardingWizard'
 
 interface ReviewStepProps {
   data: OnboardingData
@@ -18,6 +18,13 @@ interface ReviewStepProps {
 }
 
 const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
+
+// Saudi National Address formats — mirrors AddressPreferencesStep so Review edits validate identically.
+const BUILDING_RE = /^\d{4}$/
+const ADDITIONAL_RE = /^\d{4}$/
+const ZIP_RE = /^\d{5}$/
+const UNIT_RE = /^\d{1,4}$/
+const digits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max)
 
 /** A bordered group card ("Account" / "Organisation") holding editable fields. */
 function Card({ title, children }: { title: string; children: ReactNode }) {
@@ -70,6 +77,203 @@ function FileRow({
         className="hidden"
         onChange={(event) => onFile(event.target.files?.[0] ?? null)}
       />
+    </div>
+  )
+}
+
+/**
+ * The National Address block — a composed read view with an Edit toggle that reveals the same
+ * fields and validation as step 5. Cancel restores the pre-edit values; Save closes when valid.
+ */
+function AddressReview({
+  data,
+  patch,
+}: {
+  data: OnboardingData
+  patch: (partial: Partial<OnboardingData>) => void
+}) {
+  const { t } = useTranslation()
+  const cities = t('onboarding.address.cities', { returnObjects: true }) as string[]
+  const [editing, setEditing] = useState(false)
+  const snapshot = useRef<Partial<OnboardingData> | null>(null)
+
+  const valid =
+    BUILDING_RE.test(data.buildingNo) &&
+    (data.additionalNo === '' || ADDITIONAL_RE.test(data.additionalNo)) &&
+    isNameOnly(data.street) &&
+    isNameOnly(data.district) &&
+    isNameOnly(data.city) &&
+    ZIP_RE.test(data.zip) &&
+    UNIT_RE.test(data.unitNo)
+
+  const openEdit = () => {
+    snapshot.current = {
+      buildingNo: data.buildingNo,
+      additionalNo: data.additionalNo,
+      street: data.street,
+      district: data.district,
+      city: data.city,
+      zip: data.zip,
+      unitNo: data.unitNo,
+    }
+    setEditing(true)
+  }
+  const cancel = () => {
+    if (snapshot.current) patch(snapshot.current)
+    setEditing(false)
+  }
+  const save = () => {
+    if (valid) setEditing(false)
+  }
+
+  const line1 = [data.buildingNo, data.street].filter(Boolean).join(' ')
+  const line2 = [data.district, [data.city, data.zip].filter(Boolean).join(' ')]
+    .filter(Boolean)
+    .join(', ')
+  const detail = [
+    data.additionalNo && `${t('onboarding.address.additionalNo')} ${data.additionalNo}`,
+    data.unitNo && `${t('onboarding.address.unitNo')} ${data.unitNo}`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  return (
+    <div className="sm:col-span-2">
+      <div className="flex items-center justify-between gap-3">
+        <h4 className="text-sm font-semibold text-content-primary">
+          {t('onboarding.address.address')}
+        </h4>
+        {!editing && (
+          <button
+            type="button"
+            onClick={openEdit}
+            className="text-sm font-medium text-content-link hover:text-content-link-hover"
+          >
+            {t('onboarding.review.edit')}
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="mt-3 flex flex-col gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label={t('onboarding.address.buildingNo')}
+              required
+              inputMode="numeric"
+              value={data.buildingNo}
+              onChange={(e) => patch({ buildingNo: digits(e.target.value, 4) })}
+              success={BUILDING_RE.test(data.buildingNo)}
+              error={
+                data.buildingNo.length > 0 && !BUILDING_RE.test(data.buildingNo)
+                  ? { title: t('validation.buildingNoInvalid') }
+                  : null
+              }
+            />
+            <Field
+              label={t('onboarding.address.additionalNo')}
+              inputMode="numeric"
+              value={data.additionalNo}
+              onChange={(e) => patch({ additionalNo: digits(e.target.value, 4) })}
+              success={data.additionalNo !== '' && ADDITIONAL_RE.test(data.additionalNo)}
+              error={
+                data.additionalNo.length > 0 && !ADDITIONAL_RE.test(data.additionalNo)
+                  ? { title: t('validation.additionalNoInvalid') }
+                  : null
+              }
+            />
+          </div>
+          <Field
+            label={t('onboarding.address.street')}
+            required
+            value={data.street}
+            onChange={(e) => patch({ street: e.target.value })}
+            success={isNameOnly(data.street)}
+            error={
+              data.street.trim().length > 0 && !isNameOnly(data.street)
+                ? { title: t('validation.lettersOnly') }
+                : null
+            }
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label={t('onboarding.address.district')}
+              required
+              value={data.district}
+              onChange={(e) => patch({ district: e.target.value })}
+              success={isNameOnly(data.district)}
+              error={
+                data.district.trim().length > 0 && !isNameOnly(data.district)
+                  ? { title: t('validation.lettersOnly') }
+                  : null
+              }
+            />
+            <SearchSelect
+              label={t('onboarding.address.cityName')}
+              required
+              options={cities}
+              value={data.city}
+              onChange={(city) => patch({ city })}
+              placeholder={t('onboarding.address.cityPlaceholder')}
+              searchPlaceholder={t('onboarding.address.searchCity')}
+              emptyLabel={t('onboarding.address.noCity')}
+              success={data.city.length > 0}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label={t('onboarding.address.zip')}
+              required
+              inputMode="numeric"
+              value={data.zip}
+              onChange={(e) => patch({ zip: digits(e.target.value, 5) })}
+              success={ZIP_RE.test(data.zip)}
+              error={
+                data.zip.length > 0 && !ZIP_RE.test(data.zip)
+                  ? { title: t('validation.zipInvalid') }
+                  : null
+              }
+            />
+            <Field
+              label={t('onboarding.address.unitNo')}
+              required
+              inputMode="numeric"
+              value={data.unitNo}
+              onChange={(e) => patch({ unitNo: digits(e.target.value, 4) })}
+              success={UNIT_RE.test(data.unitNo)}
+              error={
+                data.unitNo.length > 0 && !UNIT_RE.test(data.unitNo)
+                  ? { title: t('validation.unitNoInvalid') }
+                  : null
+              }
+            />
+          </div>
+          <div className="flex items-center justify-end gap-4">
+            <button
+              type="button"
+              onClick={cancel}
+              className="text-sm font-medium text-content-secondary hover:text-content-primary"
+            >
+              {t('onboarding.review.cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={save}
+              disabled={!valid}
+              className="text-sm font-semibold text-content-link hover:text-content-link-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t('onboarding.review.saveAddress')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-2 space-y-0.5 text-sm text-content-secondary">
+          {line1 && <p>{line1}</p>}
+          {line2 && <p>{line2}</p>}
+          {detail && <p>{detail}</p>}
+          {!line1 && !line2 && !detail && <p className="text-content-tertiary">—</p>}
+        </div>
+      )}
     </div>
   )
 }
@@ -198,14 +402,7 @@ export function ReviewStep({ data, patch, onSubmit, isSubmitting, submitError }:
               replaceLabel={t('onboarding.review.replace')}
               uploadLabel={t('onboarding.review.upload')}
             />
-            <div className="flex flex-col gap-1.5 sm:col-span-2 sm:max-w-xl">
-              {/* Composed from the step-5 fields — shown for confirmation, not free-text editing. */}
-              <Field label={t('onboarding.address.address')} value={formatAddress(data)} readOnly />
-              <span className="inline-flex items-center gap-2 text-sm font-medium text-status-warning">
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                {t('onboarding.kyc.pending.badge')}
-              </span>
-            </div>
+            <AddressReview data={data} patch={patch} />
           </div>
         </Card>
 

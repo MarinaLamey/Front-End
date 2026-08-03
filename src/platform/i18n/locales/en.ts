@@ -423,9 +423,13 @@ export const en = {
     },
     review: {
       title: 'Review & submit',
-      subtitle: 'Review your details and edit anything before you submit. We verify your CR and VAT after you submit.',
+      subtitle:
+        'Review your details and edit anything before you submit. We verify your CR, VAT and National Address after you submit.',
       replace: 'Replace',
       upload: 'Upload',
+      edit: 'Edit',
+      cancel: 'Cancel',
+      saveAddress: 'Save address',
       next: {
         heading: 'What happens next',
         steps: [
