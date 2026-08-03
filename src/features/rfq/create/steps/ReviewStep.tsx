@@ -44,7 +44,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 /** Step 4 — a grouped review; the primary fields stay editable in place, the rest summarise. */
 export function ReviewStep({ draft, patch }: ReviewStepProps) {
   const { t } = useTranslation()
-  const categories = t('rfq.create.categories', { returnObjects: true }) as string[]
+  const categories = t('catalog.categories', { returnObjects: true }) as string[]
 
   const lineSummary = draft.lineItems
     .filter((i) => i.name.trim())

@@ -17,7 +17,7 @@ interface RequirementStepProps {
 /** Step 1 — Requirement details, line items, and (for services) scope & deliverables. */
 export function RequirementStep({ draft, patch }: RequirementStepProps) {
   const { t } = useTranslation()
-  const categories = t('rfq.create.categories', { returnObjects: true }) as string[]
+  const categories = t('catalog.categories', { returnObjects: true }) as string[]
   const showScope = draft.sourcing === 'service' || draft.sourcing === 'both'
 
   const applySuggestion = () => {
