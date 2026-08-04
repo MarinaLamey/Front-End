@@ -10,6 +10,7 @@ import { RfqCard } from '../create/components/RfqCard'
 import { useRfqDraftStore } from '../create/rfqDraftStore'
 import { useRfq, useSetRfqStatus } from '../hooks/rfqQueries'
 import { deriveRfqDetail } from './deriveRfqDetail'
+import { RfqActionDialog } from './RfqActionDialog'
 import type { BidStatus } from '../types'
 
 const BID_TONE: Record<BidStatus, string> = {
@@ -25,7 +26,7 @@ export function RfqDetailPage() {
   const { data: rfq, isLoading } = useRfq(id)
   const setStatus = useSetRfqStatus()
   const loadDraft = useRfqDraftStore((s) => s.loadDraft)
-  const [confirm, setConfirm] = useState<'close' | 'cancel' | null>(null)
+  const [dialog, setDialog] = useState<'amend' | 'close' | 'cancel' | null>(null)
 
   const dateFull = (iso: string) =>
     iso ? new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso)) : '—'
@@ -62,12 +63,14 @@ export function RfqDetailPage() {
   const visibleBids = detail.bids.slice(0, 4)
   const moreBids = detail.bids.length - visibleBids.length
 
-  const closeOrCancel = () =>
-    setStatus.mutate({ id, status: 'closed' }, { onSuccess: () => navigate('/buyer/rfqs') })
-  const amend = () => {
+  const confirmAmend = () => {
     loadDraft(rfq)
     navigate('/buyer/rfqs/new')
   }
+  const confirmClose = () =>
+    setStatus.mutate({ id, status: 'closed' }, { onSuccess: () => navigate(`/buyer/rfqs/${id}/compare`) })
+  const confirmCancel = () =>
+    setStatus.mutate({ id, status: 'closed' }, { onSuccess: () => navigate('/buyer/rfqs') })
 
   return (
     <section className="mx-auto w-full max-w-6xl">
@@ -238,44 +241,99 @@ export function RfqDetailPage() {
 
           {/* Actions */}
           <RfqCard>
-            {confirm ? (
-              <div className="flex flex-col gap-3">
-                <p className="text-sm text-content-secondary">
-                  {t(confirm === 'cancel' ? 'rfq.detail.confirmCancel' : 'rfq.detail.confirmClose')}
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button variant="danger" size="sm" isLoading={setStatus.isPending} onClick={closeOrCancel}>
-                    {t('rfq.detail.confirm')}
+            <div className="flex flex-col gap-2.5">
+              <Button fullWidth onClick={() => navigate(`/buyer/rfqs/${id}/compare`)}>
+                {t('rfq.detail.compareBids')}
+              </Button>
+              {isLive && (
+                <>
+                  <Button variant="outline" fullWidth onClick={() => setDialog('close')}>
+                    {t('rfq.detail.closeEarly')}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setConfirm(null)}>
-                    {t('rfq.detail.keep')}
+                  <Button variant="outline" fullWidth onClick={() => setDialog('amend')}>
+                    {t('rfq.detail.amend')}
                   </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2.5">
-                <Button fullWidth onClick={() => navigate(`/buyer/rfqs/${id}/compare`)}>
-                  {t('rfq.detail.compareBids')}
-                </Button>
-                {isLive && (
-                  <>
-                    <Button variant="outline" fullWidth onClick={() => setConfirm('close')}>
-                      {t('rfq.detail.closeEarly')}
-                    </Button>
-                    <Button variant="outline" fullWidth onClick={amend}>
-                      {t('rfq.detail.amend')}
-                    </Button>
-                    <Button variant="ghost" fullWidth className="text-status-danger hover:bg-status-danger-subtle" onClick={() => setConfirm('cancel')}>
-                      {t('rfq.detail.cancel')}
-                    </Button>
-                    <p className="mt-1 text-xs text-content-tertiary">{t('rfq.detail.amendNote')}</p>
-                  </>
-                )}
-              </div>
-            )}
+                  <Button
+                    variant="ghost"
+                    fullWidth
+                    className="text-status-danger hover:bg-status-danger-subtle"
+                    onClick={() => setDialog('cancel')}
+                  >
+                    {t('rfq.detail.cancel')}
+                  </Button>
+                  <p className="mt-1 text-xs text-content-tertiary">{t('rfq.detail.amendNote')}</p>
+                </>
+              )}
+            </div>
           </RfqCard>
         </div>
       </div>
+
+      <RfqActionDialog
+        open={dialog === 'amend'}
+        onClose={() => setDialog(null)}
+        onConfirm={confirmAmend}
+        title={t('rfq.detail.dialogs.amend.title')}
+        badge={{ text: t('rfq.detail.dialogs.amend.badge', { count: rfq.bids }), tone: 'danger' }}
+        body={t('rfq.detail.dialogs.amend.body')}
+        callout={{
+          heading: t('rfq.detail.dialogs.amend.calloutHeading'),
+          tone: 'danger',
+          bullets: [
+            t('rfq.detail.dialogs.amend.b1', { count: rfq.bids }),
+            t('rfq.detail.dialogs.amend.b2'),
+            t('rfq.detail.dialogs.amend.b3'),
+            t('rfq.detail.dialogs.amend.b4'),
+          ],
+        }}
+        confirmLabel={t('rfq.detail.dialogs.amend.confirm')}
+        confirmTone="danger"
+        cancelLabel={t('rfq.detail.dialogs.amend.cancel')}
+      />
+
+      <RfqActionDialog
+        open={dialog === 'close'}
+        onClose={() => setDialog(null)}
+        onConfirm={confirmClose}
+        loading={setStatus.isPending}
+        title={t('rfq.detail.dialogs.close.title')}
+        badge={{ text: rfq.reference, tone: 'neutral' }}
+        body={t('rfq.detail.dialogs.close.body', { count: rfq.bids })}
+        callout={{
+          heading: t('rfq.detail.dialogs.close.calloutHeading'),
+          tone: 'warning',
+          bullets: [
+            t('rfq.detail.dialogs.close.b1'),
+            t('rfq.detail.dialogs.close.b2'),
+            t('rfq.detail.dialogs.close.b3', { count: rfq.bids }),
+          ],
+        }}
+        confirmLabel={t('rfq.detail.dialogs.close.confirm')}
+        confirmTone="primary"
+        cancelLabel={t('rfq.detail.dialogs.close.keep')}
+      />
+
+      <RfqActionDialog
+        open={dialog === 'cancel'}
+        onClose={() => setDialog(null)}
+        onConfirm={confirmCancel}
+        loading={setStatus.isPending}
+        title={t('rfq.detail.dialogs.cancel.title')}
+        badge={{ text: t('rfq.detail.dialogs.cancel.badge', { count: rfq.bids }), tone: 'danger' }}
+        body={t('rfq.detail.dialogs.cancel.body')}
+        callout={{
+          heading: t('rfq.detail.dialogs.cancel.calloutHeading'),
+          tone: 'danger',
+          bullets: [
+            t('rfq.detail.dialogs.cancel.b1'),
+            t('rfq.detail.dialogs.cancel.b2', { count: rfq.bids }),
+            t('rfq.detail.dialogs.cancel.b3'),
+          ],
+        }}
+        confirmLabel={t('rfq.detail.dialogs.cancel.confirm')}
+        confirmTone="danger"
+        cancelLabel={t('rfq.detail.dialogs.cancel.keep')}
+      />
     </section>
   )
 }
