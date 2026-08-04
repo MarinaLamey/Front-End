@@ -49,6 +49,10 @@ export interface RfqDraft {
   bids: number
   /** Set once a bid is awarded — the winning terms + generated PO. */
   award?: RfqAward
+  /** Negotiation threads by bid id — only present once the buyer has opened/countered one. */
+  negotiations?: Record<string, NegotiationThread>
+  /** Free-text messages in the post-award order conversation. */
+  orderMessages?: OrderMessage[]
 
   // Step 1 — Requirement
   sourcing: SourcingType
@@ -122,6 +126,49 @@ export interface Bid {
   compliance: Record<string, boolean>
   negotiationRounds: number
   identity: SupplierIdentity
+}
+
+/** One offer version in a negotiation thread — an original bid, a buyer counter, or a supplier reply. */
+export interface OfferVersion {
+  /** 1-based, chronological. Also the "Offer v{n}" / round label. */
+  version: number
+  by: 'supplier' | 'buyer'
+  /** Offer total in SAR major units, VAT-inclusive. */
+  totalSar: number
+  deliveryDate: string
+  paymentTermsLabel: string
+  itemsCovered: number
+  itemsTotal: number
+  /** Free text typed by the buyer on a counter. */
+  message?: string
+  /** i18n key for a seeded/canned message (kept bilingual; resolved in the UI). */
+  messageKey?: string
+  messageParams?: Record<string, string | number>
+  at: string
+}
+
+/** `active` = still open to counters; `ended` = buyer closed the conversation; `awarded` = won. */
+export type NegotiationStatus = 'active' | 'ended' | 'awarded'
+
+/** A per-supplier negotiation thread on an RFQ (buyer ↔ still-masked supplier). Persisted once touched. */
+export interface NegotiationThread {
+  bidId: string
+  supplierLabel: string
+  status: NegotiationStatus
+  /** v1…vN, chronological. The latest supplier offer is what's "on the table". */
+  offers: OfferVersion[]
+  /** Offer expiry (from the bid's validUntil). */
+  validUntil: string
+  updatedAt: string
+}
+
+/** A free-text message in the post-award order conversation (identities revealed, terms locked). */
+export interface OrderMessage {
+  by: 'supplier' | 'buyer'
+  /** Display author — a real name once identities are revealed, or "You". */
+  author: string
+  text: string
+  at: string
 }
 
 /** The confirmed award on an RFQ — the winning bid's terms + the generated PO. */

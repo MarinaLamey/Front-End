@@ -20,7 +20,7 @@ export interface RfqDetail {
 }
 
 /** Small deterministic PRNG (mulberry32 seeded by an xmur3 hash of the key). */
-function seededRng(key: string): () => number {
+export function seededRng(key: string): () => number {
   let h = 1779033703 ^ key.length
   for (let i = 0; i < key.length; i++) {
     h = Math.imul(h ^ key.charCodeAt(i), 3432918353)
@@ -36,8 +36,11 @@ function seededRng(key: string): () => number {
   }
 }
 
-const addDays = (iso: string, days: number) =>
+export const addDays = (iso: string, days: number) =>
   new Date((iso ? new Date(iso).getTime() : Date.now()) + days * 86_400_000).toISOString()
+
+export const addMinutes = (iso: string, minutes: number) =>
+  new Date((iso ? new Date(iso).getTime() : Date.now()) + minutes * 60_000).toISOString()
 
 const DEFAULT_CERTS = ['ISO 9001', 'SASO Conformity', 'Mill test certificate']
 

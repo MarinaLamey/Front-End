@@ -333,7 +333,7 @@ export function CompareBidsPage() {
                       <Button fullWidth onClick={() => onAward(bid)} isLoading={award.isPending && override?.id === bid.id}>
                         {t('rfq.compare.award')}
                       </Button>
-                      <Button variant="outline" fullWidth onClick={() => navigate('/buyer/negotiations')}>
+                      <Button variant="outline" fullWidth onClick={() => navigate(`/buyer/negotiations/${id}/${bid.id}`)}>
                         {bid.status === 'submitted' ? t('rfq.compare.negotiate') : t('rfq.compare.continueNegotiation')}
                       </Button>
                       {!compliant && (

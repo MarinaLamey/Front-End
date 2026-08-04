@@ -11,7 +11,17 @@
  * ──────────────────────────────────────────────────────────────────────────── */
 
 import { presetMilestones } from '../create/paymentRules'
-import type { LineInputMethod, RfqAddress, RfqAward, RfqDraft, RfqOutcome, RfqStatus, SourcingType } from '../types'
+import type {
+  LineInputMethod,
+  NegotiationThread,
+  OrderMessage,
+  RfqAddress,
+  RfqAward,
+  RfqDraft,
+  RfqOutcome,
+  RfqStatus,
+  SourcingType,
+} from '../types'
 
 const STORE_KEY = 'miproc.rfqs.v3'
 const LATENCY = 400
@@ -218,5 +228,23 @@ export const rfqApi = {
     const record = records.find((r) => r.id === id)
     if (!record) return Promise.reject(new Error('RFQ not found'))
     return delay(upsert({ ...record, status: 'awarded', award }))
+  },
+
+  /** Persist a negotiation thread (buyer counter / end) onto its RFQ, keyed by bid id. */
+  saveNegotiation(id: string, thread: NegotiationThread): Promise<RfqDraft> {
+    const records = readStore()
+    const record = records.find((r) => r.id === id)
+    if (!record) return Promise.reject(new Error('RFQ not found'))
+    const negotiations = { ...record.negotiations, [thread.bidId]: thread }
+    return delay(upsert({ ...record, negotiations }))
+  },
+
+  /** Append a message to the post-award order conversation. */
+  appendOrderMessage(id: string, message: OrderMessage): Promise<RfqDraft> {
+    const records = readStore()
+    const record = records.find((r) => r.id === id)
+    if (!record) return Promise.reject(new Error('RFQ not found'))
+    const orderMessages = [...(record.orderMessages ?? []), message]
+    return delay(upsert({ ...record, orderMessages }))
   },
 }

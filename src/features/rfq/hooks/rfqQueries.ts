@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { rfqApi } from '../services/rfqApi'
-import type { RfqAward, RfqDraft, RfqOutcome, RfqStatus } from '../types'
+import type { NegotiationThread, OrderMessage, RfqAward, RfqDraft, RfqOutcome, RfqStatus } from '../types'
 
 export const rfqKeys = {
   list: () => ['rfqs'] as const,
@@ -35,6 +35,32 @@ export function useAwardRfq() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, award }: { id: string; award: RfqAward }) => rfqApi.awardRfq(id, award),
+    onSuccess: (record) => {
+      qc.setQueryData(rfqKeys.detail(record.id), record)
+      projectRecord(qc, record)
+    },
+  })
+}
+
+/** Persist a negotiation thread (counter / end) — projects into the detail and list caches. */
+export function useSaveNegotiation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, thread }: { id: string; thread: NegotiationThread }) =>
+      rfqApi.saveNegotiation(id, thread),
+    onSuccess: (record) => {
+      qc.setQueryData(rfqKeys.detail(record.id), record)
+      projectRecord(qc, record)
+    },
+  })
+}
+
+/** Append a message to the order conversation — projects into the detail and list caches. */
+export function useAppendOrderMessage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, message }: { id: string; message: OrderMessage }) =>
+      rfqApi.appendOrderMessage(id, message),
     onSuccess: (record) => {
       qc.setQueryData(rfqKeys.detail(record.id), record)
       projectRecord(qc, record)

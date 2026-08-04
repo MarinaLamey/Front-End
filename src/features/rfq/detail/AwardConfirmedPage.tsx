@@ -119,7 +119,7 @@ export function AwardConfirmedPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button onClick={() => navigate('/buyer/orders')}>{t('rfq.award.viewPo')}</Button>
+        <Button onClick={() => navigate(`/buyer/orders/${id}`)}>{t('rfq.award.viewOrder')}</Button>
         <Button variant="outline" onClick={() => navigate('/buyer/rfqs')}>{t('rfq.award.backToRfqs')}</Button>
       </div>
     </section>
