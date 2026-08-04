@@ -17,7 +17,6 @@ interface OutcomeConfig {
 const CONFIG: Record<RfqOutcome, OutcomeConfig> = {
   draft_saved: { statusKey: 'draft', statusTone: 'neutral', primary: 'continueEditing', secondary: 'backToDashboard' },
   published: { statusKey: 'live', statusTone: 'success', primary: 'viewRfq', secondary: 'trackBids' },
-  pending_approval: { statusKey: 'pending', statusTone: 'warning', primary: 'viewRfq', secondary: 'backToDashboard' },
   verify_to_publish: { statusKey: 'verifyToPublish', statusTone: 'neutral', primary: 'verifyOrg', secondary: 'backToDashboard' },
 }
 

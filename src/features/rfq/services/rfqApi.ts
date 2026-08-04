@@ -13,7 +13,7 @@
 import { presetMilestones } from '../create/paymentRules'
 import type { LineInputMethod, RfqAddress, RfqDraft, RfqOutcome, RfqStatus, SourcingType } from '../types'
 
-const STORE_KEY = 'miproc.rfqs.v2'
+const STORE_KEY = 'miproc.rfqs.v3'
 const LATENCY = 400
 const REFERENCE_SEED = 231
 
@@ -103,8 +103,6 @@ function statusFor(outcome: RfqOutcome): RfqStatus {
   switch (outcome) {
     case 'published':
       return 'open'
-    case 'pending_approval':
-      return 'pending_approval'
     case 'draft_saved':
     case 'verify_to_publish':
       return 'draft'
@@ -159,8 +157,8 @@ function seedRfqs(): RfqDraft[] {
     make('RFQ-2026-0130', 'Diesel Generators ×4', 'Heavy equipment & machinery', 'awarded', 8, 25, -3),
     make('RFQ-2026-0129', 'Steel Pipes, API 5L', 'Steel, metals & fabrication', 'awarded', 9, 22, -4),
     make('RFQ-2026-0128', 'Consulting, Process Audit', 'Professional & consulting services', 'awarded', 4, 24, -5),
-    make('RFQ-2026-0127', 'Safety Equipment, PPE Bundle', 'Safety, security & PPE', 'pending_approval', 0, 1, 8),
-    make('RFQ-2026-0126', 'Uniforms, 300 Sets', 'Uniforms & textiles', 'pending_approval', 0, 1, 10),
+    make('RFQ-2026-0127', 'Safety Equipment, PPE Bundle', 'Safety, security & PPE', 'open', 1, 1, 8),
+    make('RFQ-2026-0126', 'Uniforms, 300 Sets', 'Uniforms & textiles', 'open', 0, 1, 10),
     make('RFQ-2026-0119', 'Fleet Tyres, Heavy Duty', 'Vehicles & automotive parts', 'draft', 0, 3, 0),
     make('RFQ-2026-0118', 'Solar Panels, Rooftop', 'Solar & renewable energy', 'draft', 0, 1, 0),
     make('RFQ-2026-0117', 'Office Stationery, Q3', 'Office supplies & stationery', 'draft', 0, 1, 0),

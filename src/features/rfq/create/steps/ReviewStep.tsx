@@ -133,12 +133,7 @@ export function ReviewStep({ draft, patch }: ReviewStepProps) {
           )}
         >
           <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand-primary" />
-          <p>
-            <span className="font-semibold text-content-primary">
-              {t('rfq.create.review.approvalTitle')}
-            </span>{' '}
-            {t('rfq.create.review.approvalBody')}
-          </p>
+          <p>{t('rfq.create.review.publishNote')}</p>
         </div>
       </div>
     </RfqCard>

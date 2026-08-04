@@ -15,8 +15,6 @@ export function useRfqWizard() {
   const orgMeta = useCurrentOrgMeta()
   const { data: verification, isLoading: verificationLoading } = useOrgVerification(orgMeta)
   const verified = verification?.status === 'verified'
-  // TODO(rbac): an org admin / approver may publish without sign-off → the `published` outcome.
-  const canPublishDirectly = false
 
   const save = useSaveRfqDraft()
   const submit = useSubmitRfq()
@@ -35,7 +33,7 @@ export function useRfqWizard() {
   }
 
   const submitRfq = () => {
-    const outcome = computeOutcome('submit', { verified, canPublishDirectly })
+    const outcome = computeOutcome('submit', { verified })
     submit.mutate(
       { draft: store.draft, outcome },
       { onSuccess: () => store.setResult(buildResult(store.draft, outcome)) },

@@ -1,7 +1,7 @@
 import type { Milestone, PaymentPreset } from './create/paymentRules'
 
-/** Lifecycle of an RFQ. `draft` → (`pending_approval` →) `open`(live) → `awarded`/`closed`. */
-export type RfqStatus = 'draft' | 'pending_approval' | 'open' | 'awarded' | 'closed'
+/** Lifecycle of an RFQ. `draft` → `open`(live, published straight to suppliers) → `awarded`/`closed`. */
+export type RfqStatus = 'draft' | 'open' | 'awarded' | 'closed'
 
 /** Row shape for the RFQ list read-model. */
 export interface Rfq {
@@ -85,7 +85,7 @@ export interface RfqDraft {
 }
 
 /** The four terminal outcomes after leaving the wizard (each renders a result card). */
-export type RfqOutcome = 'draft_saved' | 'published' | 'pending_approval' | 'verify_to_publish'
+export type RfqOutcome = 'draft_saved' | 'published' | 'verify_to_publish'
 
 /** The result-card summary shown on any terminal outcome. */
 export interface RfqResult {

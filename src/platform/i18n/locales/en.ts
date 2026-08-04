@@ -689,7 +689,6 @@ export const en = {
       closing: {
         inDays: 'In {{count}} days',
         inDays_one: 'In {{count}} day',
-        awaitingAdmin: 'Awaiting Admin',
         notPublished: 'Not published',
         closed: 'Closed',
       },
@@ -701,7 +700,6 @@ export const en = {
     },
     statusLabel: {
       draft: 'Draft',
-      pending_approval: 'Pending approval',
       open: 'Live',
       awarded: 'Awarded',
       closed: 'Closed',
@@ -712,7 +710,7 @@ export const en = {
       back: 'Back',
       saveDraft: 'Save draft',
       next: 'Next',
-      submitForApproval: 'Submit for approval',
+      publish: 'Publish RFQ',
       steps: {
         requirement: 'Requirement',
         delivery: 'Delivery & terms',
@@ -945,9 +943,8 @@ export const en = {
         customAddress: 'Custom delivery address',
         ndaRequired: 'Required',
         ndaNotRequired: 'Not required',
-        approvalTitle: 'Approval required',
-        approvalBody:
-          'Your organisation’s Admin must approve this RFQ before it’s published. They’ll be notified when you submit.',
+        publishNote:
+          'On submit, your RFQ goes live and is broadcast anonymously to matched verified suppliers.',
       },
       result: {
         reference: 'RFQ reference',
@@ -960,7 +957,6 @@ export const en = {
         statuses: {
           draft: 'Draft',
           live: 'Live',
-          pending: 'Pending approval',
           verifyToPublish: 'Verify to publish',
         },
         actions: {
@@ -977,10 +973,6 @@ export const en = {
         published: {
           title: 'RFQ published',
           body: 'Your RFQ is live. We are matching verified suppliers now.',
-        },
-        pending_approval: {
-          title: 'RFQ submitted for approval',
-          body: 'Your RFQ is with your organisation’s Admin. Once approved, it goes live and matched suppliers are notified.',
         },
         verify_to_publish: {
           title: 'Saved as draft',

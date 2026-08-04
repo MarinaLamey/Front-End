@@ -9,21 +9,19 @@ import type { RfqDraft, RfqStatus } from './types'
 
 const STATUS_TONE: Record<RfqStatus, string> = {
   draft: 'bg-bg-surface-sunken text-content-secondary',
-  pending_approval: 'bg-status-warning-subtle text-status-warning-strong',
   open: 'bg-status-success-subtle text-status-success-strong',
   awarded: 'bg-brand-subtle text-brand-strong',
   closed: 'bg-bg-surface-sunken text-content-tertiary',
 }
 
 /** RFQ list filters — All plus one per status, in the order the Figma shows. */
-const FILTERS = ['all', 'draft', 'pending_approval', 'open', 'closed', 'awarded'] as const
+const FILTERS = ['all', 'draft', 'open', 'closed', 'awarded'] as const
 type Filter = (typeof FILTERS)[number]
 
 /** Which action a row offers, by status. */
 const ACTION: Record<RfqStatus, 'compare' | 'view' | 'resume'> = {
   open: 'compare',
   draft: 'resume',
-  pending_approval: 'view',
   awarded: 'view',
   closed: 'view',
 }
@@ -37,7 +35,7 @@ export function RfqListPage() {
   const [filter, setFilter] = useState<Filter>('all')
 
   const counts = useMemo(() => {
-    const c: Record<RfqStatus, number> = { draft: 0, pending_approval: 0, open: 0, awarded: 0, closed: 0 }
+    const c: Record<RfqStatus, number> = { draft: 0, open: 0, awarded: 0, closed: 0 }
     for (const rfq of data) c[rfq.status] += 1
     return c
   }, [data])
@@ -62,7 +60,6 @@ export function RfqListPage() {
 
   const closingFor = (rfq: RfqDraft) => {
     if (rfq.status === 'draft') return t('rfq.list.closing.notPublished')
-    if (rfq.status === 'pending_approval') return t('rfq.list.closing.awaitingAdmin')
     if (rfq.status === 'open') {
       const days = daysUntil(rfq.closingDate)
       return days > 0 ? t('rfq.list.closing.inDays', { count: days }) : t('rfq.list.closing.closed')

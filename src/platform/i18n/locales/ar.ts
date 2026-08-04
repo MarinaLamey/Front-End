@@ -689,7 +689,6 @@ export const ar = {
       closing: {
         inDays: 'خلال {{count}} أيام',
         inDays_one: 'خلال يوم',
-        awaitingAdmin: 'بانتظار المشرف',
         notPublished: 'غير منشور',
         closed: 'مغلق',
       },
@@ -701,7 +700,6 @@ export const ar = {
     },
     statusLabel: {
       draft: 'مسودة',
-      pending_approval: 'بانتظار الاعتماد',
       open: 'مباشر',
       awarded: 'تم الترسية',
       closed: 'مغلق',
@@ -712,7 +710,7 @@ export const ar = {
       back: 'رجوع',
       saveDraft: 'حفظ كمسودة',
       next: 'التالي',
-      submitForApproval: 'إرسال للاعتماد',
+      publish: 'نشر الطلب',
       steps: {
         requirement: 'المتطلبات',
         delivery: 'التسليم والشروط',
@@ -942,8 +940,7 @@ export const ar = {
         customAddress: 'عنوان تسليم مخصص',
         ndaRequired: 'مطلوبة',
         ndaNotRequired: 'غير مطلوبة',
-        approvalTitle: 'الاعتماد مطلوب',
-        approvalBody: 'يجب أن يعتمد مسؤول مؤسستك هذا الطلب قبل نشره. سيتم إخطاره عند الإرسال.',
+        publishNote: 'عند الإرسال، يصبح طلبك مباشرًا ويُبث بهوية مجهولة إلى الموردين المعتمدين المطابقين.',
       },
       result: {
         reference: 'مرجع الطلب',
@@ -956,7 +953,6 @@ export const ar = {
         statuses: {
           draft: 'مسودة',
           live: 'مباشر',
-          pending: 'بانتظار الاعتماد',
           verifyToPublish: 'وثّق للنشر',
         },
         actions: {
@@ -973,10 +969,6 @@ export const ar = {
         published: {
           title: 'تم نشر الطلب',
           body: 'طلبك مباشر الآن. نطابق الموردين المعتمدين الآن.',
-        },
-        pending_approval: {
-          title: 'تم إرسال الطلب للاعتماد',
-          body: 'طلبك لدى مسؤول مؤسستك. بمجرد الاعتماد يصبح مباشرًا ويُخطَر الموردون المطابقون.',
         },
         verify_to_publish: {
           title: 'تم الحفظ كمسودة',

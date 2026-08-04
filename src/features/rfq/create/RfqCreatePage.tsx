@@ -153,7 +153,7 @@ export function RfqCreatePage() {
             isLoading={isSubmitting}
             rightIcon={<ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />}
           >
-            {t('rfq.create.submitForApproval')}
+            {t('rfq.create.publish')}
           </Button>
         )}
       </div>
