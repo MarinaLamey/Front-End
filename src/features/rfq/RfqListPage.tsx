@@ -67,10 +67,8 @@ export function RfqListPage() {
     return t('rfq.list.closing.closed')
   }
 
-  const onAction = (rfq: RfqDraft) => {
-    if (ACTION[rfq.status] === 'resume') navigate('/buyer/rfqs/new')
-    else navigate('/buyer/bids')
-  }
+  const openRfq = (rfq: RfqDraft) =>
+    rfq.status === 'draft' ? navigate('/buyer/rfqs/new') : navigate(`/buyer/rfqs/${rfq.id}`)
 
   return (
     <section className="mx-auto w-full max-w-6xl">
@@ -136,7 +134,11 @@ export function RfqListPage() {
 
               <ul className="divide-y divide-border-subtle">
                 {rows.map((rfq) => (
-                  <li key={rfq.id} className={cn(GRID, 'py-3.5')}>
+                  <li
+                    key={rfq.id}
+                    onClick={() => openRfq(rfq)}
+                    className={cn(GRID, 'cursor-pointer py-3.5 transition-colors hover:bg-bg-surface-sunken')}
+                  >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-content-primary">
                         {rfq.title || t('rfq.list.untitled')}
@@ -161,7 +163,14 @@ export function RfqListPage() {
                       </span>
                     </span>
                     <span className="flex justify-end">
-                      <Button variant="outline" size="sm" onClick={() => onAction(rfq)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openRfq(rfq)
+                        }}
+                      >
                         {t(`rfq.list.actions.${ACTION[rfq.status]}`)}
                       </Button>
                     </span>

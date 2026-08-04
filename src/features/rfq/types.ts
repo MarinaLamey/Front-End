@@ -84,6 +84,22 @@ export interface RfqDraft {
   updatedAt: string
 }
 
+/** A supplier's bid on an RFQ (mock — identities stay masked until award). */
+export type BidStatus = 'submitted' | 'negotiating'
+
+export interface Bid {
+  id: string
+  /** Masked label while the RFQ is blind, e.g. "Supplier A". */
+  bidder: string
+  /** Bid total in SAR major units. */
+  totalSar: number
+  itemsCovered: number
+  itemsTotal: number
+  /** ISO date the bidder can deliver by. */
+  deliveryDate: string
+  status: BidStatus
+}
+
 /** The four terminal outcomes after leaving the wizard (each renders a result card). */
 export type RfqOutcome = 'draft_saved' | 'published' | 'verify_to_publish'
 

@@ -193,4 +193,22 @@ export const rfqApi = {
     }
     return delay(records.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
   },
+
+  /** A single RFQ by id (seeds first so a detail link works on a fresh session). */
+  getRfq(id: string): Promise<RfqDraft | null> {
+    let records = readStore()
+    if (records.length === 0) {
+      records = seedRfqs()
+      writeStore(records)
+    }
+    return delay(records.find((r) => r.id === id) ?? null)
+  },
+
+  /** Change an RFQ's lifecycle status (Close early / Cancel). */
+  setStatus(id: string, status: RfqStatus): Promise<RfqDraft> {
+    const records = readStore()
+    const record = records.find((r) => r.id === id)
+    if (!record) return Promise.reject(new Error('RFQ not found'))
+    return delay(upsert({ ...record, status }))
+  },
 }

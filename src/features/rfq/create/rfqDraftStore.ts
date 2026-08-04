@@ -23,6 +23,8 @@ interface RfqDraftState {
   setPreset: (preset: PaymentPreset) => void
   setMilestones: (milestones: Milestone[]) => void
   setResult: (result: RfqResult | null) => void
+  /** Load an existing RFQ into the wizard (Amend) — opens at step 1 as an editable draft. */
+  loadDraft: (draft: RfqDraft) => void
   /** Discard everything and start a brand-new draft (new id + reference). */
   reset: () => void
   setHasHydrated: (value: boolean) => void
@@ -58,6 +60,8 @@ export const useRfqDraftStore = create<RfqDraftState>()(
         set((state) => ({ draft: { ...state.draft, milestones } })),
 
       setResult: (result) => set({ result }),
+
+      loadDraft: (draft) => set({ step: 1, draft: { ...draft, status: 'draft' }, result: null }),
 
       reset: () => set({ step: 1, draft: createBlankDraft(), result: null }),
 

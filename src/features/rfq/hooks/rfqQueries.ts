@@ -1,15 +1,33 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { rfqApi } from '../services/rfqApi'
-import type { RfqDraft, RfqOutcome } from '../types'
+import type { RfqDraft, RfqOutcome, RfqStatus } from '../types'
 
 export const rfqKeys = {
   list: () => ['rfqs'] as const,
+  detail: (id: string) => ['rfq', 'detail', id] as const,
   addresses: () => ['rfq', 'addresses'] as const,
 }
 
 /** Saved delivery addresses for the "Deliver to" picker. */
 export function useRfqAddresses() {
   return useQuery({ queryKey: rfqKeys.addresses(), queryFn: () => rfqApi.getAddresses() })
+}
+
+/** A single RFQ for the detail page. */
+export function useRfq(id: string) {
+  return useQuery({ queryKey: rfqKeys.detail(id), queryFn: () => rfqApi.getRfq(id) })
+}
+
+/** Close-early / cancel — projects the new status into both the detail and list caches. */
+export function useSetRfqStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: RfqStatus }) => rfqApi.setStatus(id, status),
+    onSuccess: (record) => {
+      qc.setQueryData(rfqKeys.detail(record.id), record)
+      projectRecord(qc, record)
+    },
+  })
 }
 
 /**
