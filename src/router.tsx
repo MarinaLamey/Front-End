@@ -14,6 +14,7 @@ import { AdminShell, AdminVerificationsPage } from '@/features/admin'
 import { SubscriptionPlansPage, SubscriptionCheckoutPage } from '@/features/subscription'
 import {
   AwardConfirmedPage,
+  BidsInboxPage,
   CompareBidsPage,
   RfqCreatePage,
   RfqDetailPage,
@@ -44,12 +45,12 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <BuyerDashboardPage /> },
+      { path: 'bids', element: <BidsInboxPage /> },
       { path: 'rfqs', element: <RfqListPage /> },
       { path: 'rfqs/new', element: <RfqCreatePage /> },
       { path: 'rfqs/:id', element: <RfqDetailPage /> },
       { path: 'rfqs/:id/compare', element: <CompareBidsPage /> },
       { path: 'rfqs/:id/award', element: <AwardConfirmedPage /> },
-      { path: 'bids', element: <ComingSoonPage /> },
       { path: 'negotiations', element: <ComingSoonPage /> },
       { path: 'orders', element: <ComingSoonPage /> },
       { path: 'suppliers', element: <ComingSoonPage /> },

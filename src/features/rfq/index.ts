@@ -1,4 +1,5 @@
 export { RfqListPage } from './RfqListPage'
+export { BidsInboxPage } from './BidsInboxPage'
 export { RfqCreatePage } from './create/RfqCreatePage'
 export { RfqDetailPage } from './detail/RfqDetailPage'
 export { CompareBidsPage } from './detail/CompareBidsPage'

@@ -704,6 +704,12 @@ export const en = {
       awarded: 'Awarded',
       closed: 'Closed',
     },
+    bidsInbox: {
+      title: 'Bids',
+      subtitle: 'Your live RFQs with offers to review.',
+      empty: 'No bids to review yet',
+      emptyHint: 'When suppliers bid on your live RFQs, they show up here to compare.',
+    },
     detail: {
       blind: 'Blind RFQ, supplier identities hidden until award.',
       publishedBy: 'Published {{date}} by {{name}}',
