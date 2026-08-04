@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { rfqApi } from '../services/rfqApi'
-import type { RfqDraft, RfqOutcome, RfqStatus } from '../types'
+import type { RfqAward, RfqDraft, RfqOutcome, RfqStatus } from '../types'
 
 export const rfqKeys = {
   list: () => ['rfqs'] as const,
@@ -23,6 +23,18 @@ export function useSetRfqStatus() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: RfqStatus }) => rfqApi.setStatus(id, status),
+    onSuccess: (record) => {
+      qc.setQueryData(rfqKeys.detail(record.id), record)
+      projectRecord(qc, record)
+    },
+  })
+}
+
+/** Award a bid — persists the win + PO and projects into the detail and list caches. */
+export function useAwardRfq() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, award }: { id: string; award: RfqAward }) => rfqApi.awardRfq(id, award),
     onSuccess: (record) => {
       qc.setQueryData(rfqKeys.detail(record.id), record)
       projectRecord(qc, record)

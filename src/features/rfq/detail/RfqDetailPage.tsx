@@ -242,9 +242,15 @@ export function RfqDetailPage() {
           {/* Actions */}
           <RfqCard>
             <div className="flex flex-col gap-2.5">
-              <Button fullWidth onClick={() => navigate(`/buyer/rfqs/${id}/compare`)}>
-                {t('rfq.detail.compareBids')}
-              </Button>
+              {rfq.status === 'awarded' ? (
+                <Button fullWidth onClick={() => navigate(`/buyer/rfqs/${id}/award`)}>
+                  {t('rfq.detail.viewAward')}
+                </Button>
+              ) : (
+                <Button fullWidth onClick={() => navigate(`/buyer/rfqs/${id}/compare`)}>
+                  {t('rfq.detail.compareBids')}
+                </Button>
+              )}
               {isLive && (
                 <>
                   <Button variant="outline" fullWidth onClick={() => setDialog('close')}>

@@ -11,7 +11,7 @@
  * ──────────────────────────────────────────────────────────────────────────── */
 
 import { presetMilestones } from '../create/paymentRules'
-import type { LineInputMethod, RfqAddress, RfqDraft, RfqOutcome, RfqStatus, SourcingType } from '../types'
+import type { LineInputMethod, RfqAddress, RfqAward, RfqDraft, RfqOutcome, RfqStatus, SourcingType } from '../types'
 
 const STORE_KEY = 'miproc.rfqs.v3'
 const LATENCY = 400
@@ -210,5 +210,13 @@ export const rfqApi = {
     const record = records.find((r) => r.id === id)
     if (!record) return Promise.reject(new Error('RFQ not found'))
     return delay(upsert({ ...record, status }))
+  },
+
+  /** Award a bid — moves the RFQ to `awarded` and stores the winning terms + PO. */
+  awardRfq(id: string, award: RfqAward): Promise<RfqDraft> {
+    const records = readStore()
+    const record = records.find((r) => r.id === id)
+    if (!record) return Promise.reject(new Error('RFQ not found'))
+    return delay(upsert({ ...record, status: 'awarded', award }))
   },
 }

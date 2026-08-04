@@ -1,13 +1,13 @@
 /* ────────────────────────────────────────────────────────────────────────────
- * RFQ DETAIL — derives the buyer's RFQ detail view (bids + a complete requested-
- * items / compliance body) from a stored RfqDraft. Everything is generated with a
- * seed hashed from the RFQ reference, so the "random" bids and sample content are
+ * RFQ DETAIL — derives the buyer's RFQ detail + bid-comparison view from a stored
+ * RfqDraft. Everything is generated with a seed hashed from the RFQ reference, so
+ * the "random" bids (per-line prices, compliance, delivery, hidden identities) are
  * STABLE across reloads. Real fields (line items, certs, notes) are used when the
- * RFQ has them; seeded/empty RFQs get plausible sample content so the page never
- * looks half-empty. This is the mock stand-in for the eventual quotations API.
+ * RFQ has them; seeded/empty RFQs get plausible sample content. This is the mock
+ * stand-in for the eventual quotations API.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-import type { Bid, BidStatus, LineItem, RfqDraft } from '../types'
+import type { Bid, BidStatus, LineItem, RfqDraft, SupplierIdentity } from '../types'
 
 export interface RfqDetail {
   bids: Bid[]
@@ -56,32 +56,111 @@ const GENERIC_ITEMS: Omit<LineItem, 'id' | 'quantity'>[] = [
   { name: 'Installation accessories', specification: 'Complete set', unit: 'set' },
 ]
 
+const COMPANIES = [
+  'Al-Rajhi Steel Industries LLC',
+  'Saudi Building Materials Co.',
+  'Gulf Fabrication & Trading',
+  'Riyadh Industrial Supplies',
+  'Najd Metals Company',
+  'Eastern Steel Works LLC',
+  'Arabian Reinforcement Co.',
+  'Tabuk Construction Supply',
+]
+const CONTACTS = ['Khalid Al-Otaibi', 'Faisal Al-Harbi', 'Omar Al-Ghamdi', 'Sultan Al-Dosari', 'Yousef Al-Qahtani']
+const CITIES = ['Riyadh', 'Jeddah', 'Dammam', 'Al Khobar', 'Buraydah']
+
 function sampleLineItems(rfq: RfqDraft, rng: () => number): LineItem[] {
   const key = `${rfq.category} ${rfq.title}`.toLowerCase()
-  const pool = /steel|construction|cement|building|rebar|metal/.test(key)
-    ? CONSTRUCTION_ITEMS
-    : GENERIC_ITEMS
+  const pool = /steel|construction|cement|building|rebar|metal/.test(key) ? CONSTRUCTION_ITEMS : GENERIC_ITEMS
   return pool.map((item, i) => ({
     ...item,
     id: `${rfq.id}-li-${i}`,
-    quantity: (Math.floor(rng() * 45) + 5) * 100, // 500–5000, tidy round numbers
+    quantity: (Math.floor(rng() * 45) + 5) * 100,
   }))
 }
 
-function generateBids(rfq: RfqDraft, itemsTotal: number): Bid[] {
+/** A stable base unit price per item, bucketed by unit so it reads plausibly. */
+function basePrice(item: LineItem): number {
+  const rng = seededRng(`price:${item.name}:${item.unit}`)
+  const u = item.unit.toLowerCase()
+  if (/pcs|unit|pc/.test(u)) return 1.5 + rng() * 4.5
+  if (/coil/.test(u)) return 40 + rng() * 16
+  if (/box|bag/.test(u)) return 8 + rng() * 12
+  if (/set|pallet|roll/.test(u)) return 20 + rng() * 40
+  return 5 + rng() * 25
+}
+
+function digits(rng: () => number, n: number): string {
+  let s = ''
+  for (let i = 0; i < n; i++) s += Math.floor(rng() * 10)
+  return s
+}
+
+function identityFor(rfq: RfqDraft, i: number, certs: string[], rng: () => number): SupplierIdentity {
+  const g = seededRng(`${rfq.reference}:identity:${i}`)
+  return {
+    companyName: COMPANIES[(i + Math.floor(g() * COMPANIES.length)) % COMPANIES.length],
+    cr: `10${digits(g, 8)}`,
+    vat: `300${digits(g, 9)}003`,
+    address: `Industrial City ${1 + Math.floor(g() * 4)}, ${CITIES[Math.floor(g() * CITIES.length)]}`,
+    contactName: CONTACTS[Math.floor(g() * CONTACTS.length)],
+    contactRole: g() > 0.5 ? 'Sales' : 'Business Development',
+    certifications: certs,
+  }
+}
+
+function generateBids(rfq: RfqDraft, lineItems: LineItem[], certs: string[]): Bid[] {
   const rng = seededRng(`${rfq.reference}:bids`)
-  const base = rfq.budget > 0 ? rfq.budget * 0.2 : 90_000 + Math.floor(rng() * 25_000)
+  const bases = lineItems.map((it) => basePrice(it))
+  const rfqTerms = rfq.milestones.map((m) => m.percent).join(' / ')
+
   return Array.from({ length: rfq.bids }, (_, i) => {
-    const totalSar = Math.round((base * (0.9 + rng() * 0.28)) / 10) * 10
-    const status: BidStatus = rng() > 0.5 ? 'negotiating' : 'submitted'
+    const factor = 0.88 + rng() * 0.26 // supplier-wide price multiplier
+    // Occasionally a bidder doesn't quote the last line item.
+    const dropLast = i === 0 ? rng() > 0.4 : rng() > 0.85
+    const unitPrices = lineItems.map((_, li) => {
+      if (dropLast && li === lineItems.length - 1) return null
+      return Math.round(bases[li] * factor * 100) / 100
+    })
+    const itemsCovered = unitPrices.filter((p) => p !== null).length
+    const subtotal = unitPrices.reduce(
+      (sum, p, li) => (p === null ? sum : sum + p * lineItems[li].quantity),
+      0,
+    )
+    const totalSar = Math.round((subtotal * 1.15) / 10) * 10 // VAT 15%, tidy to nearest 10
+
+    // Compliance: most full; ~1 in 3 bidders miss a required doc.
+    const compliance: Record<string, boolean> = {}
+    const misses = rng() > 0.66 ? 1 + Math.floor(rng() * 2) : 0
+    certs.forEach((cert, ci) => {
+      compliance[cert] = !(misses > 0 && ci >= certs.length - misses)
+    })
+    const compliant = Object.values(compliance).every(Boolean)
+
+    const leadTimeDays = 10 + Math.floor(rng() * 7)
+    const counter = rng() > 0.75
+    const matchPct = Math.round(
+      95 - (itemsCovered < lineItems.length ? 8 : 0) - (compliant ? 0 : 12) - rng() * 6,
+    )
+
     return {
       id: `${rfq.id}-bid-${i}`,
       bidder: `Supplier ${String.fromCharCode(65 + i)}`,
+      status: (rng() > 0.5 ? 'negotiating' : 'submitted') as BidStatus,
+      matchPct,
       totalSar,
-      itemsCovered: rng() > 0.35 ? itemsTotal : Math.max(itemsTotal - 1, 1),
-      itemsTotal,
-      deliveryDate: addDays(rfq.createdAt, 10 + Math.floor(rng() * 16)),
-      status,
+      itemsCovered,
+      itemsTotal: lineItems.length,
+      unitPrices,
+      deliveryDate: addDays(rfq.createdAt, leadTimeDays),
+      leadTimeDays,
+      paymentTerms: counter
+        ? { kind: 'counter', label: '40 / 50 / 10' }
+        : { kind: 'accepted', label: rfqTerms },
+      validUntil: addDays(rfq.createdAt, 12 + Math.floor(rng() * 8)),
+      compliance,
+      negotiationRounds: 1 + Math.floor(rng() * 3),
+      identity: identityFor(rfq, i, certs.filter((c) => compliance[c]), rng),
     }
   })
 }
@@ -94,7 +173,7 @@ export function deriveRfqDetail(rfq: RfqDraft): RfqDetail {
   const invitedSuppliers = Math.max(rfq.bids + 2 + Math.floor(rng() * 7), rfq.bids, 1)
 
   return {
-    bids: generateBids(rfq, lineItems.length),
+    bids: generateBids(rfq, lineItems, certifications),
     lineItems,
     certifications,
     notes: rfq.acceptanceCriteria.trim(),

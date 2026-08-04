@@ -12,7 +12,13 @@ import { TermsPage } from '@/features/legal/TermsPage'
 import { BuyerDashboardPage, SupplierDashboardPage } from '@/features/dashboard'
 import { AdminShell, AdminVerificationsPage } from '@/features/admin'
 import { SubscriptionPlansPage, SubscriptionCheckoutPage } from '@/features/subscription'
-import { RfqCreatePage, RfqDetailPage, RfqListPage } from '@/features/rfq'
+import {
+  AwardConfirmedPage,
+  CompareBidsPage,
+  RfqCreatePage,
+  RfqDetailPage,
+  RfqListPage,
+} from '@/features/rfq'
 import { ButtonShowcase } from '@/dev/ButtonShowcase'
 import { InputShowcase } from '@/dev/InputShowcase'
 import { FieldShowcase } from '@/dev/FieldShowcase'
@@ -41,7 +47,8 @@ export const router = createBrowserRouter([
       { path: 'rfqs', element: <RfqListPage /> },
       { path: 'rfqs/new', element: <RfqCreatePage /> },
       { path: 'rfqs/:id', element: <RfqDetailPage /> },
-      { path: 'rfqs/:id/compare', element: <ComingSoonPage /> },
+      { path: 'rfqs/:id/compare', element: <CompareBidsPage /> },
+      { path: 'rfqs/:id/award', element: <AwardConfirmedPage /> },
       { path: 'bids', element: <ComingSoonPage /> },
       { path: 'negotiations', element: <ComingSoonPage /> },
       { path: 'orders', element: <ComingSoonPage /> },
