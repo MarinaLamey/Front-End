@@ -17,22 +17,9 @@ interface ReviewStepProps {
 }
 
 /** A read-only summary value styled like a filled, non-editable field. */
-function ReadField({
-  label,
-  value,
-  badge,
-  action,
-  className,
-}: {
-  label: string
-  value: string
-  badge?: string
-  /** Optional right-aligned control in the label row (e.g. an "Edit" link). */
-  action?: ReactNode
-  className?: string
-}) {
+function ReadField({ label, value, badge }: { label: string; value: string; badge?: string }) {
   return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
+    <div className="flex flex-col gap-1.5">
       <span className="flex items-center gap-1.5 text-sm font-medium text-content-secondary">
         {label}
         {badge && (
@@ -40,7 +27,6 @@ function ReadField({
             {badge}
           </span>
         )}
-        {action && <span className="ms-auto">{action}</span>}
       </span>
       <div className="rounded-xl bg-bg-surface-sunken px-3.5 py-2.5 text-sm text-content-primary">
         {value || '—'}
@@ -117,20 +103,19 @@ export function ReviewStep({ draft, patch, onEditStep }: ReviewStepProps) {
         <Section title={t('rfq.create.steps.delivery')}>
           <ReadField label={t('rfq.create.delivery.deliverTo')} value={deliverAddress} />
           <ReadField label={t('rfq.create.review.deliveryClosing')} value={deliverySummary} />
-          <ReadField
-            label={t('rfq.create.payment.title')}
-            value={paymentSummary}
-            className="sm:col-span-2"
-            action={
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <span className="flex items-center gap-1.5 text-sm font-medium text-content-secondary">
+              {t('rfq.create.payment.title')}
               <button
                 type="button"
                 onClick={() => onEditStep?.(2)}
-                className="cursor-pointer text-sm font-medium text-content-link hover:text-content-link-hover"
+                className="ms-auto cursor-pointer text-sm font-medium text-content-link hover:text-content-link-hover"
               >
                 {t('rfq.create.review.edit')}
               </button>
-            }
-          />
+            </span>
+            <p className="text-sm text-content-primary">{paymentSummary || '—'}</p>
+          </div>
           <ReadField label={t('rfq.create.review.warrantyCerts')} value={warrantySummary} />
           <ReadField label={t('rfq.create.suppliers.acceptance')} value={draft.acceptanceCriteria} />
         </Section>
