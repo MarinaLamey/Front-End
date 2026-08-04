@@ -99,7 +99,7 @@ function digits(rng: () => number, n: number): string {
   return s
 }
 
-function identityFor(rfq: RfqDraft, i: number, certs: string[], rng: () => number): SupplierIdentity {
+function identityFor(rfq: RfqDraft, i: number, certs: string[]): SupplierIdentity {
   const g = seededRng(`${rfq.reference}:identity:${i}`)
   return {
     companyName: COMPANIES[(i + Math.floor(g() * COMPANIES.length)) % COMPANIES.length],
@@ -126,7 +126,7 @@ function generateBids(rfq: RfqDraft, lineItems: LineItem[], certs: string[]): Bi
       return Math.round(bases[li] * factor * 100) / 100
     })
     const itemsCovered = unitPrices.filter((p) => p !== null).length
-    const subtotal = unitPrices.reduce(
+    const subtotal = unitPrices.reduce<number>(
       (sum, p, li) => (p === null ? sum : sum + p * lineItems[li].quantity),
       0,
     )
@@ -163,7 +163,7 @@ function generateBids(rfq: RfqDraft, lineItems: LineItem[], certs: string[]): Bi
       validUntil: addDays(rfq.createdAt, 12 + Math.floor(rng() * 8)),
       compliance,
       negotiationRounds: 1 + Math.floor(rng() * 3),
-      identity: identityFor(rfq, i, certs.filter((c) => compliance[c]), rng),
+      identity: identityFor(rfq, i, certs.filter((c) => compliance[c])),
     }
   })
 }
