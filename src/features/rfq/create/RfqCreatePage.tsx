@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui/Button'
@@ -49,6 +50,13 @@ export function RfqCreatePage() {
     reset,
   } = wizard
 
+  // On every step change (Next/Back and the Review "Edit" jumps), bring the page top back into
+  // view — the action buttons sit at the bottom, so a step switch otherwise lands mid-scroll.
+  const topRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [step])
+
   // Wait for the persisted draft to rehydrate so we never flash a blank over saved work.
   if (!hasHydrated) {
     return (
@@ -90,7 +98,7 @@ export function RfqCreatePage() {
   const topBack = () => (step === 1 ? navigate('/buyer') : goBack())
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-6">
+    <div ref={topRef} className="mx-auto w-full max-w-5xl px-4 py-6">
       <button
         type="button"
         onClick={topBack}
