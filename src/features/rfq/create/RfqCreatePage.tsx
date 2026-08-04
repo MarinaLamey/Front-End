@@ -35,6 +35,7 @@ export function RfqCreatePage() {
     result,
     hasHydrated,
     patch,
+    setStep,
     setPreset,
     setMilestones,
     goNext,
@@ -126,7 +127,7 @@ export function RfqCreatePage() {
             />
           )}
           {step === 3 && <SuppliersStep draft={draft} patch={patch} />}
-          {step === 4 && <ReviewStep draft={draft} patch={patch} />}
+          {step === 4 && <ReviewStep draft={draft} patch={patch} onEditStep={setStep} />}
         </div>
         {step < 4 && (
           <div className="lg:pt-1">

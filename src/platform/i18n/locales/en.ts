@@ -1224,6 +1224,7 @@ export const en = {
       review: {
         title: 'Review',
         subtitle: 'Review everything below and edit any field in place, then submit.',
+        edit: 'Edit',
         lineItems: 'Line items',
         private: 'Private',
         deliveryClosing: 'Delivery / closing',

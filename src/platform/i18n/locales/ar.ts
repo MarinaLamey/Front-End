@@ -1219,6 +1219,7 @@ export const ar = {
       review: {
         title: 'المراجعة',
         subtitle: 'راجع كل شيء أدناه وعدّل أي حقل في مكانه، ثم أرسل.',
+        edit: 'تعديل',
         lineItems: 'البنود',
         private: 'خاص',
         deliveryClosing: 'التسليم / الإغلاق',

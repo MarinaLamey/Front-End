@@ -6,17 +6,33 @@ import { SearchSelect } from '@/shared/ui/SearchSelect'
 import { Switch } from '@/shared/ui/Switch'
 import { cn } from '@/shared/lib/cn'
 import { RfqCard } from '../components/RfqCard'
+import type { RfqStep } from '../rfqDraftStore'
 import type { RfqDraft } from '../../types'
 
 interface ReviewStepProps {
   draft: RfqDraft
   patch: (partial: Partial<RfqDraft>) => void
+  /** Jump the wizard to another step to edit a field there (e.g. payment terms → step 2). */
+  onEditStep?: (step: RfqStep) => void
 }
 
 /** A read-only summary value styled like a filled, non-editable field. */
-function ReadField({ label, value, badge }: { label: string; value: string; badge?: string }) {
+function ReadField({
+  label,
+  value,
+  badge,
+  action,
+  className,
+}: {
+  label: string
+  value: string
+  badge?: string
+  /** Optional right-aligned control in the label row (e.g. an "Edit" link). */
+  action?: ReactNode
+  className?: string
+}) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={cn('flex flex-col gap-1.5', className)}>
       <span className="flex items-center gap-1.5 text-sm font-medium text-content-secondary">
         {label}
         {badge && (
@@ -24,6 +40,7 @@ function ReadField({ label, value, badge }: { label: string; value: string; badg
             {badge}
           </span>
         )}
+        {action && <span className="ms-auto">{action}</span>}
       </span>
       <div className="rounded-xl bg-bg-surface-sunken px-3.5 py-2.5 text-sm text-content-primary">
         {value || '—'}
@@ -42,7 +59,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** Step 4 — a grouped review; the primary fields stay editable in place, the rest summarise. */
-export function ReviewStep({ draft, patch }: ReviewStepProps) {
+export function ReviewStep({ draft, patch, onEditStep }: ReviewStepProps) {
   const { t } = useTranslation()
   const categories = t('catalog.categories', { returnObjects: true }) as string[]
 
@@ -100,7 +117,20 @@ export function ReviewStep({ draft, patch }: ReviewStepProps) {
         <Section title={t('rfq.create.steps.delivery')}>
           <ReadField label={t('rfq.create.delivery.deliverTo')} value={deliverAddress} />
           <ReadField label={t('rfq.create.review.deliveryClosing')} value={deliverySummary} />
-          <ReadField label={t('rfq.create.payment.title')} value={paymentSummary} />
+          <ReadField
+            label={t('rfq.create.payment.title')}
+            value={paymentSummary}
+            className="sm:col-span-2"
+            action={
+              <button
+                type="button"
+                onClick={() => onEditStep?.(2)}
+                className="cursor-pointer text-sm font-medium text-content-link hover:text-content-link-hover"
+              >
+                {t('rfq.create.review.edit')}
+              </button>
+            }
+          />
           <ReadField label={t('rfq.create.review.warrantyCerts')} value={warrantySummary} />
           <ReadField label={t('rfq.create.suppliers.acceptance')} value={draft.acceptanceCriteria} />
         </Section>
