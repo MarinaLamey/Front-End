@@ -73,7 +73,7 @@ export function RfqDetailPage() {
     setStatus.mutate({ id, status: 'closed' }, { onSuccess: () => navigate('/buyer/rfqs') })
 
   return (
-    <section className="mx-auto w-full max-w-6xl">
+    <section className="mx-auto w-full max-w-6xl motion-safe:animate-card-in">
       {/* Breadcrumb */}
       <nav className="text-sm text-content-tertiary">
         <button type="button" onClick={() => navigate('/buyer/rfqs')} className="cursor-pointer hover:text-content-secondary">

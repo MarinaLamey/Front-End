@@ -67,7 +67,7 @@ export function ReviewStep({ draft, patch }: ReviewStepProps) {
     <RfqCard title={t('rfq.create.review.title')}>
       <p className="-mt-2 mb-5 text-sm text-content-secondary">{t('rfq.create.review.subtitle')}</p>
 
-      <div className="flex flex-col gap-6">
+      <div className="auth-stagger flex flex-col gap-6">
         <Section title={t('rfq.create.steps.requirement')}>
           <SearchSelect
             label={t('rfq.create.requirement.category')}

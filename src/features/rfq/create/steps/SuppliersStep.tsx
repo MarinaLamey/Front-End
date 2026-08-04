@@ -19,7 +19,7 @@ export function SuppliersStep({ draft, patch }: SuppliersStepProps) {
   const regionOptions = t('rfq.create.suppliers.regions', { returnObjects: true }) as string[]
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="auth-stagger flex flex-col gap-5">
       <RfqCard title={t('rfq.create.suppliers.complianceTitle')}>
         <div className="flex flex-col gap-4">
           <RfqField label={t('rfq.create.suppliers.acceptance')}>

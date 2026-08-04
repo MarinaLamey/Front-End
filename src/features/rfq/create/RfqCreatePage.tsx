@@ -114,7 +114,8 @@ export function RfqCreatePage() {
       <RfqStepper current={step} className="mx-auto my-8 max-w-3xl" />
 
       <div className={cn('grid gap-6', step < 4 && 'lg:grid-cols-[minmax(0,1fr)_320px]')}>
-        <div>
+        {/* key={step} remounts the column on each step change so its card cascade replays */}
+        <div key={step}>
           {step === 1 && <RequirementStep draft={draft} patch={patch} />}
           {step === 2 && (
             <DeliveryTermsStep

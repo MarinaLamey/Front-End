@@ -15,7 +15,7 @@ const GRID = 'grid grid-cols-[minmax(200px,2.4fr)_1.2fr_96px_1fr_140px] items-ce
  * soonest-closing first.
  */
 export function BidsInboxPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { data = [], isLoading } = useRfqs()
 
@@ -34,7 +34,7 @@ export function BidsInboxPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-5">
+    <section className="mx-auto w-full max-w-5xl space-y-5 motion-safe:animate-card-in">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-content-primary">{t('rfq.bidsInbox.title')}</h1>
         <p className="mt-1 text-sm text-content-secondary">{t('rfq.bidsInbox.subtitle')}</p>
@@ -63,7 +63,7 @@ export function BidsInboxPage() {
               <span className="sr-only">{t('rfq.list.columns.action')}</span>
             </div>
 
-            <ul className="divide-y divide-border-subtle">
+            <ul className="auth-stagger divide-y divide-border-subtle">
               {rows.map((rfq) => (
                 <li
                   key={rfq.id}

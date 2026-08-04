@@ -28,7 +28,7 @@ export function RequirementStep({ draft, patch }: RequirementStepProps) {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="auth-stagger flex flex-col gap-5">
       <RfqCard title={t('rfq.create.requirement.title')}>
         <div className="flex flex-col gap-4">
           <RfqField label={t('rfq.create.requirement.sourcing')}>

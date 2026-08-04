@@ -50,7 +50,7 @@ export function DeliveryTermsStep({ draft, patch, setPreset, setMilestones }: De
   }, [companyAddress, draft.deliverToCompanyAddress, draft.deliveryAddress, patch])
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="auth-stagger flex flex-col gap-5">
       <RfqCard title={t('rfq.create.delivery.title')}>
         <div className="flex flex-col gap-4">
           <RfqField label={t('rfq.create.delivery.deliverTo')}>

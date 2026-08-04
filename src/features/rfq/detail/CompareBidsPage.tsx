@@ -102,7 +102,7 @@ export function CompareBidsPage() {
   )
 
   return (
-    <section className="mx-auto w-full max-w-6xl">
+    <section className="mx-auto w-full max-w-6xl motion-safe:animate-card-in">
       <nav className="text-sm text-content-tertiary">
         <button type="button" onClick={() => navigate('/buyer/rfqs')} className="cursor-pointer hover:text-content-secondary">
           {t('rfq.title')}

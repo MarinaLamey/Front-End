@@ -27,7 +27,7 @@ export function AwardConfirmedPage() {
   const steps = t('rfq.award.next.steps', { returnObjects: true }) as { title: string; desc: string }[]
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-6">
+    <section className="auth-stagger mx-auto w-full max-w-5xl space-y-6">
       {/* Confirmation banner */}
       <div className="rounded-2xl bg-status-success-subtle p-6">
         <div className="flex items-center gap-2 text-sm">
