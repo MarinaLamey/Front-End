@@ -27,6 +27,7 @@ import {
 import { ButtonShowcase } from '@/dev/ButtonShowcase'
 import { InputShowcase } from '@/dev/InputShowcase'
 import { FieldShowcase } from '@/dev/FieldShowcase'
+import { MotionShowcase } from '@/dev/MotionShowcase'
 
 export const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -109,6 +110,7 @@ export const router = createBrowserRouter([
   { path: '/dev/buttons', element: <ButtonShowcase /> },
   { path: '/dev/inputs', element: <InputShowcase /> },
   { path: '/dev/fields', element: <FieldShowcase /> },
+  { path: '/dev/motion', element: <MotionShowcase /> },
 
   { path: '*', element: <NotFoundPage /> },
 ])

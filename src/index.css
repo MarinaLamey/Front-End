@@ -88,10 +88,10 @@
      scaled-down, off-toward-center state into the grid slot. Per-card direction comes
      from --hero-from-x/y; stagger from animation-delay. `backwards` keeps each card
      hidden until its turn. transform+opacity only → 60fps. */
-  --animate-hero-card: hero-card-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  --animate-hero-card: hero-card-in 0.7s var(--ease-spring) backwards;
   /* Onboarding rail (OnboardingStepper): staggered entrance + a live pulse ring on the
      current marker. transform/opacity only → 60fps; gate usage with motion-safe:. */
-  --animate-stepper-in: stepper-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --animate-stepper-in: stepper-in 0.55s var(--ease-standard) backwards;
   --animate-stepper-pulse: stepper-pulse 1.9s ease-out infinite;
   /* Step-cell flash: a brand halo pulsing purple↔teal around a stepper marker (register's
      current step + the sign-in timeline badges). Gate usage with motion-safe:. */
@@ -99,14 +99,52 @@
   /* Stronger, faster variant — bigger/brighter halo + a scale throb — for the register rail. */
   --animate-cell-flash-strong: cell-flash-strong 3s ease-in-out infinite;
   /* Auth/register card entrance — a soft rise + settle on mount. Gate with motion-safe:. */
-  --animate-card-in: card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --animate-card-in: card-in 0.6s var(--ease-standard) backwards;
   /* Success check pop — the valid-field checkmark springs in. Gate with motion-safe:. */
-  --animate-check-pop: check-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  --animate-check-pop: check-pop 0.3s var(--ease-spring) backwards;
   /* Loading dots — opacity+scale pulse (compositor-only). Staggered via per-dot animation-delay. */
   --animate-dot-pulse: dot-pulse 1.2s ease-in-out infinite;
   /* Track-order stepper: the connector line draws itself downward for completed steps (scaleY,
      compositor-only). `backwards` keeps it hidden until its staggered turn. */
   --animate-connector-draw: connector-draw 0.45s ease-out backwards;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * MOTION SYSTEM — foundation tokens (Phase 1)
+   * Enterprise motion language: two signature curves, an enterprise-paced duration
+   * scale, and small travel distances. Everything the primitive layer + components
+   * compose from references THESE — never a magic number. Compositor-only by design.
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Easings — `--ease-*` also emit `ease-<name>` Tailwind utilities.
+   *  standard : confident ease-out for entrances/reveals (the app's signature curve)
+   *  spring   : restrained overshoot, reserved for success/pop moments only
+   *  move     : symmetric, for an element travelling A→B (reorder, tab indicator)
+   *  exit     : accelerate-out for dismissals */
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-move: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Durations — tightened to enterprise pace (Linear/Vercel range). Reference via
+   * `duration-[var(--dur-base)]` or directly in primitive transitions. */
+  --dur-instant: 80ms;
+  --dur-fast: 120ms;
+  --dur-quick: 160ms;
+  --dur-base: 220ms;
+  --dur-slow: 320ms;
+  --dur-celebrate: 460ms;
+
+  /* Travel distances — subtle is premium; entrances move only a few px. */
+  --motion-sm: 4px;
+  --motion-md: 8px;
+  --motion-lg: 16px;
+
+  /* Scales — enter from just under 1; press just under 1. Never below 0.94. */
+  --mp-enter-scale: 0.97;
+  --mp-press-scale: 0.97;
+
+  /* Stagger step — per-item delay in a cascade. */
+  --mp-stagger-step: 40ms;
 }
 
 /* ── Palette · Light (default) — from Light.tokens.json ─────────────────────── */
@@ -470,7 +508,7 @@ input:-webkit-autofill:active {
   }
 }
 .auth-stagger > * {
-  animation: auth-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: auth-rise 0.55s var(--ease-standard) backwards;
 }
 .auth-stagger > *:nth-child(1) {
   animation-delay: 0.06s;
@@ -535,6 +573,248 @@ input:-webkit-autofill:active {
   .otp-shimmer {
     animation: none;
     box-shadow: 0 0 0 2px var(--color-brand-primary);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ * MOTION SYSTEM — primitive layer (Phase 1)
+ *
+ * Ten reusable, composable primitives. Compositor-only (transform/opacity/clip-path),
+ * token-driven, RTL-aware, and globally gated by prefers-reduced-motion at the bottom.
+ * Components compose these; they don't hand-roll keyframes. `mp-` = "motion primitive".
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── FADE ─────────────────────────────────────────────────────────────────────── */
+.mp-fade {
+  animation: mp-fade var(--dur-base) var(--ease-standard) backwards;
+}
+@keyframes mp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── SCALE (in) — fade + settle from just under 1 ─────────────────────────────── */
+.mp-scale {
+  animation: mp-scale var(--dur-base) var(--ease-standard) backwards;
+}
+@keyframes mp-scale {
+  from {
+    opacity: 0;
+    transform: scale(var(--mp-enter-scale));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── SLIDE — block axis (up/down) + inline axis (start/end, RTL-aware) ─────────── */
+.mp-slide {
+  animation: mp-slide-up var(--dur-base) var(--ease-standard) backwards;
+}
+.mp-slide[data-from='down'] {
+  animation-name: mp-slide-down;
+}
+.mp-slide[data-from='start'] {
+  animation-name: mp-slide-start;
+}
+.mp-slide[data-from='end'] {
+  animation-name: mp-slide-end;
+}
+/* In RTL the inline axis flips, so start/end swap their travel direction. */
+[dir='rtl'] .mp-slide[data-from='start'] {
+  animation-name: mp-slide-end;
+}
+[dir='rtl'] .mp-slide[data-from='end'] {
+  animation-name: mp-slide-start;
+}
+@keyframes mp-slide-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--motion-md), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes mp-slide-down {
+  from {
+    opacity: 0;
+    transform: translate3d(0, calc(-1 * var(--motion-md)), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes mp-slide-start {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(-1 * var(--motion-md)), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes mp-slide-end {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--motion-md), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── LIFT — hover elevation. translateY + a pre-rendered shadow layer crossfaded by
+ *    opacity (never animate box-shadow blur). Put mp-lift on the card. ───────────── */
+.mp-lift {
+  position: relative;
+  transition: transform var(--dur-quick) var(--ease-standard);
+}
+.mp-lift::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 12px 24px -8px rgb(15 23 42 / 0.18);
+  opacity: 0;
+  transition: opacity var(--dur-quick) var(--ease-standard);
+  pointer-events: none;
+}
+.mp-lift:hover {
+  transform: translate3d(0, -2px, 0);
+}
+.mp-lift:hover::after {
+  opacity: 1;
+}
+
+/* ── PRESS — tactile scale-down on active. ────────────────────────────────────── */
+.mp-press {
+  transition: transform var(--dur-instant) var(--ease-standard);
+}
+.mp-press:active {
+  transform: scale(var(--mp-press-scale));
+}
+
+/* ── REVEAL — scroll-in. Starts hidden; `data-shown` (set by useReveal) plays it. ─ */
+.mp-reveal {
+  opacity: 0;
+  transform: translate3d(0, var(--motion-md), 0);
+  transition:
+    opacity var(--dur-base) var(--ease-standard),
+    transform var(--dur-base) var(--ease-standard);
+}
+.mp-reveal[data-shown='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── OVERLAY — scrim/backdrop fade (quicker than content). ────────────────────── */
+.mp-overlay {
+  animation: mp-fade var(--dur-quick) var(--ease-standard) backwards;
+}
+
+/* ── STAGGER — direct children cascade in. Static lists use nth-child; dynamic ones
+ *    can set `style="--mp-i: n"` for an exact index. ──────────────────────────── */
+.mp-stagger > * {
+  animation: mp-slide-up var(--dur-base) var(--ease-standard) backwards;
+  animation-delay: calc(var(--mp-stagger-step) * var(--mp-i, 0));
+}
+.mp-stagger > *:nth-child(1) {
+  --mp-i: 0;
+}
+.mp-stagger > *:nth-child(2) {
+  --mp-i: 1;
+}
+.mp-stagger > *:nth-child(3) {
+  --mp-i: 2;
+}
+.mp-stagger > *:nth-child(4) {
+  --mp-i: 3;
+}
+.mp-stagger > *:nth-child(5) {
+  --mp-i: 4;
+}
+.mp-stagger > *:nth-child(6) {
+  --mp-i: 5;
+}
+.mp-stagger > *:nth-child(7) {
+  --mp-i: 6;
+}
+.mp-stagger > *:nth-child(8) {
+  --mp-i: 7;
+}
+.mp-stagger > *:nth-child(9) {
+  --mp-i: 8;
+}
+.mp-stagger > *:nth-child(10) {
+  --mp-i: 9;
+}
+
+/* ── EXPAND (clip-path reveal) — GPU-only, for FIXED-height content that stays in
+ *    layout flow (e.g. an inline detail row). Toggle `data-open`. ──────────────── */
+.mp-expand {
+  overflow: clip;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--dur-base) var(--ease-standard);
+}
+.mp-expand[data-open='false'] {
+  clip-path: inset(0 0 100% 0);
+}
+
+/* ── COLLAPSE (grid-rows) — accordion where the box must free its space. Animates
+ *    grid-template-rows: cheap layout, one element, user-initiated. The accepted
+ *    (documented) exception to the no-layout rule. Toggle `data-open`. ─────────── */
+.mp-collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--dur-base) var(--ease-standard);
+}
+.mp-collapsible[data-open='false'] {
+  grid-template-rows: 0fr;
+}
+.mp-collapsible > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── GLOBAL REDUCED-MOTION RESET — one place; honours the OS setting for every
+ *    primitive. Entrances snap to their end state; interactions lose travel. ───── */
+@media (prefers-reduced-motion: reduce) {
+  .mp-fade,
+  .mp-scale,
+  .mp-slide,
+  .mp-overlay,
+  .mp-stagger > * {
+    animation: none !important;
+  }
+  .mp-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .mp-lift,
+  .mp-press,
+  .mp-expand,
+  .mp-collapsible {
+    transition: none !important;
+  }
+  .mp-lift:hover {
+    transform: none !important;
+  }
+  .mp-lift:hover::after {
+    opacity: 1;
+  }
+  .mp-press:active {
+    transform: none !important;
   }
 }
 
