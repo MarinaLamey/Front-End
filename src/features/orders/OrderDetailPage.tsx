@@ -68,7 +68,7 @@ export function OrderDetailPage() {
 
           <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             {/* Main column */}
-            <div className="space-y-6">
+            <div className="auth-stagger space-y-6">
               <PartiesCard order={order} />
 
               {showReceipt ? (
@@ -290,7 +290,7 @@ function ReceiptCard({
       </div>
 
       {anyShort && (
-        <p className="mt-3 rounded-lg bg-status-warning-subtle px-3 py-2 text-sm text-status-warning-strong">
+        <p className="mp-slide mt-3 rounded-lg bg-status-warning-subtle px-3 py-2 text-sm text-status-warning-strong">
           {t('order.receipt.shortWarning', { count: shortTotal })}
         </p>
       )}
@@ -356,7 +356,7 @@ function DeclinedView({ order }: { order: Order }) {
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-6">
+        <div className="auth-stagger space-y-6">
           {/* Reason */}
           <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
             <div className="flex items-center justify-between">

@@ -72,7 +72,7 @@ export function ReportIssuePage() {
                 type="button"
                 onClick={() => setCategory(c)}
                 className={cn(
-                  'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                  'mp-press rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
                   category === c ? 'border-brand-primary bg-brand-subtle text-brand-primary' : 'border-border-subtle text-content-secondary hover:text-content-primary',
                 )}
               >
@@ -82,7 +82,7 @@ export function ReportIssuePage() {
           </div>
 
           <p className="mt-4 text-sm font-medium text-content-secondary">{t('order.report.whichItems')}</p>
-          <ul className="mt-2 space-y-2">
+          <ul className="mp-stagger mt-2 space-y-2">
             {order.lines.map((l, i) => {
               const received = order.receipt?.[i]?.received
               const short = received != null && received < l.quantity
@@ -116,7 +116,7 @@ export function ReportIssuePage() {
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className="auth-stagger space-y-5">
           <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.report.orderTitle')}</h2>
             <dl className="mt-3 space-y-2.5 text-sm">

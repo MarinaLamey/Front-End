@@ -62,7 +62,7 @@ export function CancelOrderPage() {
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-6">
+        <div className="auth-stagger space-y-6">
           {/* Reason */}
           <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.cancel.whyTitle')}</h2>
@@ -73,7 +73,7 @@ export function CancelOrderPage() {
                   type="button"
                   onClick={() => setReason(r)}
                   className={cn(
-                    'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                    'mp-press rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
                     reason === r ? 'border-brand-primary bg-brand-subtle text-brand-primary' : 'border-border-subtle text-content-secondary hover:text-content-primary',
                   )}
                 >
@@ -111,7 +111,7 @@ export function CancelOrderPage() {
         </div>
 
         {/* Right rail */}
-        <div className="space-y-5">
+        <div className="auth-stagger space-y-5">
           <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.po.summaryTitle')}</h2>
             <dl className="mt-3 space-y-2.5 text-sm">

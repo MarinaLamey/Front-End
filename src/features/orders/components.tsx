@@ -119,7 +119,7 @@ export function OrderStatusTimeline({ order }: { order: Order }) {
   return (
     <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
       <h2 className="text-sm font-semibold text-content-primary">{t('order.statusTitle')}</h2>
-      <ol className="mt-4 space-y-4">
+      <ol className="mp-stagger mt-4 space-y-4">
         {steps.map((step, i) => (
           <li key={step.key} className="grid grid-cols-[16px_minmax(0,1fr)] gap-3">
             <div className="flex flex-col items-center">

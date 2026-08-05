@@ -71,7 +71,7 @@ export function OrderMessagesPage() {
         {messages.length === 0 ? (
           <p className="py-8 text-center text-sm text-content-tertiary">{t('order.messages.empty')}</p>
         ) : (
-          <div className="space-y-4">
+          <div className="mp-stagger space-y-4">
             {messages.map((m, i) => (
               <div key={`${m.at}:${i}`}>
                 <div className="flex items-center justify-between gap-3 text-sm">

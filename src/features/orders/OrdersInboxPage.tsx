@@ -72,7 +72,7 @@ export function OrdersInboxPage() {
             type="button"
             onClick={() => setFilter(f)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
+              'mp-press inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
               filter === f
                 ? 'border-brand-primary bg-brand-primary text-white'
                 : 'border-border-subtle text-content-secondary hover:text-content-primary',
@@ -99,7 +99,7 @@ export function OrdersInboxPage() {
               <span>{t('order.col.nextStep')}</span>
               <span className="sr-only">{t('order.col.action')}</span>
             </div>
-            <ul className="divide-y divide-border-subtle">
+            <ul key={filter} className="mp-stagger divide-y divide-border-subtle">
               {rows.map((o) => (
                 <li
                   key={o.id}
