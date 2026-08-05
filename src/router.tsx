@@ -18,12 +18,17 @@ import {
   CompareBidsPage,
   NegotiationsInboxPage,
   NegotiationThreadPage,
-  OrderConversationPage,
-  OrdersInboxPage,
   RfqCreatePage,
   RfqDetailPage,
   RfqListPage,
 } from '@/features/rfq'
+import {
+  CancelOrderPage,
+  OrderDetailPage,
+  OrderMessagesPage,
+  OrdersInboxPage,
+  ReportIssuePage,
+} from '@/features/orders'
 import { ButtonShowcase } from '@/dev/ButtonShowcase'
 import { InputShowcase } from '@/dev/InputShowcase'
 import { FieldShowcase } from '@/dev/FieldShowcase'
@@ -59,7 +64,10 @@ export const router = createBrowserRouter([
       { path: 'negotiations', element: <NegotiationsInboxPage /> },
       { path: 'negotiations/:rfqId/:bidId', element: <NegotiationThreadPage /> },
       { path: 'orders', element: <OrdersInboxPage /> },
-      { path: 'orders/:id', element: <OrderConversationPage /> },
+      { path: 'orders/:id', element: <OrderDetailPage /> },
+      { path: 'orders/:id/messages', element: <OrderMessagesPage /> },
+      { path: 'orders/:id/cancel', element: <CancelOrderPage /> },
+      { path: 'orders/:id/report', element: <ReportIssuePage /> },
       { path: 'suppliers', element: <ComingSoonPage /> },
       { path: 'documents', element: <ComingSoonPage /> },
       { path: 'analytics', element: <ComingSoonPage /> },
