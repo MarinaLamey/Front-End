@@ -1,15 +1,6 @@
 import type { ComponentType } from 'react'
 import type { Portal } from '@/platform/auth'
-import {
-  GridIcon,
-  FileIcon,
-  ChecklistIcon,
-  ChatIcon,
-  BoxIcon,
-  UsersIcon,
-  DocCheckIcon,
-  ChartIcon,
-} from '@/shared/ui/dashboard'
+import { GridIcon, FileIcon, ScaleIcon, ChatIcon, BoxIcon } from '@/shared/ui/dashboard'
 
 export interface NavItem {
   /** i18n key, resolved with t() in the shell. */
@@ -35,15 +26,11 @@ export const BUYER_PORTAL: PortalConfig = {
   label: 'portals.buyer',
   basePath: '/buyer',
   nav: [
-    { label: 'nav.buyerDashboard', to: '/buyer', icon: GridIcon, end: true },
+    { label: 'nav.dashboard', to: '/buyer', icon: GridIcon, end: true },
     { label: 'nav.rfqs', to: '/buyer/rfqs', icon: FileIcon },
-    { label: 'nav.bids', to: '/buyer/bids', icon: ChecklistIcon },
+    { label: 'nav.bids', to: '/buyer/bids', icon: ScaleIcon },
     { label: 'nav.negotiations', to: '/buyer/negotiations', icon: ChatIcon },
-    { label: 'nav.orders', to: '/buyer/orders', icon: BoxIcon, expandable: true },
-    { label: 'nav.suppliers', to: '/buyer/suppliers', icon: UsersIcon, expandable: true },
-    { label: 'nav.documents', to: '/buyer/documents', icon: DocCheckIcon },
-    { label: 'nav.analytics', to: '/buyer/analytics', icon: ChartIcon },
-    { label: 'nav.subscription', to: '/buyer/subscription', icon: GridIcon },
+    { label: 'nav.orders', to: '/buyer/orders', icon: BoxIcon },
   ],
 }
 
@@ -52,14 +39,10 @@ export const SUPPLIER_PORTAL: PortalConfig = {
   label: 'portals.supplier',
   basePath: '/supplier',
   nav: [
-    { label: 'nav.supplierDashboard', to: '/supplier', icon: GridIcon, end: true },
+    { label: 'nav.dashboard', to: '/supplier', icon: GridIcon, end: true },
     { label: 'nav.availableRfqs', to: '/supplier/rfqs', icon: FileIcon },
-    { label: 'nav.myBids', to: '/supplier/bids', icon: ChecklistIcon },
+    { label: 'nav.myBids', to: '/supplier/bids', icon: ScaleIcon },
     { label: 'nav.negotiations', to: '/supplier/negotiations', icon: ChatIcon },
-    { label: 'nav.orders', to: '/supplier/orders', icon: BoxIcon, expandable: true },
-    { label: 'nav.buyers', to: '/supplier/buyers', icon: UsersIcon, expandable: true },
-    { label: 'nav.documents', to: '/supplier/documents', icon: DocCheckIcon },
-    { label: 'nav.analytics', to: '/supplier/analytics', icon: ChartIcon },
-    { label: 'nav.subscription', to: '/supplier/subscription', icon: GridIcon },
+    { label: 'nav.orders', to: '/supplier/orders', icon: BoxIcon },
   ],
 }

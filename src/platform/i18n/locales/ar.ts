@@ -694,6 +694,7 @@ export const ar = {
     },
     confirm: 'تأكيد',
     view: 'عرض',
+    ofN: 'من {{total}}',
     buyer: 'المشتري',
     supplier: 'المورّد',
     orderedItems: 'الأصناف المطلوبة',

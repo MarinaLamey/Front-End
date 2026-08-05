@@ -23,13 +23,21 @@ export function OrdersInboxPage() {
   const dateShort = (iso?: string) =>
     iso ? new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(new Date(iso)) : '—'
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: data.length }
-    for (const o of data) c[o.status] = (c[o.status] ?? 0) + 1
-    return c
-  }, [data])
+  // Declined (void) orders are resolved from their own surface, not listed in the main inbox.
+  const visible = useMemo(() => data.filter((o) => o.status !== 'declined'), [data])
 
-  const rows = useMemo(() => (filter === 'all' ? data : data.filter((o) => o.status === filter)), [data, filter])
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: visible.length }
+    for (const o of visible) c[o.status] = (c[o.status] ?? 0) + 1
+    return c
+  }, [visible])
+
+  const rows = useMemo(() => (filter === 'all' ? visible : visible.filter((o) => o.status === filter)), [visible, filter])
+
+  const subRef = (o: Order) =>
+    o.splitTotal && o.splitTotal > 1
+      ? `${o.id} · ${o.rfqReference} (${o.splitIndex} ${t('order.ofN', { total: o.splitTotal })})`
+      : `${o.id} · ${o.poNumber}`
 
   const nextStep = (o: Order): string => {
     switch (o.status) {
@@ -100,7 +108,7 @@ export function OrdersInboxPage() {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-content-primary">{o.title}</p>
-                    <p className="mt-0.5 truncate text-xs text-content-tertiary">{o.id} · {o.poNumber}</p>
+                    <p className="mt-0.5 truncate text-xs text-content-tertiary">{subRef(o)}</p>
                   </div>
                   <span className="truncate text-sm text-content-secondary">{o.supplierShort}</span>
                   <span className="text-sm font-semibold tabular-nums text-content-primary">{money(orderTotals(o).total)}</span>

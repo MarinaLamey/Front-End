@@ -63,6 +63,9 @@ export interface Order {
   poNumber: string // PO-2026-0088
   /** The RFQ this order was awarded from — links back to negotiation/offer history. */
   rfqReference: string
+  /** When an RFQ is split across suppliers, this order's position (1-based) and the split size. */
+  splitIndex?: number
+  splitTotal?: number
   /** RFQ record id used to open the message thread (equals rfqReference for seeded RFQs). */
   rfqId: string
   offerVersion: number

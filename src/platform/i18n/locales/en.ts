@@ -694,6 +694,7 @@ export const en = {
     },
     confirm: 'Confirm',
     view: 'View',
+    ofN: 'of {{total}}',
     buyer: 'Buyer',
     supplier: 'Supplier',
     orderedItems: 'Ordered items',
