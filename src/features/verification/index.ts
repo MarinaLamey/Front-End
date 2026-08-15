@@ -6,3 +6,4 @@ export {
   useDecideDoc,
   useResubmitDoc,
 } from './verificationQueries'
+export { VERIFICATION_BADGE, DOC_BADGE } from './verificationBadge'

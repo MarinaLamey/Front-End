@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useTenant } from '@/platform/tenancy'
+import { DEMO_ORG } from '@/platform/demo'
 import {
   verificationApi,
   type DocKey,
@@ -13,13 +14,21 @@ export const verificationKeys = {
 }
 
 /**
- * The current buyer org as a registration payload. `orgId` / `orgName` come from the tenant store;
- * the CR / VAT numbers are the ones the org submitted — seeded here for the demo-login path and
- * overwritten by the real values when the user registers (see OnboardingPage → openRequest).
+ * The current buyer org as a registration payload. `orgId` comes from the tenant store; the name
+ * and the CR / VAT / National Address numbers are the demo organisation's own
+ * ({@link DEMO_ORG}) — the same ones the Organisation record and the purchase orders carry, so a
+ * demo login sees one company rather than two. Overwritten by the real values when the user
+ * registers (OnboardingPage → openRequest).
  */
 export function useCurrentOrgMeta(): OrgRegistration {
   const tenant = useTenant((s) => s.tenant)
-  return { orgId: tenant.id, orgName: tenant.name, cr: '1010567890', vat: '300012345600003' }
+  return {
+    orgId: tenant.id,
+    orgName: DEMO_ORG.legalName,
+    cr: DEMO_ORG.cr,
+    vat: DEMO_ORG.vat,
+    nationalAddress: DEMO_ORG.nationalAddressCode,
+  }
 }
 
 /**

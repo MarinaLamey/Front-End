@@ -16,6 +16,8 @@ interface ChipPickerProps {
   customLabel?: string
   /** A static, non-removable chip shown when nothing is selected (e.g. "All regions"). */
   placeholderChip?: string
+  /** Read-only mode — shows the selected chips without remove/add controls (e.g. locked on Amend). */
+  locked?: boolean
 }
 
 /**
@@ -33,6 +35,7 @@ export function ChipPicker({
   allowCustom = false,
   customLabel,
   placeholderChip,
+  locked = false,
 }: ChipPickerProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -69,27 +72,31 @@ export function ChipPicker({
             className="inline-flex items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-medium text-brand-strong"
           >
             {chip}
-            <button
-              type="button"
-              aria-label={removeLabel}
-              onClick={() => remove(chip)}
-              className="cursor-pointer text-brand-strong/70 transition-colors hover:text-brand-strong"
-            >
-              <CloseIcon className="h-3 w-3" />
-            </button>
+            {!locked && (
+              <button
+                type="button"
+                aria-label={removeLabel}
+                onClick={() => remove(chip)}
+                className="cursor-pointer text-brand-strong/70 transition-colors hover:text-brand-strong"
+              >
+                <CloseIcon className="h-3 w-3" />
+              </button>
+            )}
           </span>
         ))}
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-default px-2.5 py-1 text-xs font-medium text-content-secondary transition-colors hover:border-brand-primary hover:text-brand-primary"
-        >
-          <PlusIcon className="h-3 w-3" />
-          {addLabel}
-        </button>
+        {!locked && (
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border-default px-2.5 py-1 text-xs font-medium text-content-secondary transition-colors hover:border-brand-primary hover:text-brand-primary"
+          >
+            <PlusIcon className="h-3 w-3" />
+            {addLabel}
+          </button>
+        )}
       </div>
 
-      {open && (
+      {!locked && open && (
         <div className="rounded-xl border border-border-subtle bg-bg-surface p-2 shadow-sm">
           <Input
             size="sm"

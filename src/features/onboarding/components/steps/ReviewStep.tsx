@@ -307,7 +307,7 @@ export function ReviewStep({ data, patch, onSubmit, isSubmitting, submitError }:
     isNameOnly(data.fullName) &&
     isNameOnly(data.orgName) &&
     /^\d{10}$/.test(data.cr) &&
-    /^\d{15}$/.test(data.vat)
+    /^3\d{13}3$/.test(data.vat)
 
   return (
     <StepFrame
@@ -370,8 +370,8 @@ export function ReviewStep({ data, patch, onSubmit, isSubmitting, submitError }:
               inputMode="numeric"
               value={data.vat}
               onChange={(event) => patch({ vat: event.target.value.replace(/\D/g, '').slice(0, 15) })}
-              success={/^\d{15}$/.test(data.vat)}
-              error={data.vat.length > 0 && !/^\d{15}$/.test(data.vat) ? { title: t('validation.vatInvalid') } : null}
+              success={/^3\d{13}3$/.test(data.vat)}
+              error={data.vat.length > 0 && !/^3\d{13}3$/.test(data.vat) ? { title: t('validation.vatInvalid') } : null}
             />
             <Field
               label={t('onboarding.company.crNumber')}

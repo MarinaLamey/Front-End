@@ -6,12 +6,22 @@ import { Spinner } from '@/shared/ui/Spinner'
 import { formatSar, toHalalas } from '@/shared/lib/money'
 import { cn } from '@/shared/lib/cn'
 import { useOrders } from './hooks/orderQueries'
-import { orderTotals } from './lib'
+import { orderTotals, supplierDisplayShort } from './lib'
 import { StatusPill } from './components'
 import type { Order, OrderStatus } from './types'
 
 const GRID = 'grid grid-cols-[minmax(200px,2.2fr)_1.4fr_1fr_130px_1.4fr_96px] items-center gap-4'
-const STATUS_ORDER: OrderStatus[] = ['awaiting_acceptance', 'in_transit', 'delivered', 'closed', 'cancelled', 'declined']
+/** Lifecycle order (SoT §2.2): the five steps, then the endings. */
+const STATUS_ORDER: OrderStatus[] = [
+  'awaiting_acceptance',
+  'accepted_awaiting_dispatch',
+  'in_transit',
+  'delivered',
+  'closed',
+  'cancelled',
+  'declined',
+  'expired',
+]
 
 export function OrdersInboxPage() {
   const { t, i18n } = useTranslation()
@@ -23,8 +33,9 @@ export function OrdersInboxPage() {
   const dateShort = (iso?: string) =>
     iso ? new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(new Date(iso)) : '—'
 
-  // Declined (void) orders are resolved from their own surface, not listed in the main inbox.
-  const visible = useMemo(() => data.filter((o) => o.status !== 'declined'), [data])
+  // Declined orders now appear in the inbox (View → their resolution surface). They aren't given
+  // their own filter tab (matching Figma's tab set), only surfaced under "All".
+  const visible = data
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: visible.length }
@@ -34,15 +45,24 @@ export function OrdersInboxPage() {
 
   const rows = useMemo(() => (filter === 'all' ? visible : visible.filter((o) => o.status === filter)), [visible, filter])
 
+  /**
+   * The row's second line. The PO number leads because that is the reference both parties quote;
+   * the internal order id is never surfaced. A split award also names its RFQ and its position in
+   * the split, so two rows from one RFQ are tellable apart.
+   */
   const subRef = (o: Order) =>
     o.splitTotal && o.splitTotal > 1
-      ? `${o.id} · ${o.rfqReference} (${o.splitIndex} ${t('order.ofN', { total: o.splitTotal })})`
-      : `${o.id} · ${o.poNumber}`
+      ? `${o.poNumber} · ${o.rfqReference} (${o.splitIndex} ${t('order.ofN', { total: o.splitTotal })})`
+      : o.poNumber
 
+  // The activity line beside every status (SoT §2 — "every list that shows a status also shows the
+  // activity sentence beside it"), in the buyer's words.
   const nextStep = (o: Order): string => {
     switch (o.status) {
       case 'awaiting_acceptance':
         return t('order.next.awaiting')
+      case 'accepted_awaiting_dispatch':
+        return t('order.next.acceptedAwaitingDispatch', { date: dateShort(o.acceptedAt) })
       case 'in_transit':
         return t('order.next.arriving', { date: dateShort(o.shipment.expectedArrival) })
       case 'delivered':
@@ -52,10 +72,13 @@ export function OrdersInboxPage() {
       case 'cancelled':
         return t('order.next.cancelled')
       case 'declined':
-        return t('order.next.declined')
+        return t('order.next.declined', { date: dateShort(o.declinedAt) })
+      case 'expired':
+        return t('order.next.expired')
     }
   }
 
+  // A tab per status that actually has rows — an ending nobody has hit is noise, not information.
   const filters: (OrderStatus | 'all')[] = ['all', ...STATUS_ORDER.filter((s) => counts[s])]
 
   return (
@@ -95,7 +118,7 @@ export function OrdersInboxPage() {
               <span>{t('order.col.order')}</span>
               <span>{t('order.col.supplier')}</span>
               <span>{t('order.col.value')}</span>
-              <span>{t('order.col.status')}</span>
+              <span className="text-center">{t('order.col.status')}</span>
               <span>{t('order.col.nextStep')}</span>
               <span className="sr-only">{t('order.col.action')}</span>
             </div>
@@ -110,9 +133,9 @@ export function OrdersInboxPage() {
                     <p className="truncate text-sm font-semibold text-content-primary">{o.title}</p>
                     <p className="mt-0.5 truncate text-xs text-content-tertiary">{subRef(o)}</p>
                   </div>
-                  <span className="truncate text-sm text-content-secondary">{o.supplierShort}</span>
+                  <span className="truncate text-sm text-content-secondary">{supplierDisplayShort(o)}</span>
                   <span className="text-sm font-semibold tabular-nums text-content-primary">{money(orderTotals(o).total)}</span>
-                  <StatusPill order={o} />
+                  <StatusPill order={o} className="justify-self-center" />
                   <span className="truncate text-sm text-content-secondary">{nextStep(o)}</span>
                   <span className="flex justify-end">
                     <Button
@@ -139,10 +162,12 @@ export function OrdersInboxPage() {
 function statusKey(s: OrderStatus): string {
   return {
     awaiting_acceptance: 'awaiting',
+    accepted_awaiting_dispatch: 'acceptedAwaitingDispatch',
     in_transit: 'inTransit',
     delivered: 'delivered',
     closed: 'closed',
     cancelled: 'cancelled',
     declined: 'declined',
+    expired: 'expired',
   }[s]
 }

@@ -51,12 +51,12 @@ export function EndNegotiationDialog({
       </div>
       <p className="mt-2 text-sm text-content-secondary">{t('rfq.nego.end.body')}</p>
 
-      <div className="mt-4 rounded-xl bg-status-info-subtle p-4">
-        <p className="text-sm font-semibold text-status-info">{t('rfq.nego.end.whatHappens')}</p>
+      <div className="mt-4 rounded-xl bg-status-danger-subtle p-4">
+        <p className="text-sm font-semibold text-status-danger">{t('rfq.nego.end.whatHappens')}</p>
         <ul className="mt-2 space-y-2">
           {bullets.map((text) => (
             <li key={text} className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-status-info" />
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-status-danger" />
               <span className="text-sm text-content-secondary">{text}</span>
             </li>
           ))}

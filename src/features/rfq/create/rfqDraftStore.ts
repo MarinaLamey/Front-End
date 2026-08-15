@@ -12,8 +12,17 @@ interface RfqDraftState {
   draft: RfqDraft
   /** Set once the wizard reaches a terminal outcome; drives the result card. */
   result: RfqResult | null
+  /** True while amending an already-published RFQ — locks the fields suppliers were matched on
+   * (category + regions) since they define the audience already invited. */
+  amending: boolean
   /** True after the persisted draft has rehydrated — the page waits on this. */
   hasHydrated: boolean
+  /**
+   * When the draft was last written to storage (epoch ms). Every mutator stamps it, because the
+   * persist middleware writes synchronously on each `set` — so this really is the save time, and
+   * the wizard footer can state it rather than leaving the buyer guessing whether work is kept.
+   */
+  savedAt: number
 
   setStep: (step: RfqStep) => void
   next: () => void
@@ -25,6 +34,12 @@ interface RfqDraftState {
   setResult: (result: RfqResult | null) => void
   /** Load an existing RFQ into the wizard (Amend) — opens at step 1 as an editable draft. */
   loadDraft: (draft: RfqDraft) => void
+  /**
+   * Copy a resolved RFQ into a brand-new draft (Duplicate, offered on cancelled/expired RFQs).
+   * Keeps the requirement and terms, drops the original's identity and history, and does NOT set
+   * the amend lock — a duplicate has no invited audience to protect.
+   */
+  duplicateDraft: (source: RfqDraft) => void
   /** Discard everything and start a brand-new draft (new id + reference). */
   reset: () => void
   setHasHydrated: (value: boolean) => void
@@ -38,16 +53,20 @@ export const useRfqDraftStore = create<RfqDraftState>()(
       step: 1,
       draft: createBlankDraft(),
       result: null,
+      amending: false,
       hasHydrated: false,
+      savedAt: Date.now(),
 
       setStep: (step) => set({ step: clampStep(step) }),
       next: () => set((state) => ({ step: clampStep(state.step + 1) })),
       back: () => set((state) => ({ step: clampStep(state.step - 1) })),
 
-      patch: (partial) => set((state) => ({ draft: { ...state.draft, ...partial } })),
+      patch: (partial) =>
+        set((state) => ({ draft: { ...state.draft, ...partial }, savedAt: Date.now() })),
 
       setPreset: (preset) =>
         set((state) => ({
+          savedAt: Date.now(),
           draft: {
             ...state.draft,
             paymentPreset: preset,
@@ -57,21 +76,60 @@ export const useRfqDraftStore = create<RfqDraftState>()(
         })),
 
       setMilestones: (milestones) =>
-        set((state) => ({ draft: { ...state.draft, milestones } })),
+        set((state) => ({ draft: { ...state.draft, milestones }, savedAt: Date.now() })),
 
       setResult: (result) => set({ result }),
 
-      loadDraft: (draft) => set({ step: 1, draft: { ...draft, status: 'draft' }, result: null }),
+      loadDraft: (draft) =>
+        set({
+          step: 1,
+          draft: { ...draft, status: 'draft' },
+          result: null,
+          amending: true,
+          savedAt: Date.now(),
+        }),
 
-      reset: () => set({ step: 1, draft: createBlankDraft(), result: null }),
+      duplicateDraft: (source) => {
+        const fresh = createBlankDraft()
+        set({
+          step: 1,
+          result: null,
+          amending: false,
+          savedAt: Date.now(),
+          draft: {
+            ...source,
+            id: fresh.id,
+            reference: fresh.reference,
+            status: 'draft',
+            bids: 0,
+            awards: undefined,
+            negotiations: undefined,
+            orderMessages: undefined,
+            supplierBid: undefined,
+            cancelReason: undefined,
+            cancelledAt: undefined,
+            createdAt: fresh.createdAt,
+            updatedAt: fresh.updatedAt,
+          },
+        })
+      },
+
+      reset: () =>
+        set({ step: 1, draft: createBlankDraft(), result: null, amending: false, savedAt: Date.now() }),
 
       setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
-      name: 'miproc.rfq.draft.v2',
+      name: 'miproc.rfq.draft.v3',
       storage: createJSONStorage(() => localStorage),
-      // Persist the in-progress draft + step so a returning buyer resumes; the result is transient.
-      partialize: (state) => ({ step: state.step, draft: state.draft }),
+      // Persist the in-progress draft + step (and amend-lock) so a returning buyer resumes; the
+      // result is transient.
+      partialize: (state) => ({
+        step: state.step,
+        draft: state.draft,
+        amending: state.amending,
+        savedAt: state.savedAt,
+      }),
       onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
     },
   ),

@@ -32,16 +32,22 @@ export function RfqCard({ title, action, children, className }: RfqCardProps) {
 /** A small labelled sub-group inside a card (e.g. "Scope of work"). */
 export function RfqField({
   label,
+  required,
   children,
   className,
 }: {
   label: string
+  /** Show a red required asterisk after the label. */
+  required?: boolean
   children: ReactNode
   className?: string
 }) {
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <span className="text-sm font-medium text-content-secondary">{label}</span>
+      <span className="text-sm font-medium text-content-secondary">
+        {label}
+        {required && <span className="text-status-danger"> *</span>}
+      </span>
       {children}
     </div>
   )

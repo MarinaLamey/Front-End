@@ -4,7 +4,7 @@ import { cn } from '@/shared/lib/cn'
  * The visual tones a status can take. Every status string across the app maps to one of these
  * so colour is decided in ONE place — add a new status to {@link STATUS_TONE}, not a new style.
  */
-type Tone = 'success' | 'warning' | 'danger' | 'info' | 'brand' | 'neutral'
+export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'brand' | 'neutral'
 
 const TONE_CLASS: Record<Tone, string> = {
   success: 'bg-status-success-subtle text-status-success',
@@ -24,6 +24,26 @@ const TONE_STRONG_CLASS: Partial<Record<Tone, string>> = {
   success: 'bg-status-success-subtle text-status-success-strong',
   warning: 'bg-status-warning-subtle text-status-warning-strong',
   danger: 'bg-status-danger-subtle text-status-danger-strong',
+}
+
+/**
+ * `plain` variants — no pill, just the label in the tone's colour. Used where the design shows a
+ * status as a read-only statement of where something stands (compliance documents, the KYB
+ * verification rows and banner) rather than as a chip you scan a list by.
+ */
+const TONE_TEXT_CLASS: Record<Tone, string> = {
+  success: 'text-status-success',
+  warning: 'text-status-warning',
+  danger: 'text-status-danger',
+  info: 'text-status-info',
+  brand: 'text-brand-strong',
+  neutral: 'text-content-secondary',
+}
+
+const TONE_TEXT_STRONG_CLASS: Partial<Record<Tone, string>> = {
+  success: 'text-status-success-strong',
+  warning: 'text-status-warning-strong',
+  danger: 'text-status-danger-strong',
 }
 
 /**
@@ -70,21 +90,26 @@ interface StatusBadgeProps {
   dot?: boolean
   /** High-contrast variant: darker `-strong` text + bold weight (e.g. verification status). */
   strong?: boolean
+  /** Drop the pill and render the label as coloured text only — a status statement, not a chip. */
+  plain?: boolean
   className?: string
 }
 
 /**
- * StatusBadge — the one pill used for every status in the app. Give it a label; it derives the
- * colour from {@link STATUS_TONE}. A leading dot echoes the tone. Purely presentational.
+ * StatusBadge — the one status indicator used across the app. Give it a label; it derives the
+ * colour from {@link STATUS_TONE}. Renders as a pill by default (with an optional leading dot);
+ * `plain` renders the same tone as bare coloured text. Purely presentational.
  */
-export function StatusBadge({ label, tone, dot = true, strong = false, className }: StatusBadgeProps) {
+export function StatusBadge({ label, tone, dot = true, strong = false, plain = false, className }: StatusBadgeProps) {
   const resolved = tone ?? STATUS_TONE[label.trim().toLowerCase()] ?? 'neutral'
-  const toneClass = (strong && TONE_STRONG_CLASS[resolved]) || TONE_CLASS[resolved]
+  const toneClass = plain
+    ? (strong && TONE_TEXT_STRONG_CLASS[resolved]) || TONE_TEXT_CLASS[resolved]
+    : (strong && TONE_STRONG_CLASS[resolved]) || TONE_CLASS[resolved]
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs',
-        strong ? 'font-bold' : 'font-medium',
+        'inline-flex items-center gap-1.5 text-xs',
+        plain ? 'font-semibold' : cn('rounded-full px-2.5 py-0.5', strong ? 'font-bold' : 'font-medium'),
         toneClass,
         className,
       )}

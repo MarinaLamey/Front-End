@@ -17,6 +17,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
     <textarea
       ref={ref}
       rows={rows}
+      dir="auto"
       className={cn(
         'w-full resize-y rounded-xl bg-bg-surface px-3.5 py-2.5 text-sm text-content-primary',
         'outline outline-1 outline-border-default placeholder:text-content-tertiary',

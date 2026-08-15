@@ -100,6 +100,9 @@
   --animate-cell-flash-strong: cell-flash-strong 3s ease-in-out infinite;
   /* Auth/register card entrance — a soft rise + settle on mount. Gate with motion-safe:. */
   --animate-card-in: card-in 0.6s var(--ease-standard) backwards;
+  /* Paginated list page-change — a short, small rise + fade replayed by keying on the page number.
+     Deliberately subtle/quick so switching pages reads as a settle, not a full re-entrance. */
+  --animate-page-in: page-in 0.24s var(--ease-standard) backwards;
   /* Success check pop — the valid-field checkmark springs in. Gate with motion-safe:. */
   --animate-check-pop: check-pop 0.3s var(--ease-spring) backwards;
   /* Loading dots — opacity+scale pulse (compositor-only). Staggered via per-dot animation-delay. */
@@ -190,6 +193,10 @@
   --mp-brand-tertiary-hover: #6b63ad;
   --mp-brand-tertiary-subtle: #d4d1e7;
 
+  /* Hero sweep behind the dashboard welcome banner. A fixed brand surface: it keeps the same
+     purple in both themes, so its foreground stays white (see .mp-gradient-hero below). */
+  --mp-gradient-hero: linear-gradient(120deg, #4a3f8f 0%, #51489e 45%, #6d63c6 100%);
+
   --mp-status-success: #059669;
   --mp-status-warning: #f59e0b;
   --mp-status-danger: #dc2626;
@@ -263,6 +270,9 @@
   --mp-brand-tertiary-hover: #d4d1e7;
   --mp-brand-tertiary-subtle: rgba(81, 72, 158, 0.12);
 
+  /* Unchanged in dark — the hero keeps its brand purple, as it does in the Figma. */
+  --mp-gradient-hero: linear-gradient(120deg, #4a3f8f 0%, #51489e 45%, #6d63c6 100%);
+
   --mp-status-success: #34d399;
   --mp-status-warning: #fbbf24;
   --mp-status-danger: #f87171;
@@ -291,6 +301,15 @@
   --mp-interactive-hover: rgba(255, 255, 255, 0.08);
   --mp-interactive-active: rgba(255, 255, 255, 0.12);
   --mp-interactive-selected: rgba(20, 184, 166, 0.16);
+}
+
+/* Hero gradient surface. A gradient is not a colour, so it cannot live in @theme as a
+   --color-* entry (bg-* would emit an invalid background-color); it gets a utility instead,
+   backed by the same primitive → whitelabel-override chain every token uses. Text on it is
+   plain `white` on purpose: the surface stays purple in dark mode, so an on-brand token
+   (which flips to near-black) would be wrong here. */
+.mp-gradient-hero {
+  background-image: var(--gradient-hero, var(--mp-gradient-hero));
 }
 
 /* Every enabled button shows the pointer cursor — native <button>s default to the arrow. Disabled
@@ -475,6 +494,18 @@ input:-webkit-autofill:active {
   from {
     opacity: 0;
     transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Paginated list page-change — a quick, small rise + fade (see --animate-page-in). */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;

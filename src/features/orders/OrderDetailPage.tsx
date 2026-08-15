@@ -1,15 +1,40 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/shared/ui/Button'
 import { Spinner } from '@/shared/ui/Spinner'
+import { StarIcon } from '@/shared/ui/dashboard'
 import { formatSar, toHalalas } from '@/shared/lib/money'
 import { cn } from '@/shared/lib/cn'
+import { useRfq } from '@/features/rfq/hooks/rfqQueries'
 import { useConfirmReceipt, useOrder } from './hooks/orderQueries'
-import { orderTotals } from './lib'
-import { OrderStatusTimeline, OrderedItemsTable, PartiesCard, StatusPill } from './components'
+import { orderTotals, statusMeta, supplierDisplayName } from './lib'
+import { OrderStatusTimeline, OrderedItemsTable, PartiesCard, PaymentScheduleCard } from './components'
 import { PurchaseOrderModal } from './PurchaseOrderModal'
-import type { Order } from './types'
+import type { Order, OrderStatus } from './types'
+
+/**
+ * The detail header carries a tinted PILL, using the same tone scale as the list chip but with the
+ * longer, contextual label ("Delivered · confirm receipt" rather than "Delivered"). `neutral` maps
+ * to the warning tint on purpose: an unaccepted PO is waiting on someone, not idle.
+ */
+const DETAIL_TONE: Record<string, string> = {
+  warning: 'bg-status-warning-subtle text-status-warning-strong',
+  info: 'bg-status-info-subtle text-status-info',
+  success: 'bg-status-success-subtle text-status-success-strong',
+  danger: 'bg-status-danger-subtle text-status-danger',
+  neutral: 'bg-status-warning-subtle text-status-warning-strong',
+}
+const DETAIL_STATUS_KEY: Record<OrderStatus, string> = {
+  awaiting_acceptance: 'order.detailStatus.awaiting',
+  accepted_awaiting_dispatch: 'order.detailStatus.acceptedAwaitingDispatch',
+  in_transit: 'order.detailStatus.inTransit',
+  delivered: 'order.detailStatus.delivered',
+  closed: 'order.detailStatus.closed',
+  cancelled: 'order.detailStatus.cancelled',
+  declined: 'order.detailStatus.declined',
+  expired: 'order.detailStatus.expired',
+}
 
 export function OrderDetailPage() {
   const { t, i18n } = useTranslation()
@@ -38,6 +63,19 @@ export function OrderDetailPage() {
   const showReceipt = s === 'delivered' || (s === 'in_transit' && recording)
   const messages = () => navigate(`/buyer/orders/${order.id}/messages`)
 
+  /**
+   * SoT §11: a delivery is accepted IN FULL or it is not accepted. There is no partial receipt, no
+   * editable received quantity and no reject action — anything short is settled between the two
+   * companies off the platform in this phase. So the receipt is one button over a read-only table,
+   * and every line is recorded as received in full.
+   */
+  const confirmReceipt = () =>
+    confirm.mutate({
+      id: order.id,
+      receipt: Object.fromEntries(order.lines.map((l, i) => [i, { received: l.quantity }])),
+      full: true,
+    })
+
   return (
     <section className="mx-auto w-full max-w-6xl motion-safe:animate-card-in">
       {/* Breadcrumb */}
@@ -46,17 +84,23 @@ export function OrderDetailPage() {
           {t('order.title')}
         </button>
         <span className="mx-1.5">/</span>
-        <span className="text-content-secondary">{s === 'awaiting_acceptance' || s === 'declined' || s === 'cancelled' ? order.poNumber : order.id}</span>
+        {/* Always the PO number: it is the reference both sides quote, and the frames use it at
+            every status. The internal order id is not a thing the buyer has ever been shown. */}
+        <span className="text-content-secondary">{order.poNumber}</span>
       </nav>
 
-      {/* Chips + title */}
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-        <span className="font-medium text-content-secondary">
-          {order.id} · {order.poNumber}
-        </span>
-        <StatusPill order={order} />
-      </div>
-      <h1 className="mt-2 text-2xl font-bold tracking-tight text-content-primary">{order.title}</h1>
+      {/* Status pill + title. The declined surface owns its own heading, so neither renders here —
+          the red panel below IS that screen's title block. */}
+      {s !== 'declined' && (
+        <>
+          <div className="mt-3">
+            <span className={cn('inline-flex rounded-full px-2.5 py-1 text-xs font-semibold', DETAIL_TONE[statusMeta(s).tone])}>
+              {t(DETAIL_STATUS_KEY[s])}
+            </span>
+          </div>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-content-primary">{order.title}</h1>
+        </>
+      )}
 
       {/* Declined = a distinct resolution surface */}
       {s === 'declined' ? (
@@ -72,12 +116,14 @@ export function OrderDetailPage() {
               <PartiesCard order={order} />
 
               {showReceipt ? (
-                <ReceiptCard order={order} confirming={confirm.isPending} onConfirm={(receipt, full) => confirm.mutate({ id: order.id, receipt, full })} />
+                <ReceiptCard order={order} />
               ) : (
                 (s === 'in_transit' || s === 'closed') && <ShipmentCard order={order} />
               )}
 
               <OrderedItemsTable order={order} />
+
+              <PaymentScheduleCard order={order} />
             </div>
 
             {/* Right rail */}
@@ -96,27 +142,35 @@ export function OrderDetailPage() {
                   </>
                 )}
 
+                {/* SoT §11 + §12: no "report an issue" (the whole dispute flow is phase 2) and no
+                    cancellation once the supplier has accepted — an accepted order runs to
+                    fulfilment, delivery and close, and neither side can cancel it. */}
                 {s === 'in_transit' && !recording && (
                   <>
                     <Button fullWidth onClick={() => setRecording(true)}>{t('order.action.confirmReceived')}</Button>
                     <Button fullWidth variant="outline" onClick={messages}>{t('order.action.message')}</Button>
-                    <Button fullWidth variant="outline" className="!text-status-danger" onClick={() => navigate(`/buyer/orders/${order.id}/report`)}>
-                      {t('order.action.reportIssue')}
-                    </Button>
-                    <Button fullWidth variant="outline" className="!text-status-danger" onClick={() => navigate(`/buyer/orders/${order.id}/cancel`)}>
-                      {t('order.action.requestCancel')}
-                    </Button>
                     <p className="pt-1 text-xs text-content-tertiary">{t('order.hint.inTransit')}</p>
                   </>
                 )}
 
-                {s === 'delivered' && (
-                  <p className="text-xs text-content-tertiary">{t('order.hint.delivered')}</p>
+                {showReceipt && (
+                  <>
+                    <Button fullWidth isLoading={confirm.isPending} onClick={confirmReceipt}>
+                      {t('order.receipt.confirmFull')}
+                    </Button>
+                    <Button fullWidth variant="outline" onClick={messages}>{t('order.action.message')}</Button>
+                    <p className="pt-1 text-xs text-content-tertiary">{t('order.hint.delivered')}</p>
+                  </>
                 )}
 
                 {s === 'closed' && (
                   <>
-                    <Button fullWidth variant="outline" onClick={() => setFavourited((v) => !v)}>
+                    <Button
+                      fullWidth
+                      variant="outline"
+                      leftIcon={<StarIcon className="h-4 w-4" />}
+                      onClick={() => setFavourited((v) => !v)}
+                    >
                       {favourited ? t('order.action.favourited') : t('order.action.favourite')}
                     </Button>
                     <Button fullWidth variant="outline" onClick={messages}>{t('order.action.message')}</Button>
@@ -204,28 +258,21 @@ function ShipmentCard({ order }: { order: Order }) {
 }
 
 /* ── Receipt recording ──────────────────────────────────────────────────────── */
-function ReceiptCard({
-  order,
-  onConfirm,
-  confirming,
-}: {
-  order: Order
-  onConfirm: (receipt: Record<number, { received: number; note?: string }>, full: boolean) => void
-  confirming: boolean
-}) {
+/**
+ * What the buyer is confirming they received. SoT §11: a delivery is accepted IN FULL or it is not
+ * accepted, so this table is READ ONLY — no editable received quantity, no partial receipt, no
+ * reject action, and no shortfall arithmetic. Anything short is settled between the two companies
+ * off the platform in this phase. The buyer's job here is to check the delivery against the order
+ * and then confirm, which is the single event that closes it.
+ */
+function ReceiptCard({ order }: { order: Order }) {
   const { t, i18n } = useTranslation()
-  const [received, setReceived] = useState<Record<number, number>>(
-    () => Object.fromEntries(order.lines.map((l, i) => [i, l.quantity])),
-  )
-
-  const shortLines = order.lines.filter((l, i) => received[i] < l.quantity)
-  const anyShort = shortLines.length > 0
-  const shortTotal = order.lines.reduce((sum, l, i) => sum + Math.max(0, l.quantity - received[i]), 0)
-
-  const build = () =>
-    Object.fromEntries(
-      order.lines.map((l, i) => [i, { received: received[i], note: received[i] < l.quantity ? t('order.receipt.balanceToFollow') : undefined }]),
-    )
+  const money = (n: number) => `SAR ${n.toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const dateFull = (iso?: string) =>
+    iso ? new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso)) : '—'
+  const fallbackDelivery = order.shipment.expectedArrival ?? order.shipment.deliveredAt
+  const valueReceived = order.lines.reduce((sum, l) => sum + l.quantity * l.unitPriceSar, 0)
+  const GRID = 'grid grid-cols-[20px_minmax(0,1.3fr)_64px_64px_minmax(0,0.9fr)_92px] items-center gap-3'
 
   return (
     <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
@@ -242,73 +289,41 @@ function ReceiptCard({
       </div>
 
       <div className="mt-3 overflow-x-auto">
-        <div className="min-w-[560px]">
-          <div className="grid grid-cols-[24px_minmax(0,1fr)_72px_96px_110px_minmax(0,1fr)] items-center gap-3 border-b border-border-subtle pb-2 text-xs font-medium text-content-tertiary">
+        <div className="min-w-[720px]">
+          <div className={cn(GRID, 'border-b border-border-subtle pb-2 text-xs font-medium text-content-tertiary')}>
             <span>#</span>
             <span>{t('order.col.description')}</span>
             <span className="text-end">{t('order.receipt.ordered')}</span>
-            <span className="text-end">{t('order.receipt.received')}</span>
-            <span>{t('order.receipt.condition')}</span>
-            <span>{t('order.receipt.note')}</span>
+            <span className="text-end">{t('order.col.unit')}</span>
+            <span>{t('order.col.delivery')}</span>
+            <span className="text-end">{t('order.receipt.value')}</span>
           </div>
-          {order.lines.map((l, i) => {
-            const short = received[i] < l.quantity
-            return (
-              <div key={i} className="grid grid-cols-[24px_minmax(0,1fr)_72px_96px_110px_minmax(0,1fr)] items-center gap-3 border-b border-border-subtle py-2.5 text-sm">
-                <span className="text-content-tertiary">{i + 1}</span>
-                <span className="text-content-primary">{l.description}</span>
-                <span className="text-end tabular-nums text-content-secondary">{l.quantity.toLocaleString(i18n.language)}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={received[i]}
-                  onChange={(e) => {
-                    const n = Math.max(0, Math.min(l.quantity, Number(e.target.value.replace(/[^\d]/g, '')) || 0))
-                    setReceived((r) => ({ ...r, [i]: n }))
-                  }}
-                  className={cn(
-                    'w-full rounded-md border bg-bg-surface px-2 py-1 text-end text-sm tabular-nums outline-none',
-                    short ? 'border-status-warning-strong text-status-warning-strong' : 'border-border-subtle text-content-primary',
-                  )}
-                />
-                <span>
-                  {short ? (
-                    <span className="rounded bg-status-warning-subtle px-1.5 py-0.5 text-xs font-medium text-status-warning-strong">
-                      {t('order.receipt.shortBy', { count: l.quantity - received[i] })}
-                    </span>
-                  ) : (
-                    <span className="rounded bg-status-success-subtle px-1.5 py-0.5 text-xs font-medium text-status-success-strong">
-                      {t('order.receipt.accepted')}
-                    </span>
-                  )}
-                </span>
-                <span className="truncate text-xs text-content-tertiary">{short ? t('order.receipt.balanceToFollow') : '—'}</span>
-              </div>
-            )
-          })}
+          {order.lines.map((l, i) => (
+            <div key={i} className={cn(GRID, 'border-b border-border-subtle py-2.5 text-sm')}>
+              <span className="text-content-tertiary">{i + 1}</span>
+              <span className="text-content-primary">{l.description}</span>
+              <span className="text-end tabular-nums text-content-secondary">{l.quantity.toLocaleString(i18n.language)}</span>
+              <span className="text-end text-content-tertiary">{l.unit}</span>
+              <span className="tabular-nums text-content-secondary">{dateFull(l.deliveryDate ?? fallbackDelivery)}</span>
+              <span className="text-end font-medium tabular-nums text-content-primary">
+                {(l.quantity * l.unitPriceSar).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          ))}
+          <dl className="mt-3 space-y-1.5 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-content-secondary">{t('order.receipt.valueReceived')}</dt>
+              <dd className="font-semibold tabular-nums text-content-primary">{money(valueReceived)}</dd>
+            </div>
+          </dl>
         </div>
       </div>
-
-      {anyShort && (
-        <p className="mp-slide mt-3 rounded-lg bg-status-warning-subtle px-3 py-2 text-sm text-status-warning-strong">
-          {t('order.receipt.shortWarning', { count: shortTotal })}
-        </p>
-      )}
 
       <div className="mt-3 flex items-center justify-between rounded-lg border border-dashed border-border-subtle px-3 py-2.5 text-sm text-content-tertiary">
         <span>{t('order.receipt.attach')}</span>
         <button type="button" className="cursor-pointer font-medium text-content-link hover:text-content-link-hover">
           {t('order.receipt.upload')}
         </button>
-      </div>
-
-      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-        <Button disabled={!anyShort} isLoading={confirming} onClick={() => onConfirm(build(), false)}>
-          {t('order.receipt.confirmPartial')}
-        </Button>
-        <Button variant={anyShort ? 'outline' : 'primary'} isLoading={confirming} onClick={() => onConfirm(build(), true)}>
-          {t('order.receipt.confirmFull')}
-        </Button>
       </div>
     </div>
   )
@@ -321,37 +336,34 @@ function DeclinedView({ order }: { order: Order }) {
   const money = (n: number) => formatSar(toHalalas(n), { locale: i18n.language })
   const dateTime = (iso?: string) =>
     iso ? new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso)) : '—'
-  const [choice, setChoice] = useState<'runner_up' | 'reopen' | 'close'>('runner_up')
-
-  const options = useMemo(() => {
-    const ru = order.runnerUp
-    return [
-      {
-        key: 'runner_up' as const,
-        title: t('order.resolve.runnerUp.title'),
-        desc: ru
-          ? t('order.resolve.runnerUp.desc', { label: ru.supplierLabel, total: money(ru.totalSar), covered: ru.itemsCovered, total_items: ru.itemsTotal, date: new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(ru.validUntil)) })
-          : t('order.resolve.runnerUp.none'),
-        disabled: !ru,
-      },
-      { key: 'reopen' as const, title: t('order.resolve.reopen.title'), desc: t('order.resolve.reopen.desc') },
-      { key: 'close' as const, title: t('order.resolve.close.title'), desc: t('order.resolve.close.desc') },
-    ]
-  }, [order.runnerUp, t, i18n.language])
-
-  const confirmChoice = () => {
-    if (choice === 'reopen') navigate(`/buyer/rfqs/${order.rfqId}`)
-    else navigate('/buyer/orders')
-  }
+  // SoT §9: the buyer is not offered a choice. The route is decided by the request's award state at
+  // the moment the order failed — fully awarded means every other bid was already closed and none
+  // can be revived, so the only way forward is a new request; partly awarded keeps the request and
+  // its bids and simply returns it to Live.
+  const { data: rfq } = useRfq(order.rfqId)
+  const partlyAwarded = rfq?.status === 'partially_awarded'
+  const route = partlyAwarded
+    ? {
+        title: t('order.resolve.partlyAwarded.title', { rfq: order.rfqReference }),
+        desc: t('order.resolve.partlyAwarded.desc'),
+        action: t('order.resolve.partlyAwarded.action'),
+        go: () => navigate(`/buyer/rfqs/${order.rfqId}/compare`),
+      }
+    : {
+        title: t('order.resolve.fullyAwarded.title'),
+        desc: t('order.resolve.fullyAwarded.desc', { rfq: order.rfqReference }),
+        action: t('order.resolve.fullyAwarded.action'),
+        go: () => navigate('/buyer/rfqs/new'),
+      }
 
   return (
     <>
       <div className="mt-4 rounded-xl bg-status-danger-subtle p-5">
         <div className="flex items-center gap-2 text-sm">
           <span className="rounded-full bg-status-danger px-2 py-0.5 text-xs font-semibold text-white">{t('order.status.declined')}</span>
-          <span className="text-content-secondary">{order.poNumber} · {t('order.declined.voided', { date: new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(order.declinedAt ?? order.issuedAt)) })}</span>
+          <span className="text-content-secondary">{order.poNumber} · {t('order.declined.declinedOn', { date: new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(order.declinedAt ?? order.issuedAt)) })}</span>
         </div>
-        <h2 className="mt-3 text-xl font-bold tracking-tight text-content-primary">{t('order.declined.heading', { supplier: order.supplier.name })}</h2>
+        <h2 className="mt-3 text-xl font-bold tracking-tight text-content-primary">{t('order.declined.heading', { supplier: supplierDisplayName(order) })}</h2>
         <p className="mt-1 text-sm text-content-secondary">{t('order.declined.sub', { rfq: order.rfqReference })}</p>
       </div>
 
@@ -375,51 +387,33 @@ function DeclinedView({ order }: { order: Order }) {
             </dl>
           </div>
 
-          {/* Resolution choices */}
+          {/* What happens next — one route, not a choice. */}
           <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
             <h3 className="text-sm font-semibold text-content-primary">{t('order.resolve.title')}</h3>
-            <div className="mt-3 space-y-3">
-              {options.map((o) => (
-                <label
-                  key={o.key}
-                  className={cn(
-                    'flex cursor-pointer gap-3 rounded-xl border p-4',
-                    o.disabled && 'cursor-not-allowed opacity-50',
-                    choice === o.key ? 'border-brand-primary bg-brand-subtle' : 'border-border-subtle',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="resolve"
-                    className="mt-1 h-4 w-4 accent-brand-primary"
-                    checked={choice === o.key}
-                    disabled={o.disabled}
-                    onChange={() => setChoice(o.key)}
-                  />
-                  <span>
-                    <span className={cn('block text-sm font-semibold', choice === o.key ? 'text-brand-primary' : 'text-content-primary')}>{o.title}</span>
-                    <span className="mt-0.5 block text-sm text-content-secondary">{o.desc}</span>
-                  </span>
-                </label>
-              ))}
+            <div className="mt-3 rounded-xl border border-border-subtle bg-bg-surface-sunken p-4">
+              <p className="text-sm font-semibold text-content-primary">{route.title}</p>
+              <p className="mt-0.5 text-sm text-content-secondary">{route.desc}</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-5">
           <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
-            <h3 className="text-sm font-semibold text-content-primary">{t('order.declined.voidedPo')}</h3>
+            <h3 className="text-sm font-semibold text-content-primary">{t('order.declined.declinedPo')}</h3>
+            {/* No PO-reference row: the red panel above already names the PO, so repeating it here
+                just pads the card. */}
             <dl className="mt-3 space-y-2.5 text-sm">
-              <Row label={t('order.po.reference')} value={order.poNumber} />
-              <Row label={t('order.supplier')} value={order.supplierShort} />
+              <Row label={t('order.supplier')} value={supplierDisplayName(order)} />
               <Row label={t('order.declined.value')} value={money(orderTotals(order).total)} />
-              <Row label={t('order.ship.status')} value={t('order.status.void')} valueClass="font-semibold text-status-danger" />
+              {/* SoT §2.2 — the four endings are Closed, Cancelled, Declined and Expired. "Void" is
+                  not a word this product uses. */}
+              <Row label={t('order.ship.status')} value={t('order.status.declinedStatus')} valueClass="font-semibold text-status-danger" />
             </dl>
             <p className="mt-3 text-xs text-content-tertiary">{t('order.declined.noExposure')}</p>
           </div>
 
           <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface p-5">
-            <Button fullWidth onClick={confirmChoice}>{t('order.resolve.confirm')}</Button>
+            <Button fullWidth onClick={route.go}>{route.action}</Button>
             <Button fullWidth variant="outline" onClick={() => navigate(`/buyer/rfqs/${order.rfqId}`)}>{t('order.resolve.viewRfq')}</Button>
             <p className="pt-1 text-xs text-content-tertiary">{t('order.declined.notBlocked')}</p>
           </div>

@@ -20,7 +20,7 @@ interface AddressPreferencesStepProps {
 const BUILDING_RE = /^\d{4}$/ // e.g. 7201
 const ADDITIONAL_RE = /^\d{4}$/ // e.g. 2443
 const ZIP_RE = /^\d{5}$/ // e.g. 13315
-const UNIT_RE = /^\d{1,4}$/ // e.g. 12
+const UNIT_RE = /^\d{4}$/ // exactly 4 digits (backend rule), e.g. 0012
 
 const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 
@@ -146,7 +146,7 @@ export function AddressPreferencesStep({ data, patch, onNext, onBack }: AddressP
               label={t('onboarding.address.unitNo')}
               required
               inputMode="numeric"
-              placeholder="12"
+              placeholder="0012"
               value={data.unitNo}
               onChange={(event) => patch({ unitNo: digits(event.target.value, 4) })}
               success={UNIT_RE.test(data.unitNo)}

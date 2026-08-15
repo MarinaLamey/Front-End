@@ -12,22 +12,40 @@ import { TermsPage } from '@/features/legal/TermsPage'
 import { BuyerDashboardPage, SupplierDashboardPage } from '@/features/dashboard'
 import { AdminShell, AdminVerificationsPage } from '@/features/admin'
 import { SubscriptionPlansPage, SubscriptionCheckoutPage } from '@/features/subscription'
+import { ProfilePage } from '@/features/profile'
 import {
+  OrganisationOverviewPage,
+  OrganisationProfilePage,
+  OrganisationSettingsPage,
+  OrganisationUsersPage,
+} from '@/features/organisation'
+import {
+  AvailableRfqsPage,
   AwardConfirmedPage,
   BidsInboxPage,
   CompareBidsPage,
+  MyBidsPage,
   NegotiationsInboxPage,
   NegotiationThreadPage,
   RfqCreatePage,
   RfqDetailPage,
   RfqListPage,
+  SubmitBidPage,
+  SupplierBidPage,
+  SupplierNegotiationPage,
+  SupplierNegotiationsPage,
+  SupplierRfqDetailPage,
 } from '@/features/rfq'
 import {
+  CancellationRequestPage,
   CancelOrderPage,
+  DeclineOrderPage,
   OrderDetailPage,
   OrderMessagesPage,
   OrdersInboxPage,
-  ReportIssuePage,
+  SupplierOrderConversationPage,
+  SupplierOrderPage,
+  SupplierOrdersPage,
 } from '@/features/orders'
 import { ButtonShowcase } from '@/dev/ButtonShowcase'
 import { InputShowcase } from '@/dev/InputShowcase'
@@ -67,12 +85,16 @@ export const router = createBrowserRouter([
       { path: 'orders/:id', element: <OrderDetailPage /> },
       { path: 'orders/:id/messages', element: <OrderMessagesPage /> },
       { path: 'orders/:id/cancel', element: <CancelOrderPage /> },
-      { path: 'orders/:id/report', element: <ReportIssuePage /> },
       { path: 'suppliers', element: <ComingSoonPage /> },
       { path: 'documents', element: <ComingSoonPage /> },
       { path: 'analytics', element: <ComingSoonPage /> },
+      { path: 'organisation', element: <OrganisationOverviewPage /> },
+      { path: 'organisation/users', element: <OrganisationUsersPage /> },
+      { path: 'organisation/profile', element: <OrganisationProfilePage /> },
+      { path: 'organisation/settings', element: <OrganisationSettingsPage /> },
       { path: 'subscription', element: <SubscriptionPlansPage /> },
       { path: 'subscription/checkout', element: <SubscriptionCheckoutPage /> },
+      { path: 'settings/profile', element: <ProfilePage /> },
     ],
   },
 
@@ -86,15 +108,29 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <SupplierDashboardPage /> },
-      { path: 'rfqs', element: <ComingSoonPage /> },
-      { path: 'bids', element: <ComingSoonPage /> },
-      { path: 'negotiations', element: <ComingSoonPage /> },
-      { path: 'orders', element: <ComingSoonPage /> },
+      { path: 'rfqs', element: <AvailableRfqsPage /> },
+      { path: 'rfqs/:id', element: <SupplierRfqDetailPage /> },
+      { path: 'rfqs/:id/bid', element: <SubmitBidPage /> },
+      { path: 'bids', element: <MyBidsPage /> },
+      { path: 'bids/:id', element: <SupplierBidPage /> },
+      { path: 'negotiations', element: <SupplierNegotiationsPage /> },
+      { path: 'negotiations/:rfqId', element: <SupplierNegotiationPage /> },
+      { path: 'orders', element: <SupplierOrdersPage /> },
+      { path: 'orders/:id', element: <SupplierOrderPage /> },
+      { path: 'orders/:id/purchase-order', element: <SupplierOrderPage /> },
+      { path: 'orders/:id/decline', element: <DeclineOrderPage /> },
+      { path: 'orders/:id/cancellation', element: <CancellationRequestPage /> },
+      { path: 'orders/:id/conversation', element: <SupplierOrderConversationPage /> },
       { path: 'buyers', element: <ComingSoonPage /> },
       { path: 'documents', element: <ComingSoonPage /> },
       { path: 'analytics', element: <ComingSoonPage /> },
+      { path: 'organisation', element: <OrganisationOverviewPage /> },
+      { path: 'organisation/users', element: <OrganisationUsersPage /> },
+      { path: 'organisation/profile', element: <OrganisationProfilePage /> },
+      { path: 'organisation/settings', element: <OrganisationSettingsPage /> },
       { path: 'subscription', element: <SubscriptionPlansPage /> },
       { path: 'subscription/checkout', element: <SubscriptionCheckoutPage /> },
+      { path: 'settings/profile', element: <ProfilePage /> },
     ],
   },
 

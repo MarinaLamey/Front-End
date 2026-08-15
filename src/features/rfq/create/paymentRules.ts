@@ -6,12 +6,9 @@
  * `shared/lib/money` to turn percentages into exact SAR amounts). This keeps the
  * rules independently testable and reusable.
  *
- * Business rules a buyer's proposed schedule must satisfy:
- *   • 2 to 5 milestones
- *   • down payment (the advance, milestone #1) between 10% and 40%
- *   • at least one milestone paid on delivery
- *   • retention (held after inspection) at most 10%
- *   • the percentages total 100%
+ * The buyer designs the schedule freely (any number of milestones, any triggers, any splits).
+ * The single hard rule the proposed schedule must satisfy:
+ *   • the percentages total exactly 100%
  * ──────────────────────────────────────────────────────────────────────────── */
 
 /** When a milestone is paid — the values shown in the row's dropdown. */
@@ -50,21 +47,13 @@ export interface Milestone {
 /** Which schedule template is selected. `custom` unlocks the editable milestone rows. */
 export type PaymentPreset = 'staged' | 'fifty' | 'custom'
 
-export const MIN_MILESTONES = 2
-export const MAX_MILESTONES = 5
-export const DOWN_PAYMENT_MIN = 10
-export const DOWN_PAYMENT_MAX = 40
-export const RETENTION_MAX = 10
+/**
+ * There is no milestone-count bound, no advance range, no retention cap and no per-milestone
+ * minimum: every one of those was withdrawn, and the only surviving rule is the 100% total.
+ */
+export type PaymentRuleKey = 'total'
 
-export type PaymentRuleKey = 'count' | 'downPayment' | 'delivery' | 'retention' | 'total'
-
-export const PAYMENT_RULE_ORDER: PaymentRuleKey[] = [
-  'count',
-  'downPayment',
-  'delivery',
-  'retention',
-  'total',
-]
+export const PAYMENT_RULE_ORDER: PaymentRuleKey[] = ['total']
 
 export interface PaymentRuleResult {
   key: PaymentRuleKey
@@ -111,58 +100,22 @@ export function presetMilestones(preset: PaymentPreset): Milestone[] {
   }
 }
 
-/** The retention held across the schedule (sum of inspection milestones). */
-function retentionPercent(milestones: Milestone[]): number {
-  return milestones
-    .filter((m) => kindOf(m.trigger) === 'retention')
-    .reduce((total, m) => total + m.percent, 0)
-}
-
 /**
- * Validate a proposed schedule against every rule at once. Returns per-rule pass/fail (for
- * the chips), overall validity (gates Next), the running total, and — when invalid — the most
- * relevant reason key plus the row to highlight.
+ * Validate a proposed schedule. The buyer designs the schedule freely — the single hard rule is
+ * that the milestone percentages total exactly 100%. Returns the one-rule result (for the chip),
+ * overall validity (gates Next), the running total, and — when off — whether it's over or under.
  */
 export function validatePayment(milestones: Milestone[]): PaymentValidation {
   const totalPercent = milestones.reduce((total, m) => total + m.percent, 0)
-  const advance = milestones[0]
-
-  const countOk = milestones.length >= MIN_MILESTONES && milestones.length <= MAX_MILESTONES
-  const downOk =
-    !!advance && advance.percent >= DOWN_PAYMENT_MIN && advance.percent <= DOWN_PAYMENT_MAX
-  const deliveryOk = milestones.some((m) => kindOf(m.trigger) === 'delivery')
-  const retentionOk = retentionPercent(milestones) <= RETENTION_MAX
   const totalOk = totalPercent === 100
 
-  const rules: PaymentRuleResult[] = [
-    { key: 'count', ok: countOk },
-    { key: 'downPayment', ok: downOk },
-    { key: 'delivery', ok: deliveryOk },
-    { key: 'retention', ok: retentionOk },
-    { key: 'total', ok: totalOk },
-  ]
-
-  // Surface one reason at a time, in the order a buyer can act on it.
-  let reasonKey: string | null = null
-  let flaggedIndex: number | null = null
-  if (!totalOk) {
-    reasonKey = totalPercent > 100 ? 'totalOver' : 'totalUnder'
-  } else if (!downOk) {
-    reasonKey = advance && advance.percent > DOWN_PAYMENT_MAX ? 'advanceMax' : 'advanceMin'
-    flaggedIndex = 0
-  } else if (!deliveryOk) {
-    reasonKey = 'delivery'
-  } else if (!retentionOk) {
-    reasonKey = 'retention'
-  } else if (!countOk) {
-    reasonKey = milestones.length < MIN_MILESTONES ? 'countMin' : 'countMax'
-  }
+  const rules: PaymentRuleResult[] = [{ key: 'total', ok: totalOk }]
 
   return {
     rules,
-    valid: rules.every((r) => r.ok),
+    valid: totalOk,
     totalPercent,
-    reasonKey,
-    flaggedIndex,
+    reasonKey: totalOk ? null : totalPercent > 100 ? 'totalOver' : 'totalUnder',
+    flaggedIndex: null,
   }
 }

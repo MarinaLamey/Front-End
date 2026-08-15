@@ -16,8 +16,7 @@ interface PlanCardBodyProps {
 /**
  * PlanCardBody — the presentational innards of a plan card: badge, name, tagline, price block and
  * the feature list. It carries NO wrapper/interactivity so each context frames it as it needs:
- * the onboarding PlansStep wraps it in a selectable button; the dashboard Subscription page wraps
- * it in a card with a CTA. This is the piece the two flows share.
+ * the dashboard Subscription page wraps it in a card with a CTA.
  */
 export function PlanCardBody({ plan, pricing, index, billing, currency, fmt }: PlanCardBodyProps) {
   const { t } = useTranslation()

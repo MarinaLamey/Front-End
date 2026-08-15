@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { ROLES, type Portal, type Role } from './roles'
+import { defaultSeat, rolesForSeat, type Portal, type Role, type Seat } from './roles'
 
 export interface AuthUser {
   id: string
@@ -9,6 +9,11 @@ export interface AuthUser {
   email: string
   portal: Portal
   roles: Role[]
+  /**
+   * The seat this person holds in their organisation. ONE per session — it decides which profile
+   * they see and whether the Organisation section is theirs. `roles` is derived from it.
+   */
+  seat: Seat
   tenantId: string
   /** The portals this account can access — the buyer/supplier role(s) chosen at registration. */
   memberships: Portal[]
@@ -30,7 +35,7 @@ interface AuthState {
    * `memberships` is the set of portals the account can access (defaults to just `portal`) — it
    * drives the Buyer/Supplier switch so a user only reaches the role(s) they registered for.
    */
-  login: (portal: Portal, profile?: AuthProfile, memberships?: Portal[]) => void
+  login: (portal: Portal, profile?: AuthProfile, memberships?: Portal[], seat?: Seat) => void
   logout: () => void
   hasRole: (role: Role) => boolean
   setHasHydrated: (value: boolean) => void
@@ -48,14 +53,17 @@ export const useAuth = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       hasHydrated: false,
-      login: (portal, profile, memberships) =>
+      // `seat` defaults to what the portal implies, so a caller that doesn't know one still gets a
+      // coherent session; `roles` is always derived from the seat, never granted wholesale.
+      login: (portal, profile, memberships, seat = defaultSeat(portal)) =>
         set({
           user: {
             id: 'u_current',
             name: profile?.name ?? '',
             email: profile?.email ?? '',
             portal,
-            roles: [...ROLES[portal]] as Role[],
+            seat,
+            roles: rolesForSeat(portal, seat),
             tenantId: 'tenant_current',
             memberships: memberships && memberships.length > 0 ? memberships : [portal],
           },
@@ -70,7 +78,7 @@ export const useAuth = create<AuthState>()(
       // sessionStorage (per-TAB), NOT localStorage, so a buyer tab and an admin tab keep their
       // OWN session across reloads instead of clobbering a shared key. Only the serialisable slice
       // is stored — the action functions are recreated from the store.
-      name: 'miproc.auth.v1',
+      name: 'miproc.auth.v2',
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
       // Flip `hasHydrated` once the stored session is read back, so route guards don't redirect

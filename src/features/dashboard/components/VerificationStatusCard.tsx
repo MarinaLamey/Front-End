@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { SectionCard, StatusBadge, ClockIcon, CheckCircleIcon, XCircleIcon } from '@/shared/ui/dashboard'
+import { cn } from '@/shared/lib/cn'
+import { SectionCard, StatusBadge, ClockIcon, CheckCircleIcon, XCircleIcon, type BadgeTone } from '@/shared/ui/dashboard'
 import type { VerificationStatus } from '@/platform/verification'
 
 type ItemState = 'verifying' | 'verified' | 'rejected'
@@ -20,10 +21,18 @@ const STATE_ICON: Record<ItemState, { icon: typeof ClockIcon; tone: string }> = 
   rejected: { icon: XCircleIcon, tone: 'text-status-danger-strong' },
 }
 
+/** i18n keys under `dashboard.status` — the label is the admin's decision on this document. */
 const STATE_BADGE: Record<ItemState, string> = {
-  verifying: 'Verifying',
-  verified: 'Verified',
-  rejected: 'Rejected',
+  verifying: 'dashboard.status.verifying',
+  verified: 'dashboard.status.verified',
+  rejected: 'dashboard.status.rejected',
+}
+
+/** Forced explicitly: StatusBadge can only infer a tone from an English label, and ours is localised. */
+const STATE_TONE: Record<ItemState, BadgeTone> = {
+  verifying: 'warning',
+  verified: 'success',
+  rejected: 'danger',
 }
 
 interface VerificationStatusCardProps {
@@ -50,11 +59,14 @@ export function VerificationStatusCard({ items, note }: VerificationStatusCardPr
               <Icon className={`mt-0.5 h-5 w-5 shrink-0 stroke-2 ${tone}`} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-content-primary">{item.title}</p>
-                <p className="mt-0.5 text-xs text-content-tertiary">{item.meta}</p>
+                {/* A rejected row carries its whole meta line in danger red, as in the Figma. */}
+                <p className={cn('mt-0.5 text-xs', item.state === 'rejected' ? 'text-status-danger' : 'text-content-tertiary')}>
+                  {item.meta}
+                </p>
                 {item.reason && <p className="mt-0.5 text-xs font-medium text-status-danger">{item.reason}</p>}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <StatusBadge label={STATE_BADGE[item.state]} dot={false} strong />
+                <StatusBadge label={t(STATE_BADGE[item.state])} tone={STATE_TONE[item.state]} dot={false} strong plain />
                 {item.action}
               </div>
             </li>

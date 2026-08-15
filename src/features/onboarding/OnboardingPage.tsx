@@ -9,7 +9,7 @@ import { CompanyDetailsStep } from './components/steps/CompanyDetailsStep'
 import { TaxDetailsStep } from './components/steps/TaxDetailsStep'
 import { AddressPreferencesStep } from './components/steps/AddressPreferencesStep'
 import { ReviewStep } from './components/steps/ReviewStep'
-import { PlansStep } from './components/PlansStep'
+import { VerificationReviewStep } from './components/VerificationReviewStep'
 import { ResumePrompt } from './components/ResumePrompt'
 import { useOnboardingWizard, rolesFor, formatAddress } from './useOnboardingWizard'
 
@@ -36,7 +36,7 @@ export function OnboardingPage() {
       address: formatAddress(wizard.data),
       city: wizard.data.city,
     })
-    login(primary, { name: wizard.data.fullName, email: wizard.data.email }, memberships)
+    login(primary, { name: wizard.data.fullName, email: wizard.data.email }, memberships, 'orgAdmin')
     // File the KYB request so the org lands in the super-admin queue (pending) with its real
     // CR + VAT — the admin's per-document decisions then drive this org's dashboard.
     await verificationApi.openRequest({
@@ -57,13 +57,11 @@ export function OnboardingPage() {
     )
   }
 
-  // Once submitted → the Plans screen (full-width, like Review); review runs in the background.
+  // Once submitted → the Verification-in-Review screen: a standalone confirmation box centered
+  // in the middle of the viewport (it brings its own chrome, so no wizard shell). The KYB review
+  // runs in the background, so this is just a message with a single Go-to-dashboard action.
   if (wizard.completed) {
-    return (
-      <OnboardingLayout current={6} fullWidth>
-        <PlansStep onGoToDashboard={goToDashboard} />
-      </OnboardingLayout>
-    )
+    return <VerificationReviewStep onGoToDashboard={goToDashboard} />
   }
 
   return (

@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { Input } from '@/shared/ui/Input'
-import { Switch } from '@/shared/ui/Switch'
 import { Textarea } from '@/shared/ui/Textarea'
 import { RfqCard, RfqField } from '../components/RfqCard'
 import { ChipPicker } from '../components/ChipPicker'
@@ -10,10 +9,12 @@ import type { RfqDraft } from '../../types'
 interface SuppliersStepProps {
   draft: RfqDraft
   patch: (partial: Partial<RfqDraft>) => void
+  /** Locked while amending a live RFQ — regions define the matched audience already invited. */
+  amending?: boolean
 }
 
 /** Step 3 — compliance requirements and who may bid. */
-export function SuppliersStep({ draft, patch }: SuppliersStepProps) {
+export function SuppliersStep({ draft, patch, amending = false }: SuppliersStepProps) {
   const { t } = useTranslation()
   const certOptions = t('rfq.create.suppliers.certOptions', { returnObjects: true }) as string[]
   const regionOptions = t('rfq.create.suppliers.regions', { returnObjects: true }) as string[]
@@ -65,20 +66,6 @@ export function SuppliersStep({ draft, patch }: SuppliersStepProps) {
               onChange={(e) => patch({ minimumWarranty: e.target.value })}
             />
           </RfqField>
-
-          <div className="flex items-center justify-between gap-3 border-t border-border-subtle pt-4">
-            <div>
-              <p className="text-sm font-medium text-content-primary">
-                {t('rfq.create.suppliers.nda')}
-              </p>
-              <p className="text-xs text-content-tertiary">{t('rfq.create.suppliers.ndaHint')}</p>
-            </div>
-            <Switch
-              label={t('rfq.create.suppliers.nda')}
-              checked={draft.ndaRequired}
-              onChange={(ndaRequired) => patch({ ndaRequired })}
-            />
-          </div>
         </div>
       </RfqCard>
 
@@ -93,10 +80,15 @@ export function SuppliersStep({ draft, patch }: SuppliersStepProps) {
               removeLabel={t('rfq.create.lineItems.remove')}
               searchPlaceholder={t('rfq.create.suppliers.searchRegion')}
               placeholderChip={t('rfq.create.suppliers.allRegions')}
+              locked={amending}
             />
           </RfqField>
 
-          <p className="text-sm text-content-secondary">{t('rfq.create.suppliers.broadcastHint')}</p>
+          <p className="text-sm text-content-secondary">
+            {amending
+              ? t('rfq.create.suppliers.regionsLockedAmend')
+              : t('rfq.create.suppliers.broadcastHint')}
+          </p>
 
           <label className="flex cursor-not-allowed items-center gap-2 text-sm text-content-disabled">
             <input type="checkbox" disabled className="h-4 w-4 accent-brand-primary" />

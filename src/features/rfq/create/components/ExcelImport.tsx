@@ -4,10 +4,12 @@ import { Button } from '@/shared/ui/Button'
 import { Spinner } from '@/shared/ui/Spinner'
 import { cn } from '@/shared/lib/cn'
 import { downloadTemplate, parseLineItemsFile, toLineItems, type ParseResult, type ParsedRow } from '../lib/excel'
-import type { LineItem } from '../../types'
+import type { LineItem, RfqCategory } from '../../types'
 import { AlertIcon, CheckIcon, DownloadIcon, UploadIcon } from './icons'
 
 interface ExcelImportProps {
+  /** The RFQ's selected categories — seed the template and validate each row's Category cell. */
+  categories: RfqCategory[]
   onImport: (items: LineItem[]) => void
 }
 
@@ -23,7 +25,7 @@ function StatusMark({ status }: { status: ParsedRow['status'] }) {
  * the parsed rows (each validated, units normalised) before adding the addable ones to the form.
  * SheetJS loads lazily inside the parser, so nothing here bloats the initial bundle.
  */
-export function ExcelImport({ onImport }: ExcelImportProps) {
+export function ExcelImport({ categories, onImport }: ExcelImportProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [phase, setPhase] = useState<'idle' | 'parsing' | 'done'>('idle')
@@ -34,7 +36,7 @@ export function ExcelImport({ onImport }: ExcelImportProps) {
   const handleFile = async (file: File | undefined) => {
     if (!file) return
     setPhase('parsing')
-    setResult(await parseLineItemsFile(file))
+    setResult(await parseLineItemsFile(file, categories))
     setPhase('done')
   }
 
@@ -53,7 +55,7 @@ export function ExcelImport({ onImport }: ExcelImportProps) {
   const download = async () => {
     setDownloading(true)
     try {
-      await downloadTemplate()
+      await downloadTemplate(categories)
     } finally {
       setDownloading(false)
     }
@@ -165,13 +167,20 @@ export function ExcelImport({ onImport }: ExcelImportProps) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
-                    <span
-                      className={cn(
-                        'truncate text-sm font-medium',
-                        row.status === 'error' ? 'text-content-tertiary' : 'text-content-primary',
+                    <span className="flex min-w-0 items-center gap-2">
+                      {row.category && (
+                        <span className="shrink-0 rounded bg-bg-surface-sunken px-1.5 py-0.5 text-[10px] font-medium text-content-tertiary">
+                          {row.category}
+                        </span>
                       )}
-                    >
-                      {row.name || t('rfq.create.excel.unnamed')}
+                      <span
+                        className={cn(
+                          'truncate text-sm font-medium',
+                          row.status === 'error' ? 'text-content-tertiary' : 'text-content-primary',
+                        )}
+                      >
+                        {row.name || t('rfq.create.excel.unnamed')}
+                      </span>
                     </span>
                     <span className="shrink-0 text-sm text-content-secondary">
                       {row.quantity ?? '—'} {row.unit}

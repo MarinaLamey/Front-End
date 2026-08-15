@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui/Button'
 import { Spinner } from '@/shared/ui/Spinner'
@@ -13,6 +14,16 @@ import { DeliveryTermsStep } from './steps/DeliveryTermsStep'
 import { SuppliersStep } from './steps/SuppliersStep'
 import { ReviewStep } from './steps/ReviewStep'
 import { useRfqWizard } from './useRfqWizard'
+
+/** "Saved · just now" → minutes → hours → days. `elapsed` is in milliseconds. */
+function relativeSaved(elapsed: number, t: TFunction): string {
+  const minutes = Math.floor(elapsed / 60_000)
+  if (minutes < 1) return t('rfq.create.saved.justNow')
+  if (minutes < 60) return t('rfq.create.saved.minutesAgo', { count: minutes })
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return t('rfq.create.saved.hoursAgo', { count: hours })
+  return t('rfq.create.saved.daysAgo', { count: Math.floor(hours / 24) })
+}
 
 const SUBTITLE_KEY: Record<number, string> = {
   1: 'rfq.create.subtitle.requirement',
@@ -35,8 +46,11 @@ export function RfqCreatePage() {
     draft,
     result,
     hasHydrated,
-    patch,
+    verified,
+    amending,
+    savedAt,
     setStep,
+    patch,
     setPreset,
     setMilestones,
     goNext,
@@ -56,6 +70,16 @@ export function RfqCreatePage() {
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [step])
+
+  // Every edit is written straight to local storage by the draft store, which stamps `savedAt`, so
+  // the footer can state when the work was last kept. A slow tick keeps the phrasing honest while
+  // the buyer sits reading the review instead of typing.
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  const savedAgo = relativeSaved(now - savedAt, t)
 
   // Wait for the persisted draft to rehydrate so we never flash a blank over saved work.
   if (!hasHydrated) {
@@ -125,7 +149,7 @@ export function RfqCreatePage() {
       <div className={cn('grid gap-6', step < 4 && 'lg:grid-cols-[minmax(0,1fr)_320px]')}>
         {/* key={step} remounts the column on each step change so its card cascade replays */}
         <div key={step}>
-          {step === 1 && <RequirementStep draft={draft} patch={patch} />}
+          {step === 1 && <RequirementStep draft={draft} patch={patch} amending={amending} />}
           {step === 2 && (
             <DeliveryTermsStep
               draft={draft}
@@ -134,8 +158,17 @@ export function RfqCreatePage() {
               setMilestones={setMilestones}
             />
           )}
-          {step === 3 && <SuppliersStep draft={draft} patch={patch} />}
-          {step === 4 && <ReviewStep draft={draft} patch={patch} onEditStep={setStep} />}
+          {step === 3 && <SuppliersStep draft={draft} patch={patch} amending={amending} />}
+          {step === 4 && (
+            <ReviewStep
+              draft={draft}
+              patch={patch}
+              setPreset={setPreset}
+              setMilestones={setMilestones}
+              onEdit={setStep}
+              verified={verified}
+            />
+          )}
         </div>
         {step < 4 && (
           <div className="lg:pt-1">
@@ -144,28 +177,37 @@ export function RfqCreatePage() {
         )}
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={saveDraft} isLoading={isSaving}>
-          {t('rfq.create.saveDraft')}
-        </Button>
+      {/* What submitting will do is stated inside the Review card itself (step 4), where the buyer
+          is reading; the footer stays purely actions. */}
+      <div className="mt-8 flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          {/* Save draft is available on EVERY step, the last one included — a buyer who reaches
+              Review and isn't ready to publish must still be able to park the work. */}
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={saveDraft} isLoading={isSaving}>
+              {t('rfq.create.saveDraft')}
+            </Button>
+            <span className="text-sm text-content-tertiary">{savedAgo}</span>
+          </div>
 
-        {step < 4 ? (
-          <Button
-            onClick={goNext}
-            disabled={!canContinue}
-            rightIcon={<ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />}
-          >
-            {t('rfq.create.next')}
-          </Button>
-        ) : (
-          <Button
-            onClick={submitRfq}
-            isLoading={isSubmitting}
-            rightIcon={<ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />}
-          >
-            {t('rfq.create.publish')}
-          </Button>
-        )}
+          {step < 4 ? (
+            <Button
+              onClick={goNext}
+              disabled={!canContinue}
+              rightIcon={<ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />}
+            >
+              {t('rfq.create.next')}
+            </Button>
+          ) : (
+            <Button
+              onClick={submitRfq}
+              isLoading={isSubmitting}
+              rightIcon={<ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />}
+            >
+              {verified ? t('rfq.create.publish') : t('rfq.create.saveAsDraft')}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

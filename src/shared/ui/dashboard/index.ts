@@ -1,5 +1,5 @@
 export { StatCard } from './StatCard'
-export { StatusBadge } from './StatusBadge'
+export { StatusBadge, type Tone as BadgeTone } from './StatusBadge'
 export { SectionCard } from './SectionCard'
 export { ListRow, type RowTone } from './ListRow'
 export { Timeline, type TimelineStep, type TimelineState } from './Timeline'

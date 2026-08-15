@@ -14,3 +14,10 @@ export const cleanMobile = (raw: string) =>
 
 /** True when a mobile is a valid Saudi number (9 digits starting with 5), ignoring spaces. */
 export const isSaudiMobile = (value: string) => MOBILE_RE.test(value.replace(/\s/g, ''))
+
+// Email: deliberately permissive — one @, a dot in the domain, no whitespace. Anything stricter
+// rejects addresses that are legal in practice, and the real check is the confirmation mail.
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/** True when a value looks like an email address (validated on the trimmed value). */
+export const isEmail = (value: string) => EMAIL_RE.test(value.trim())

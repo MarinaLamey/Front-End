@@ -8,10 +8,11 @@
  * row comes back with a status + issue list for the preview.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-import type { LineItem } from '../../types'
+import type { LineItem, RfqCategory } from '../../types'
 
-/** The template's columns → our line-item model (Description is intentionally omitted). */
-const HEADER_ALIASES: Record<'name' | 'specification' | 'quantity' | 'unit', string[]> = {
+/** The template's columns → our line-item model. `category` assigns each row to a selected category. */
+const HEADER_ALIASES: Record<'category' | 'name' | 'specification' | 'quantity' | 'unit', string[]> = {
+  category: ['category', 'category name', 'categoryname'],
   name: ['item name', 'item', 'name'],
   specification: ['specification', 'specifications', 'spec', 'specs'],
   quantity: ['quantity', 'qty'],
@@ -38,6 +39,8 @@ const UNIT_ALIASES: Record<string, string> = {
 
 /** An issue key on a parsed row — maps to a localised message in the preview. */
 export type RowIssue =
+  | 'categoryMissing'
+  | 'categoryUnknown'
   | 'nameRequired'
   | 'quantityInvalid'
   | 'unitMissing'
@@ -50,6 +53,8 @@ export type FileError = 'unsupportedType' | 'tooLarge' | 'unreadable' | 'empty' 
 export interface ParsedRow {
   /** 1-based sheet row (for "Row 4: …" messages). */
   row: number
+  /** The selected-category name this row is assigned to (canonicalised), or the raw value if unknown. */
+  category: string
   name: string
   specification: string
   quantity: number | null
@@ -87,8 +92,12 @@ function normalizeUnit(raw: string): { unit: string; known: boolean } {
   return { unit: value, known: false }
 }
 
-/** Parse an uploaded spreadsheet into line-item rows with per-row validation. */
-export async function parseLineItemsFile(file: File): Promise<ParseResult> {
+/**
+ * Parse an uploaded spreadsheet into line-item rows with per-row validation. `categories` is the
+ * RFQ's selected category set — each row's Category cell is matched against it so imported items
+ * land in the right group (no order-based guessing); unmatched/blank categories are flagged.
+ */
+export async function parseLineItemsFile(file: File, categories: RfqCategory[]): Promise<ParseResult> {
   if (!/\.(xlsx|xls|csv)$/i.test(file.name)) return fail('unsupportedType')
   if (file.size > MAX_SIZE) return fail('tooLarge')
 
@@ -109,15 +118,18 @@ export async function parseLineItemsFile(file: File): Promise<ParseResult> {
   const headers = (matrix[0] as unknown[]).map((h) => String(h ?? '').trim().toLowerCase())
   const colOf = (aliases: string[]) => headers.findIndex((h) => aliases.includes(h))
   const idx = {
+    category: colOf(HEADER_ALIASES.category),
     name: colOf(HEADER_ALIASES.name),
     specification: colOf(HEADER_ALIASES.specification),
     quantity: colOf(HEADER_ALIASES.quantity),
     unit: colOf(HEADER_ALIASES.unit),
   }
 
-  const missing = (['name', 'quantity', 'unit'] as const).filter((k) => idx[k] < 0)
+  const missing = (['category', 'name', 'quantity', 'unit'] as const).filter((k) => idx[k] < 0)
   if (missing.length > 0) return fail('missingColumns', missing.join(','))
 
+  // Match an imported Category cell (case-insensitively) to one of the RFQ's selected categories.
+  const canonicalCategory = new Map(categories.map((c) => [c.name.trim().toLowerCase(), c.name]))
   const seen = new Set<string>()
   const rows: ParsedRow[] = []
 
@@ -125,15 +137,22 @@ export async function parseLineItemsFile(file: File): Promise<ParseResult> {
     const cells = matrix[r] as unknown[]
     const cell = (i: number) => (i >= 0 ? String(cells[i] ?? '').trim() : '')
 
+    const categoryRaw = cell(idx.category)
     const name = cell(idx.name)
     const specification = cell(idx.specification)
     const quantityRaw = cell(idx.quantity)
     const unitRaw = cell(idx.unit)
 
     // Skip a fully-empty row silently.
-    if (!name && !specification && !quantityRaw && !unitRaw) continue
+    if (!categoryRaw && !name && !specification && !quantityRaw && !unitRaw) continue
 
     const issues: RowIssue[] = []
+
+    // Assign to a selected category from the row's Category cell — never by order/assumption.
+    const category = categoryRaw ? (canonicalCategory.get(categoryRaw.toLowerCase()) ?? categoryRaw) : ''
+    if (!categoryRaw) issues.push('categoryMissing')
+    else if (!canonicalCategory.has(categoryRaw.toLowerCase())) issues.push('categoryUnknown')
+
     if (!name) issues.push('nameRequired')
 
     const quantityNum = Number(quantityRaw.replace(/,/g, ''))
@@ -149,10 +168,14 @@ export async function parseLineItemsFile(file: File): Promise<ParseResult> {
     if (name && seen.has(key)) issues.push('duplicate')
     if (name) seen.add(key)
 
-    const blocking = issues.includes('nameRequired') || issues.includes('quantityInvalid')
+    const blocking =
+      issues.includes('categoryMissing') ||
+      issues.includes('categoryUnknown') ||
+      issues.includes('nameRequired') ||
+      issues.includes('quantityInvalid')
     const status: ParsedRow['status'] = blocking ? 'error' : issues.length > 0 ? 'warning' : 'ok'
 
-    rows.push({ row: r + 1, name, specification, quantity, unit, status, issues })
+    rows.push({ row: r + 1, category, name, specification, quantity, unit, status, issues })
   }
 
   const addable = rows.filter((row) => row.status !== 'error')
@@ -167,6 +190,8 @@ export function toLineItems(rows: ParsedRow[]): LineItem[] {
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `li_${Date.now()}_${i}`,
+    // Each row already carries its validated, selected-category assignment from the parser.
+    categoryName: row.category,
     name: row.name,
     specification: row.specification,
     quantity: row.quantity ?? 0,
@@ -174,18 +199,55 @@ export function toLineItems(rows: ParsedRow[]): LineItem[] {
   }))
 }
 
-/** Generate + download the blank 4-column template as a real .xlsx (with example rows). */
-export async function downloadTemplate(): Promise<void> {
+/** Worked example rows per schema — cycled so no two seeded rows are identical. */
+const GOODS_EXAMPLES: (string | number)[][] = [
+  ['Steel rebar', 'Grade 60 · 12mm diameter', 1000, 'kg'],
+  ['Cement bags', 'Portland cement · 50kg each', 500, 'bags'],
+  ['Construction sand', 'Fine aggregate · washed & graded', 10, 'm³'],
+]
+const SERVICE_EXAMPLES: (string | number)[][] = [
+  ['Site supervisor', '2 shifts per day', 6, 'months'],
+  ['Safety inspection', 'Weekly site walkthrough', 12, 'visits'],
+  ['Installation crew', 'On-site assembly & commissioning', 3, 'weeks'],
+]
+
+/**
+ * Generate + download the line-items template as a real .xlsx. The first column is **Category**,
+ * so each row is explicitly assigned to one of the RFQ's selected categories on import (no order
+ * guessing). Example rows are pre-filled with the buyer's actual categories, and a second sheet
+ * lists the valid category values for reference.
+ */
+export async function downloadTemplate(categories: RfqCategory[]): Promise<void> {
   const XLSX = await import('xlsx')
-  const aoa: (string | number)[][] = [
-    ['Item Name', 'Specification', 'Quantity', 'Unit'],
-    ['Steel Rebar', 'Grade 60 · 12mm diameter', 1000, 'kg'],
-    ['Cement Bags', 'Portland cement · 50kg each', 500, 'bags'],
-    ['Construction Sand', 'Fine aggregate · washed & graded', 10, 'm³'],
-  ]
-  const sheet = XLSX.utils.aoa_to_sheet(aoa)
-  sheet['!cols'] = [{ wch: 24 }, { wch: 34 }, { wch: 12 }, { wch: 12 }]
+  // Dedupe by name (case-insensitive) so the template never repeats a category; fall back to a
+  // neutral placeholder only if somehow called with no categories selected.
+  const seen = new Set<string>()
+  const cats: RfqCategory[] = (
+    categories.length ? categories : [{ name: 'Category name', type: 'goods' as const }]
+  ).filter((c) => {
+    const key = c.name.trim().toLowerCase()
+    if (!key || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  const header = ['Category', 'Item Name', 'Specification', 'Quantity', 'Unit']
+  const exampleRows = cats.map((c, i) => {
+    const pool = c.type === 'service' ? SERVICE_EXAMPLES : GOODS_EXAMPLES
+    return [c.name, ...pool[i % pool.length]]
+  })
+  const sheet = XLSX.utils.aoa_to_sheet([header, ...exampleRows])
+  sheet['!cols'] = [{ wch: 26 }, { wch: 24 }, { wch: 34 }, { wch: 12 }, { wch: 12 }]
+
+  // Reference sheet: the exact Category values that are accepted for this RFQ.
+  const refSheet = XLSX.utils.aoa_to_sheet([
+    ['Valid categories for this RFQ', 'Type'],
+    ...cats.map((c) => [c.name, c.type]),
+  ])
+  refSheet['!cols'] = [{ wch: 30 }, { wch: 12 }]
+
   const book = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(book, sheet, 'Line items')
+  XLSX.utils.book_append_sheet(book, refSheet, 'Categories')
   XLSX.writeFile(book, 'mi-proc-rfq-line-items-template.xlsx')
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import { cn } from '@/shared/lib/cn'
 import { useCurrentOrgMeta, useOrgVerification, useResubmitDoc } from '@/features/verification'
 import { DOC_KEYS, type DocKey, type OrgVerification } from '@/platform/api/verification'
 import {
@@ -22,30 +23,48 @@ import {
   ChatIcon,
   BarsIcon,
   TruckIcon,
-  AlertTriangleIcon,
   ArrowUpRightIcon,
-  SparkleIcon,
-  BoltIcon,
+  ChevronRightIcon,
+  HelpIcon,
   UsersIcon,
   PlusIcon,
   EyeIcon,
+  EyeOffIcon,
   ShieldDocIcon,
-  LockIcon,
   RefreshIcon,
 } from '@/shared/ui/dashboard'
 import { Button } from '@/shared/ui/Button'
 import { Spinner } from '@/shared/ui/Spinner'
 import { useBuyerDashboard } from './useBuyerDashboard'
+import type { ActionItem, BuyerDashboardData, StatItem } from './types'
 import { WelcomeHero } from './components/WelcomeHero'
 import { VerificationStatusCard } from './components/VerificationStatusCard'
 
-/** The three "how sourcing works" steps — reused across verified / pending / rejected. */
-function sourcingSteps(t: (k: string) => string): Step[] {
+/**
+ * The three "how sourcing works" steps. Steps 2 and 3 are the same everywhere; step 1 changes with
+ * the org's status — a verified org creates and publishes an RFQ, an unverified one can only build
+ * a draft, so telling them to "create an anonymous RFQ" would promise something that is gated.
+ */
+function sourcingSteps(t: (k: string) => string, verified: boolean): Step[] {
+  const first = verified ? 'create' : 'draft'
   return [
-    { title: t('dashboard.steps.create.title'), desc: t('dashboard.steps.create.desc') },
+    { title: t(`dashboard.steps.${first}.title`), desc: t(`dashboard.steps.${first}.desc`) },
     { title: t('dashboard.steps.compare.title'), desc: t('dashboard.steps.compare.desc') },
     { title: t('dashboard.steps.award.title'), desc: t('dashboard.steps.award.desc') },
   ]
+}
+
+/** Greeting line — first-run orgs get the "welcome to mimony" variant. */
+function greeting(t: (k: string, o?: Record<string, unknown>) => string, name: string, firstRun: boolean): string {
+  if (firstRun) return name ? t('dashboard.welcome.greetingNew', { name }) : t('dashboard.welcome.greetingNewGeneric')
+  return name ? t('dashboard.welcome.greetingBack', { name }) : t('dashboard.welcome.greetingBackGeneric')
+}
+
+/** Icon per Action-Required kind — a supplier's acceptance reads as a signed-off checklist. */
+const ACTION_ICON: Record<ActionItem['kind'], React.ReactNode> = {
+  bid: <ChecklistIcon />,
+  message: <ChatIcon />,
+  accepted: <CheckCircleIcon />,
 }
 
 const STAT_ICON: Record<string, typeof FileIcon> = {
@@ -56,12 +75,11 @@ const STAT_ICON: Record<string, typeof FileIcon> = {
 }
 
 /** Zeroed KPI tiles for the pre-verified dashboards — same coloured icon boxes as verified. */
-const MUTED_STATS = [
+const MUTED_STATS: StatItem[] = [
   { key: 'activeRfqs', value: '0', accent: 'brand' },
-  { key: 'savings', value: '0%', accent: 'success' },
   { key: 'avgAward', value: '—', accent: 'warning' },
-  { key: 'bidsToReview', value: '0', accent: 'secondary' },
-] as const
+  { key: 'bidsToReview', value: '0', accent: 'success' },
+]
 
 /**
  * BuyerDashboardPage — one page, three states. The verification status (pending / verified /
@@ -74,7 +92,7 @@ export function BuyerDashboardPage() {
   const navigate = useNavigate()
   const orgMeta = useCurrentOrgMeta()
   const { data: record, isLoading: verificationLoading } = useOrgVerification(orgMeta)
-  const data = useBuyerDashboard()
+  const { data, isLoading: dashboardLoading } = useBuyerDashboard()
   const status = record?.status ?? 'pending'
   const verified = status === 'verified'
 
@@ -101,13 +119,15 @@ export function BuyerDashboardPage() {
   // The banner's rejected message is the reason on the first rejected document (admin's typed note).
   const rejectionReason =
     (record && DOC_KEYS.map((doc) => record.documents[doc]).find((d) => d.status === 'rejected')?.reason) ||
-    data.rejectionReason
+    data?.rejectionReason ||
+    ''
 
   const createRfq = () => navigate('/buyer/rfqs/new')
 
-  // Until the real verification status is loaded, show a spinner rather than defaulting to the
-  // pending view — otherwise a verified org briefly flashes the pending dashboard on login.
-  if (verificationLoading) {
+  // Until the real verification status AND the derived dashboard are loaded, show a spinner rather
+  // than defaulting to the pending view — otherwise a verified org briefly flashes the pending
+  // dashboard on login.
+  if (verificationLoading || dashboardLoading || !data) {
     return (
       <div className="mx-auto flex max-w-6xl items-center justify-center py-24">
         <Spinner />
@@ -143,10 +163,14 @@ export function BuyerDashboardPage() {
         />
       )}
 
-      {verified ? (
-        <VerifiedDashboard data={data} onCreateRfq={createRfq} />
-      ) : (
+      {!verified ? (
         <PreVerifiedDashboard record={record} status={status} onCreateRfq={createRfq} />
+      ) : data.rfqs.length === 0 ? (
+        // Verified but nothing sourced yet: the working dashboard would be a wall of empty cards,
+        // so the first run explains the flow instead.
+        <VerifiedEmptyDashboard data={data} onCreateRfq={createRfq} />
+      ) : (
+        <VerifiedDashboard data={data} onCreateRfq={createRfq} />
       )}
     </div>
   )
@@ -154,17 +178,14 @@ export function BuyerDashboardPage() {
 
 /* ── Verified  */
 
-function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useBuyerDashboard>; onCreateRfq: () => void }) {
+function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; onCreateRfq: () => void }) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
   return (
     <>
       <WelcomeHero
-        greeting={
-          data.org.userName
-            ? t('dashboard.welcome.greetingBack', { name: data.org.userName })
-            : t('dashboard.welcome.greetingBackGeneric')
-        }
+        greeting={greeting(t, data.org.userName, false)}
         orgName={data.org.name}
         orgType={data.org.type}
         subtitle={t('dashboard.welcome.subtitle')}
@@ -177,17 +198,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
         {t('dashboard.verifiedSuppliersOnly')}
       </div>
 
-      {/* KPI grid. */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {data.stats.map((stat, index) => {
-          const Icon = STAT_ICON[stat.key] ?? FileIcon
-          return (
-            <div key={stat.key} style={{ animationDelay: `${index * 60}ms` }} className="motion-safe:animate-stepper-in">
-              <StatCard icon={<Icon />} value={stat.value} label={t(`dashboard.stats.${stat.key}`)} accent={stat.accent} delta={stat.delta} />
-            </div>
-          )
-        })}
-      </div>
+      <StatGrid stats={data.stats} />
 
       {/* Pipeline strip. */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg-surface px-5 py-4">
@@ -207,23 +218,25 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
       <SectionCard
         title={
           <span className="flex items-center gap-2">
-            <BoltIcon className="h-5 w-5 text-status-warning" />
-            {t('dashboard.actionRequired')}
+            {t('dashboard.actionRequiredToday')}
             <span className="rounded-full bg-status-danger-subtle px-1.5 text-xs font-semibold text-status-danger">
               {data.actionCount}
             </span>
           </span>
         }
       >
+        <p className="-mt-2 mb-3 text-sm text-content-tertiary">
+          {t('dashboard.actionItems', { count: data.actionCount })}
+        </p>
         <ul className="flex flex-col divide-y divide-border-subtle">
           {data.actions.map((action) => (
             <li key={action.id} className="py-2 first:pt-0 last:pb-0">
               <ListRow
-                icon={action.kind === 'bid' ? <ChecklistIcon /> : <ChatIcon />}
-                iconTone={action.kind === 'bid' ? 'brand' : 'success'}
+                icon={ACTION_ICON[action.kind]}
+                iconTone={action.kind === 'message' ? 'success' : 'brand'}
                 title={action.text}
                 trailing={
-                  <Button variant={action.primary ? 'primary' : 'ghost'} size="sm" onClick={() => undefined}>
+                  <Button variant={action.primary ? 'primary' : 'outline'} size="sm" onClick={() => navigate(action.to)}>
                     {action.actionLabel}
                   </Button>
                 }
@@ -231,14 +244,28 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
             </li>
           ))}
         </ul>
+        {/* Footer rail — presentational only; the day pager has no behaviour behind it yet, so it
+            renders as text rather than advertising a control that does nothing. */}
+        <div className="mt-3 flex items-center justify-between gap-4 border-t border-border-subtle pt-3 text-xs text-content-tertiary">
+          <span className="inline-flex items-center gap-1.5">
+            <ChevronRightIcon className="h-3.5 w-3.5 rotate-180 rtl:rotate-0" />
+            {t('dashboard.today')}
+            <ChevronRightIcon className="h-3.5 w-3.5 rtl:rotate-180" />
+          </span>
+          <span>{t('dashboard.swipeLastDays')}</span>
+        </div>
       </SectionCard>
 
-      {/* My RFQs + Track order. */}
-      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+      {/* My RFQs + Track order. Track order only appears when there is a live PO to track. */}
+      <div className={cn('grid gap-5', data.trackedOrder && 'lg:grid-cols-[2.13fr_1fr]')}>
         <SectionCard
           title={t('dashboard.myRfqs')}
           action={
-            <button type="button" className="inline-flex items-center gap-1 text-sm font-medium text-content-link hover:text-content-link-hover">
+            <button
+              type="button"
+              onClick={() => navigate('/buyer/rfqs')}
+              className="inline-flex items-center gap-1 text-sm font-medium text-content-link hover:text-content-link-hover"
+            >
               {t('dashboard.viewAll')}
               <ArrowUpRightIcon className="h-3.5 w-3.5" />
             </button>
@@ -256,7 +283,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
                       {rfq.ref} · {rfq.meta}
                       {rfq.anonymous && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-bg-surface-sunken px-1.5 py-0.5 text-[11px] text-content-tertiary">
-                          <EyeIcon className="h-3 w-3" />
+                          <EyeOffIcon className="h-3 w-3" />
                           {t('dashboard.anonymous')}
                         </span>
                       )}
@@ -265,7 +292,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
                   trailing={
                     <>
                       <span className="text-sm font-semibold text-content-primary">{rfq.amount ?? 'SAR —'}</span>
-                      <StatusBadge label={rfq.status} />
+                      <StatusBadge label={rfq.status} tone={rfq.tone} />
                     </>
                   }
                 />
@@ -274,20 +301,38 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
           </ul>
         </SectionCard>
 
-        <SectionCard title={t('dashboard.trackOrder')}>
-          <p className="-mt-1 mb-4 text-sm text-content-tertiary">
-            {data.trackedOrder.ref} · {data.trackedOrder.meta}
-          </p>
-          <Timeline
-            steps={data.trackedOrder.steps.map((step) =>
-              step.state === 'current' ? { ...step, note: <StatusBadge label={t('dashboard.inProgress')} tone="brand" dot={false} /> } : step,
-            )}
-          />
-        </SectionCard>
+        {data.trackedOrder && (
+          <SectionCard
+            title={t('dashboard.trackOrder')}
+            action={
+              <button
+                type="button"
+                onClick={() => navigate(`/buyer/orders/${data.trackedOrder?.id}`)}
+                className="inline-flex items-center gap-1 text-sm font-medium text-content-link hover:text-content-link-hover"
+              >
+                {t('dashboard.viewAll')}
+                <ArrowUpRightIcon className="h-3.5 w-3.5" />
+              </button>
+            }
+          >
+            <p className="-mt-1 mb-4 text-sm text-content-tertiary">
+              {data.trackedOrder.ref} · {data.trackedOrder.meta}
+            </p>
+            <Timeline
+              steps={data.trackedOrder.steps.map((step, index) => {
+                if (step.state !== 'current') return step
+                // Accept → dispatch → deliver are the supplier's moves; only the final step —
+                // received-and-closed — is the buyer's. "Awaiting supplier" there would be wrong.
+                const waitingOn = index === 4 ? 'awaitingYou' : 'awaitingSupplier'
+                return { ...step, note: <StatusBadge label={t(`dashboard.track.${waitingOn}`)} tone="brand" dot={false} /> }
+              })}
+            />
+          </SectionCard>
+        )}
       </div>
 
-      {/* AI recommendations. */}
-      <SectionCard title={t('dashboard.aiRecommendations')} titleIcon={<SparkleIcon className="h-5 w-5 text-brand-primary" />}>
+      {/* Suggested suppliers. */}
+      <SectionCard title={t('dashboard.suggestedSuppliers')}>
         <ul className="flex flex-col divide-y divide-border-subtle">
           {data.recommendations.map((rec) => (
             <li key={rec.id} className="py-2 first:pt-0 last:pb-0">
@@ -298,8 +343,8 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
                 subtitle={rec.meta}
                 trailing={
                   <div className="flex items-center gap-2">
-                    <StatusBadge label={rec.match} tone="brand" dot={false} />
-                    <Button variant="ghost" size="sm" onClick={() => undefined}>
+                    <StatusBadge label={rec.match} tone="neutral" dot={false} />
+                    <Button variant="outline" size="sm" onClick={() => undefined}>
                       {rec.actionLabel}
                     </Button>
                   </div>
@@ -314,7 +359,11 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
       <SectionCard
         title={t('dashboard.compliance')}
         action={
-          <button type="button" className="text-sm font-medium text-content-link hover:text-content-link-hover">
+          <button
+            type="button"
+            onClick={() => navigate('/buyer/organisation/profile')}
+            className="text-sm font-medium text-content-link hover:text-content-link-hover"
+          >
             {t('dashboard.manage')}
           </button>
         }
@@ -329,7 +378,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
                   iconTone={expiring ? 'warning' : 'success'}
                   title={doc.title}
                   subtitle={doc.meta}
-                  trailing={<StatusBadge label={doc.status} tone={expiring ? 'warning' : 'success'} dot={false} />}
+                  trailing={<StatusBadge label={doc.status} tone={expiring ? 'warning' : 'success'} dot={false} plain />}
                 />
               </li>
             )
@@ -341,11 +390,56 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: ReturnType<typeof useB
       <QuickActions
         items={[
           { icon: <PlusIcon />, label: t('dashboard.actions.createNewRfq'), accent: 'brand', onClick: onCreateRfq },
-          { icon: <BarsIcon />, label: t('dashboard.actions.compareBids'), accent: 'success' },
-          { icon: <TruckIcon />, label: t('dashboard.actions.trackOrders'), accent: 'info' },
-          { icon: <AlertTriangleIcon />, label: t('dashboard.actions.raiseDispute'), accent: 'danger' },
+          { icon: <BarsIcon />, label: t('dashboard.actions.compareBids'), accent: 'success', onClick: () => navigate('/buyer/bids') },
+          { icon: <TruckIcon />, label: t('dashboard.actions.trackOrders'), accent: 'brand', onClick: () => navigate('/buyer/orders') },
+          { icon: <HelpIcon />, label: t('dashboard.actions.helpSupport'), accent: 'brand' },
         ]}
       />
+    </>
+  )
+}
+
+/* ── Verified, nothing sourced yet ────────────────────────────────────────── */
+
+/**
+ * The first-run verified dashboard: the org is cleared to trade but has no RFQs, so the working
+ * cards (pipeline, actions, track order, suggestions, compliance) would all be empty shells.
+ * It explains the flow and points at the one thing worth doing instead.
+ */
+function VerifiedEmptyDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; onCreateRfq: () => void }) {
+  const { t } = useTranslation()
+
+  return (
+    <>
+      <WelcomeHero
+        greeting={greeting(t, data.org.userName, true)}
+        orgName={data.org.name}
+        orgType={data.org.type}
+        subtitle={t('dashboard.welcome.subtitle')}
+        onCreateRfq={onCreateRfq}
+      />
+
+      <StepsCard
+        title={t('dashboard.sourcing.verifiedTitle')}
+        subtitle={t('dashboard.sourcing.verifiedSubtitle')}
+        steps={sourcingSteps(t, true)}
+      />
+
+      <StatGrid stats={data.stats} muted />
+
+      <SectionCard title={t('dashboard.myRfqs')}>
+        <EmptyState
+          icon={<FileIcon />}
+          message={t('dashboard.emptyRfqs.verified')}
+          action={
+            <Button variant="primary" size="sm" leftIcon={<PlusIcon className="h-4 w-4" />} onClick={onCreateRfq}>
+              {t('dashboard.createRfq')}
+            </Button>
+          }
+        />
+      </SectionCard>
+
+      <QuickActions items={onboardingQuickActions(t, onCreateRfq)} />
     </>
   )
 }
@@ -369,6 +463,7 @@ function PreVerifiedDashboard({
   const checking: Record<DocKey, string> = {
     cr: t('dashboard.verification.checkingWathiq'),
     vat: t('dashboard.verification.checkingZatca'),
+    nationalAddress: t('dashboard.verification.fromRegistration'),
   }
 
   // Real CR / VAT rows straight from the admin's per-document decisions.
@@ -403,13 +498,13 @@ function PreVerifiedDashboard({
         note={rejected ? t('dashboard.verification.rejectedNote') : t('dashboard.verification.pendingNote')}
       />
 
-      {/* Locked sourcing steps + the state-specific action. */}
+      {/* Sourcing steps. Neither pending nor rejected dims them and neither shows a padlock: an
+          unverified org CAN build RFQs and save them as drafts — only publishing is held — so
+          locking the card would state the opposite of the rule. */}
       <StepsCard
-        locked
-        titleIcon={<LockIcon className="h-4 w-4 text-content-tertiary" />}
         title={rejected ? t('dashboard.sourcing.resubmitTitle') : t('dashboard.sourcing.pendingTitle')}
         subtitle={rejected ? t('dashboard.sourcing.resubmitSubtitle') : t('dashboard.sourcing.pendingSubtitle')}
-        steps={sourcingSteps(t)}
+        steps={sourcingSteps(t, false)}
         action={
           <Button variant={rejected ? 'primary' : 'outline'} size="sm" leftIcon={<RefreshIcon className="h-4 w-4" />} onClick={() => undefined}>
             {rejected ? t('dashboard.sourcing.resubmit') : t('dashboard.sourcing.checkStatus')}
@@ -417,13 +512,7 @@ function PreVerifiedDashboard({
         }
       />
 
-      {/* Muted KPI grid. */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {MUTED_STATS.map((stat) => {
-          const Icon = STAT_ICON[stat.key] ?? FileIcon
-          return <StatCard key={stat.key} muted accent={stat.accent} icon={<Icon />} value={stat.value} label={t(`dashboard.stats.${stat.key}`)} />
-        })}
-      </div>
+      <StatGrid stats={MUTED_STATS} muted />
 
       {/* Empty, locked My RFQs. */}
       <SectionCard title={t('dashboard.myRfqs')}>
@@ -439,16 +528,45 @@ function PreVerifiedDashboard({
       </SectionCard>
 
       {/* Quick actions — Create RFQ is reachable while unverified (drafts only; publish gated). */}
-      <QuickActions
-        items={[
-          { icon: <PlusIcon />, label: t('dashboard.actions.createNewRfq'), accent: 'brand', onClick: onCreateRfq },
-          { icon: <FileIcon />, label: t('dashboard.actions.browseCategories'), accent: 'success' },
-          { icon: <EyeIcon />, label: t('dashboard.actions.howAnonymity'), accent: 'info' },
-          { icon: <ShieldDocIcon />, label: t('dashboard.actions.completeProfile'), accent: 'success' },
-        ]}
-      />
+      <QuickActions items={onboardingQuickActions(t, onCreateRfq)} />
     </>
   )
+}
+
+/* ── Shared building blocks ───────────────────────────────────────────────── */
+
+/** The three KPI tiles. `muted` greys the values for the states with nothing to report. */
+function StatGrid({ stats, muted = false }: { stats: BuyerDashboardData['stats']; muted?: boolean }) {
+  const { t } = useTranslation()
+  return (
+    <div className="grid gap-4 sm:grid-cols-3">
+      {stats.map((stat, index) => {
+        const Icon = STAT_ICON[stat.key] ?? FileIcon
+        return (
+          <div key={stat.key} style={{ animationDelay: `${index * 60}ms` }} className="motion-safe:animate-stepper-in">
+            <StatCard
+              icon={<Icon />}
+              value={stat.value}
+              label={t(`dashboard.stats.${stat.key}`)}
+              accent={stat.accent}
+              delta={stat.delta}
+              muted={muted}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Quick actions for an org that has not sourced yet — same set on first run and pre-verification. */
+function onboardingQuickActions(t: (k: string) => string, onCreateRfq: () => void): QuickActionSpec[] {
+  return [
+    { icon: <PlusIcon />, label: t('dashboard.actions.createNewRfq'), accent: 'brand', onClick: onCreateRfq },
+    { icon: <FileIcon />, label: t('dashboard.actions.browseCategories'), accent: 'success' },
+    { icon: <EyeIcon />, label: t('dashboard.actions.howAnonymity'), accent: 'brand' },
+    { icon: <ShieldDocIcon />, label: t('dashboard.actions.completeProfile'), accent: 'success' },
+  ]
 }
 
 /* ── Shared quick-actions grid ────────────────────────────────────────────── */

@@ -16,14 +16,15 @@ interface TimelineProps {
 }
 
 /**
- * Timeline — a generic vertical progress list (order tracking: Published → Bids received →
- * Negotiating → Award → …). Each step is done / current / upcoming; done shows a filled check,
- * current a ringed + pulsing dot, upcoming a hollow dot. The connector fills for completed steps.
+ * Timeline — a generic vertical progress list (order tracking: PO issued → PO accepted →
+ * Shipped → …). Each step is done / current / upcoming; done shows a filled check, current a
+ * ringed + pulsing dot, upcoming a hollow dot. Markers are NOT joined by a connector — the
+ * Figma leaves the column open, so progress reads from the markers alone.
  *
  * Motion (all compositor-only — transform/opacity, zero layout/paint per frame, gated by
- * `motion-safe:`): steps cascade in with a per-step stagger; completed connectors "draw" down;
- * the current marker emits a soft ping. `backwards`/`both` fills leave the resting (reduced-motion)
- * state fully visible. Purely presentational and reusable across buyer & supplier flows.
+ * `motion-safe:`): steps cascade in with a per-step stagger and the current marker emits a soft
+ * ping. `backwards`/`both` fills leave the resting (reduced-motion) state fully visible. Purely
+ * presentational and reusable across buyer & supplier flows.
  */
 export function Timeline({ steps }: TimelineProps) {
   return (
@@ -36,34 +37,22 @@ export function Timeline({ steps }: TimelineProps) {
             className="flex gap-3 motion-safe:animate-stepper-in"
             style={{ animationDelay: `${index * 90}ms` }}
           >
-            {/* Marker + connector column. */}
-            <div className="flex flex-col items-center">
-              <span
-                className={cn(
-                  'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full',
-                  step.state === 'done' && 'bg-status-success text-white',
-                  step.state === 'current' && 'bg-brand-primary text-brand-primary-on ring-4 ring-brand-subtle',
-                  step.state === 'upcoming' && 'border-2 border-border-default bg-bg-surface',
-                )}
-              >
-                {/* Soft ping behind the current marker — draws the eye to "where we are now". */}
-                {step.state === 'current' && (
-                  <span aria-hidden className="absolute inset-0 rounded-full bg-brand-primary motion-safe:animate-stepper-pulse" />
-                )}
-                {step.state === 'done' && <CheckIcon className="h-3.5 w-3.5" />}
-              </span>
-              {!isLast && (
-                <span
-                  className={cn(
-                    'mt-1 w-0.5 flex-1 origin-top',
-                    step.state === 'done' ? 'bg-status-success motion-safe:animate-connector-draw' : 'bg-border-subtle',
-                  )}
-                  style={step.state === 'done' ? { animationDelay: `${index * 90 + 140}ms` } : undefined}
-                />
+            <span
+              className={cn(
+                'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full',
+                step.state === 'done' && 'bg-status-success text-white',
+                step.state === 'current' && 'bg-brand-primary text-brand-primary-on ring-4 ring-brand-subtle',
+                step.state === 'upcoming' && 'border-2 border-border-default bg-bg-surface',
               )}
-            </div>
+            >
+              {/* Soft ping behind the current marker — draws the eye to "where we are now". */}
+              {step.state === 'current' && (
+                <span aria-hidden className="absolute inset-0 rounded-full bg-brand-primary motion-safe:animate-stepper-pulse" />
+              )}
+              {step.state === 'done' && <CheckIcon className="h-3.5 w-3.5" />}
+            </span>
             {/* Label + note. */}
-            <div className={cn('flex flex-1 items-center justify-between gap-2 pb-6', isLast && 'pb-0')}>
+            <div className={cn('flex flex-1 items-center justify-between gap-2 pb-4', isLast && 'pb-0')}>
               <span
                 className={cn(
                   'text-sm',

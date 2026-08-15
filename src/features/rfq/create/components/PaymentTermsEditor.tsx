@@ -1,10 +1,10 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SearchSelect } from '@/shared/ui/SearchSelect'
 import { cn } from '@/shared/lib/cn'
 import { formatSar, splitByPercent, toHalalas } from '@/shared/lib/money'
 import {
   kindOf,
-  MAX_MILESTONES,
   milestoneId,
   validatePayment,
   MILESTONE_TRIGGERS,
@@ -12,7 +12,7 @@ import {
   type PaymentPreset,
 } from '../paymentRules'
 import { PaymentSplitBar, SEGMENT_CLASS } from './PaymentSplitBar'
-import { CheckIcon, CloseIcon, InfoIcon, PlusIcon, TabbyMark, TamaraMark } from './icons'
+import { CloseIcon, InfoIcon, PlusIcon, TabbyMark, TamaraMark } from './icons'
 
 interface PaymentTermsEditorProps {
   budget: number
@@ -20,6 +20,15 @@ interface PaymentTermsEditorProps {
   milestones: Milestone[]
   onPresetChange: (preset: PaymentPreset) => void
   onMilestonesChange: (milestones: Milestone[]) => void
+  /** Replaces the "you're proposing these terms" banner body — the wording differs by context
+   * (a draft RFQ proposes to every bidder; a counter-offer proposes to one supplier). */
+  notice?: ReactNode
+  /** Replaces the note under the Total row. Defaults to the wizard's private-estimate caveat;
+   * pass `null` where the schedule needs no caveat at all. */
+  footnote?: ReactNode | null
+  /** Surface the payment-rule failure message beside the Total. Off where the schedule is already
+   * constrained by the offer it belongs to and the extra copy would just add noise. */
+  showRules?: boolean
 }
 
 const PRESETS: { value: PaymentPreset; titleKey: string; subKey: string }[] = [
@@ -40,10 +49,10 @@ function IndexBadge({ n }: { n: number }) {
 }
 
 /**
- * PaymentTermsEditor — step 2's payment schedule. Presets stamp read-only rows + a legend;
- * Custom unlocks editable rows with live rule chips and a "within rules" total. Every `= SAR`
- * amount comes from `splitByPercent` (exact largest-remainder), so the rows always reconcile to
- * the budget. All validation is delegated to the pure `validatePayment` engine.
+ * PaymentTermsEditor — step 2's payment schedule. Presets stamp read-only rows + a legend; Custom
+ * unlocks editable rows that name the broken rule the moment one breaks. Every `= SAR` amount comes
+ * from `splitByPercent` (exact largest-remainder), so the rows always reconcile to the budget. All
+ * validation is delegated to the pure `validatePayment` engine.
  */
 export function PaymentTermsEditor({
   budget,
@@ -51,6 +60,9 @@ export function PaymentTermsEditor({
   milestones,
   onPresetChange,
   onMilestonesChange,
+  notice,
+  footnote,
+  showRules = true,
 }: PaymentTermsEditorProps) {
   const { t } = useTranslation()
 
@@ -95,42 +107,14 @@ export function PaymentTermsEditor({
         })}
       </div>
 
-      {/* Custom-only proposing note */}
-      {isCustom && (
-        <div className="flex items-start gap-2 rounded-lg bg-status-info-subtle p-3 text-sm">
-          <span className="mt-0.5 shrink-0 text-status-info">
-            <InfoIcon className="h-4 w-4" />
-          </span>
-          <p className="text-content-secondary">
-            <span className="font-semibold text-status-info-strong">
-              {t('rfq.create.payment.proposingTitle')}
-            </span>{' '}
-            {t('rfq.create.payment.proposingBody')}
-          </p>
-        </div>
-      )}
-
-      {/* Custom-only rule chips */}
-      {isCustom && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-brand-primary">
-            {t('rfq.create.payment.rulesLabel')}
-          </span>
-          {validation.rules.map((rule) => (
-            <span
-              key={rule.key}
-              className={cn(
-                'rounded-full border px-2.5 py-1 text-xs font-medium',
-                rule.ok
-                  ? 'border-border-subtle bg-bg-surface-sunken text-content-secondary'
-                  : 'border-status-danger/40 bg-status-danger-subtle text-status-danger',
-              )}
-            >
-              {t(`rfq.create.payment.rules.${rule.key}`)}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* The schedule is a PROPOSAL whichever template it came from, so the note stands on every
+          preset — not just Custom. */}
+      <div className="flex items-start gap-2 rounded-lg bg-status-info-subtle p-3 text-sm">
+        <span className="mt-0.5 shrink-0 text-status-info">
+          <InfoIcon className="h-4 w-4" />
+        </span>
+        <p className="text-content-secondary">{notice ?? t('rfq.create.payment.proposing')}</p>
+      </div>
 
       <PaymentSplitBar milestones={milestones} />
 
@@ -232,11 +216,11 @@ export function PaymentTermsEditor({
       </ul>
 
       {isCustom && (
+        // No cap: a custom schedule is any list of milestones whose percentages total 100%.
         <button
           type="button"
           onClick={add}
-          disabled={milestones.length >= MAX_MILESTONES}
-          className="inline-flex w-fit cursor-pointer items-center gap-1.5 text-sm font-semibold text-brand-primary hover:text-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex w-fit cursor-pointer items-center gap-1.5 text-sm font-semibold text-brand-primary hover:text-brand-primary-hover"
         >
           <PlusIcon className="h-4 w-4" />
           {t('rfq.create.payment.addMilestone')}
@@ -249,19 +233,13 @@ export function PaymentTermsEditor({
           <span className="text-sm font-semibold text-content-primary">
             {t('rfq.create.payment.total')}
           </span>
-          {isCustom &&
-            (validation.valid ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-status-success-subtle px-2 py-0.5 text-xs font-semibold text-status-success-strong">
-                <CheckIcon className="h-3.5 w-3.5" />
-                {t('rfq.create.payment.withinRules')}
-              </span>
-            ) : (
-              validation.reasonKey && (
-                <span className="text-xs font-medium text-status-danger">
-                  {t(`rfq.create.payment.reason.${validation.reasonKey}`)}
-                </span>
-              )
-            ))}
+          {/* Silent when the schedule is valid (the Figma total row carries nothing else); the rule
+              that is actually broken is named the moment it breaks, so a disabled Next is explained. */}
+          {isCustom && showRules && !validation.valid && validation.reasonKey && (
+            <span className="text-xs font-medium text-status-danger">
+              {t(`rfq.create.payment.reason.${validation.reasonKey}`)}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <span
@@ -278,7 +256,9 @@ export function PaymentTermsEditor({
         </div>
       </div>
 
-      <p className="text-xs text-content-tertiary">{t('rfq.create.payment.privateEstimate')}</p>
+      {footnote !== null && (
+        <p className="text-xs text-content-tertiary">{footnote ?? t('rfq.create.payment.privateEstimate')}</p>
+      )}
 
       <div className="flex items-center gap-2 rounded-lg bg-bg-surface-sunken px-3 py-2 text-xs text-content-secondary">
         <span className="flex shrink-0 items-center gap-1">

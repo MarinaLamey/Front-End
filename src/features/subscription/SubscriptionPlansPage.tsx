@@ -10,8 +10,8 @@ import { usePlans, type Billing } from './planData'
 
 /**
  * SubscriptionPlansPage — the dashboard "Choose your plan" screen (buyer & supplier share it,
- * rendered inside PortalShell). Reuses the same {@link BillingToggle} + {@link PlanCardBody} as
- * the onboarding PlansStep; the difference here is a per-card CTA that routes to checkout.
+ * rendered inside PortalShell). Uses the shared {@link BillingToggle} + {@link PlanCardBody}, with
+ * a per-card CTA that routes to checkout.
  * Available in every verification state — subscription is independent of KYB verification.
  */
 export function SubscriptionPlansPage() {

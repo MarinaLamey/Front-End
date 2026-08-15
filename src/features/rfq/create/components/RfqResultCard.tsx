@@ -17,7 +17,7 @@ interface OutcomeConfig {
 const CONFIG: Record<RfqOutcome, OutcomeConfig> = {
   draft_saved: { statusKey: 'draft', statusTone: 'neutral', primary: 'continueEditing', secondary: 'backToDashboard' },
   published: { statusKey: 'live', statusTone: 'success', primary: 'viewRfq', secondary: 'trackBids' },
-  verify_to_publish: { statusKey: 'verifyToPublish', statusTone: 'neutral', primary: 'verifyOrg', secondary: 'backToDashboard' },
+  verify_to_publish: { statusKey: 'awaitingVerification', statusTone: 'warning', primary: 'verifyOrg', secondary: 'backToDashboard' },
 }
 
 const STATUS_TONE: Record<StatusTone, string> = {
@@ -56,7 +56,7 @@ export function RfqResultCard({ result, onAction }: RfqResultCardProps) {
   ]
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-2xl border border-border-subtle bg-bg-surface p-8 text-center shadow-sm motion-safe:animate-card-in">
+    <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-border-subtle bg-bg-surface p-8 text-center shadow-sm motion-safe:animate-card-in">
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-success-subtle text-status-success-strong motion-safe:animate-check-pop">
         <CheckIcon className="h-6 w-6" />
       </div>

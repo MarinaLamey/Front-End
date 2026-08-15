@@ -40,9 +40,9 @@ export function OrderConversationPage() {
     )
   }
   if (!rfq) return <Navigate to="/buyer/orders" replace />
-  if (!rfq.award) return <Navigate to={`/buyer/rfqs/${id}`} replace />
+  if (!rfq.awards?.[0]) return <Navigate to={`/buyer/rfqs/${id}`} replace />
 
-  const a: RfqAward = rfq.award
+  const a: RfqAward = rfq.awards[0]
   const detail = deriveRfqDetail(rfq)
   const bid = detail.bids.find((b) => b.id === a.bidId)
   const thread = bid ? getThread(rfq, detail, bid) : null

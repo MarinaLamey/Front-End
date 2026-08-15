@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { cleanMobile, isSaudiMobile } from '@/shared/lib/validators'
 
 export type ResetChannel = 'email' | 'sms'
 
+// Same email rule as the register wizard (AccountDetailsStep); the phone reuses the shared
+// Saudi-mobile validation (isSaudiMobile) + cleanMobile so this field behaves exactly like register.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MOBILE_RE = /^(?:\+9665\d{8}|05\d{8}|5\d{8})$/
 
 interface UseForgotPasswordOptions {
   /**
@@ -21,6 +23,9 @@ export interface UseForgotPasswordResult {
   setEmail: (value: string) => void
   mobile: string
   setMobile: (value: string) => void
+  /** Per-field validity → drives the inline error + green success check (mirrors register). */
+  emailValid: boolean
+  mobileValid: boolean
   /** The active destination is valid for the selected channel. */
   canSend: boolean
   /** True while the mock request is in flight (drives the button loader). */
@@ -37,21 +42,24 @@ export interface UseForgotPasswordResult {
 export function useForgotPassword({ onCodeSent }: UseForgotPasswordOptions): UseForgotPasswordResult {
   const [channel, setChannel] = useState<ResetChannel>('email')
   const [email, setEmail] = useState('')
-  const [mobile, setMobile] = useState('')
+  const [mobile, setMobileRaw] = useState('')
   const [isSending, setIsSending] = useState(false)
+  // Mirror the register field: strip the +966 country code / leading 0 so we store the 9-digit local part.
+  const setMobile = (value: string) => setMobileRaw(cleanMobile(value))
 
-  const canSend =
-    channel === 'email' ? EMAIL_RE.test(email) : MOBILE_RE.test(mobile.replace(/\s/g, ''))
+  const emailValid = EMAIL_RE.test(email)
+  const mobileValid = isSaudiMobile(mobile)
+  const canSend = channel === 'email' ? emailValid : mobileValid
 
   const send = () => {
     if (!canSend || isSending) return
     setIsSending(true)
-    const destination = channel === 'email' ? email : mobile
+    const destination = channel === 'email' ? email : `+966${mobile}`
     window.setTimeout(() => {
       setIsSending(false)
       onCodeSent(destination, channel)
     }, 700)
   }
 
-  return { channel, setChannel, email, setEmail, mobile, setMobile, canSend, isSending, send }
+  return { channel, setChannel, email, setEmail, mobile, setMobile, emailValid, mobileValid, canSend, isSending, send }
 }

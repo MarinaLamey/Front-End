@@ -6,8 +6,9 @@ import { Spinner } from '@/shared/ui/Spinner'
 import { Textarea } from '@/shared/ui/Textarea'
 import { formatSar, toHalalas } from '@/shared/lib/money'
 import { cn } from '@/shared/lib/cn'
+import { useRfq } from '@/features/rfq/hooks/rfqQueries'
 import { useCancelOrder, useOrder } from './hooks/orderQueries'
-import { orderTotals } from './lib'
+import { orderTotals, supplierDisplayName } from './lib'
 
 const REASONS = ['no_longer_required', 'budget_withdrawn', 'sourcing_error', 'better_offer', 'supplier_unresponsive', 'other']
 
@@ -20,7 +21,8 @@ export function CancelOrderPage() {
 
   const [reason, setReason] = useState('')
   const [note, setNote] = useState('')
-  const [rfqChoice, setRfqChoice] = useState<'runner_up' | 'close'>('runner_up')
+  const { data: rfq } = useRfq(order?.rfqId ?? '')
+  const partlyAwarded = rfq?.status === 'partially_awarded'
 
   if (isLoading) {
     return (
@@ -30,11 +32,15 @@ export function CancelOrderPage() {
     )
   }
   if (!order) return <Navigate to="/buyer/orders" replace />
-  if (order.status !== 'awaiting_acceptance' && order.status !== 'in_transit') {
+  // SoT §12: a cancellation may be asked for ONLY while the order is Awaiting supplier. Once the
+  // supplier accepts, neither side can cancel — the order runs to fulfilment, delivery and close.
+  if (order.status !== 'awaiting_acceptance') {
     return <Navigate to={`/buyer/orders/${order.id}`} replace />
   }
 
   const money = (n: number) => formatSar(toHalalas(n), { locale: i18n.language })
+  const dateFull = (iso?: string) =>
+    iso ? new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso)) : '—'
   const preAcceptance = order.status === 'awaiting_acceptance'
   const canCancel = reason.length > 0 && note.trim().length > 0
 
@@ -86,38 +92,35 @@ export function CancelOrderPage() {
             <p className="mt-2 text-xs text-content-tertiary">{t('order.cancel.noteHint')}</p>
           </div>
 
-          {/* What happens to the RFQ (pre-acceptance direct cancel only) */}
-          {preAcceptance && (
-            <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
-              <h2 className="text-sm font-semibold text-content-primary">{t('order.cancel.rfqTitle', { rfq: order.rfqReference })}</h2>
-              <div className="mt-3 space-y-3">
-                <ChoiceRow
-                  active={rfqChoice === 'runner_up'}
-                  onClick={() => setRfqChoice('runner_up')}
-                  title={t('order.cancel.rfq.runnerUp.title')}
-                  desc={order.runnerUp
-                    ? t('order.cancel.rfq.runnerUp.desc', { label: order.runnerUp.supplierLabel, total: money(order.runnerUp.totalSar), covered: order.runnerUp.itemsCovered, total_items: order.runnerUp.itemsTotal, date: new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(order.runnerUp.validUntil)) })
-                    : t('order.cancel.rfq.runnerUp.none')}
-                />
-                <ChoiceRow
-                  active={rfqChoice === 'close'}
-                  onClick={() => setRfqChoice('close')}
-                  title={t('order.cancel.rfq.close.title')}
-                  desc={t('order.cancel.rfq.close.desc')}
-                />
-              </div>
+          {/* What happens to the RFQ. SoT §9: not a choice — the route follows the request's award
+              state. A partly awarded request returns to Live keeping its number and its bids; a
+              fully awarded one is finished, and the buyer starts a new request with a new number. */}
+          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+            <h2 className="text-sm font-semibold text-content-primary">{t('order.cancel.rfqTitle', { rfq: order.rfqReference })}</h2>
+            <div className="mt-3 rounded-xl border border-border-subtle bg-bg-surface-sunken p-4">
+              <p className="text-sm font-semibold text-content-primary">
+                {partlyAwarded
+                  ? t('order.resolve.partlyAwarded.title', { rfq: order.rfqReference })
+                  : t('order.resolve.fullyAwarded.title')}
+              </p>
+              <p className="mt-0.5 text-sm text-content-secondary">
+                {partlyAwarded
+                  ? t('order.resolve.partlyAwarded.desc')
+                  : t('order.resolve.fullyAwarded.desc', { rfq: order.rfqReference })}
+              </p>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Right rail */}
         <div className="auth-stagger space-y-5">
           <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.po.summaryTitle')}</h2>
+            {/* No PO-reference row — the page sub-heading already opens with the PO number. */}
             <dl className="mt-3 space-y-2.5 text-sm">
-              <Row label={t('order.po.reference')} value={order.poNumber} />
-              <Row label={t('order.supplier')} value={order.supplierShort} />
+              <Row label={t('order.supplier')} value={supplierDisplayName(order)} />
               <Row label={t('order.po.total')} value={money(orderTotals(order).total)} />
+              <Row label={t('order.issuedLabel')} value={dateFull(order.issuedAt)} />
               <Row label={t('order.ship.status')} value={preAcceptance ? t('order.status.awaitingLong') : t('order.status.inTransit')} valueClass="font-semibold text-status-warning-strong" />
             </dl>
             <p className="mt-3 text-xs text-content-tertiary">{preAcceptance ? t('order.cancel.noConsequence') : t('order.cancel.agreementNote')}</p>
@@ -133,21 +136,6 @@ export function CancelOrderPage() {
         </div>
       </div>
     </section>
-  )
-}
-
-function ChoiceRow({ active, onClick, title, desc }: { active: boolean; onClick: () => void; title: string; desc: string }) {
-  return (
-    <label
-      onClick={onClick}
-      className={cn('flex cursor-pointer gap-3 rounded-xl border p-4', active ? 'border-brand-primary bg-brand-subtle' : 'border-border-subtle')}
-    >
-      <input type="radio" name="rfq" className="mt-1 h-4 w-4 accent-brand-primary" checked={active} onChange={onClick} />
-      <span>
-        <span className={cn('block text-sm font-semibold', active ? 'text-brand-primary' : 'text-content-primary')}>{title}</span>
-        <span className="mt-0.5 block text-sm text-content-secondary">{desc}</span>
-      </span>
-    </label>
   )
 }
 

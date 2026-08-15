@@ -7,7 +7,7 @@
  *   Submit, verified      → published          (goes live to matched suppliers immediately)
  */
 
-import type { RfqDraft, RfqOutcome, RfqResult } from '../types'
+import { categoryLabel, type RfqDraft, type RfqOutcome, type RfqResult } from '../types'
 
 export interface OutcomeContext {
   /** The org has passed KYB verification. */
@@ -21,8 +21,9 @@ export function computeOutcome(action: 'save' | 'submit', ctx: OutcomeContext): 
 
 const OUTCOME_STATUS: Record<RfqOutcome, RfqResult['status']> = {
   draft_saved: 'draft',
-  verify_to_publish: 'draft',
-  published: 'open',
+  // Built but not yet publishable — it sits under review and auto-publishes once the org is verified.
+  verify_to_publish: 'awaiting_verification',
+  published: 'live',
 }
 
 /** How many verified suppliers the RFQ would reach — a light heuristic for the result card. */
@@ -37,7 +38,7 @@ export function buildResult(draft: RfqDraft, outcome: RfqOutcome): RfqResult {
     outcome,
     reference: draft.reference,
     status: OUTCOME_STATUS[outcome],
-    category: draft.category,
+    category: categoryLabel(draft.categories),
     closingDate: draft.closingDate,
     matchedSuppliers: matchedSuppliers(draft),
   }

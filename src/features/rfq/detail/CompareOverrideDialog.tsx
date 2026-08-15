@@ -30,7 +30,10 @@ export function CompareOverrideDialog({
   const { t } = useTranslation()
   const [reason, setReason] = useState('')
   const [accepted, setAccepted] = useState(false)
-  const canConfirm = reason.trim().length > 0 && accepted
+  // The override is an accountability record — require a substantive reason (20–500 chars).
+  const reasonLength = reason.trim().length
+  const reasonValid = reasonLength >= 20 && reasonLength <= 500
+  const canConfirm = reasonValid && accepted
 
   return (
     <Modal open={open} onClose={onClose} labelledBy="override-title">
@@ -67,8 +70,16 @@ export function CompareOverrideDialog({
         className="mt-1.5"
         value={reason}
         onChange={(e) => setReason(e.target.value)}
+        maxLength={500}
+        aria-invalid={reasonLength > 0 && !reasonValid}
         placeholder={t('rfq.compare.override.reasonPlaceholder')}
       />
+      <div className="mt-1.5 flex items-center justify-between text-xs">
+        <span className={reasonLength > 0 && reasonLength < 20 ? 'text-status-danger' : 'text-content-tertiary'}>
+          {t('common.minChars', { min: 20 })}
+        </span>
+        <span className="tabular-nums text-content-tertiary">{reasonLength}/500</span>
+      </div>
 
       <label className="mt-4 flex items-start gap-2.5 rounded-lg bg-bg-surface-sunken p-3 text-sm text-content-secondary">
         <input

@@ -1,27 +1,28 @@
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/ui/Button'
 import { Modal } from '@/shared/ui/Modal'
-import { formatSar, toHalalas } from '@/shared/lib/money'
-import { orderTotals } from './lib'
+import { isSupplierRevealed, orderTotals, supplierDisplayName } from './lib'
+import { buildPurchaseOrderPdf } from './purchaseOrderPdf'
 import type { Order } from './types'
 
 /** The purchase-order document preview (PO header, parties, lines, totals, terms) + download. */
 export function PurchaseOrderModal({ order, open, onClose }: { order: Order; open: boolean; onClose: () => void }) {
   const { t, i18n } = useTranslation()
   const { subtotal, vat, total } = orderTotals(order)
-  const money = (n: number) => formatSar(toHalalas(n), { locale: i18n.language })
+  // A formal PO document always shows two decimals (SAR 88,810.00), unlike the whole-number summaries.
+  const money = (n: number) => `SAR ${n.toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   const dateFull = (iso: string) =>
     new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso))
+  const dateLong = (iso: string) =>
+    new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso))
+  const deliveryDate = dateLong(order.shipment.expectedArrival ?? order.shipment.deliveredAt ?? order.issuedAt)
 
+  // Download the PO as a real PDF file (dependency-free generator — see purchaseOrderPdf.ts).
   const download = () => {
-    const lines = order.lines
-      .map((l, i) => `${i + 1}. ${l.description}  ${l.quantity} ${l.unit} × ${l.unitPriceSar.toFixed(2)} = ${(l.quantity * l.unitPriceSar).toFixed(2)}`)
-      .join('\n')
-    const body = `PURCHASE ORDER ${order.poNumber}\nIssued ${dateFull(order.issuedAt)} · from agreed offer v${order.offerVersion}\n\nBUYER\n${order.buyer.name}\nCR ${order.buyer.cr} · VAT ${order.buyer.vat}\n\nSUPPLIER\n${order.supplier.name}\nCR ${order.supplier.cr} · VAT ${order.supplier.vat}\n\nITEMS\n${lines}\n\nSubtotal ${money(subtotal)}\nVAT 15% ${money(vat)}\nTOTAL ${money(total)}\n\nTERMS\nPayment ${order.paymentTermsLabel}, settled offline between the parties. Delivery to ${order.shipment.deliverTo ?? '—'}.`
-    const url = URL.createObjectURL(new Blob([body], { type: 'text/plain' }))
+    const url = URL.createObjectURL(buildPurchaseOrderPdf(order))
     const a = document.createElement('a')
     a.href = url
-    a.download = `${order.poNumber}.txt`
+    a.download = `${order.poNumber}.pdf`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -35,11 +36,11 @@ export function PurchaseOrderModal({ order, open, onClose }: { order: Order; ope
   )
 
   return (
-    <Modal open={open} onClose={onClose} labelledBy="po-title" className="max-w-2xl p-0">
+    <Modal open={open} onClose={onClose} labelledBy="po-title" className="!max-w-3xl !p-0">
       <div className="max-h-[80vh] overflow-y-auto p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h2 id="po-title" className="text-lg font-bold tracking-tight text-content-primary">
+            <h2 id="po-title" className="text-lg font-bold uppercase tracking-wide text-content-primary">
               {t('order.po.title')}
             </h2>
             <p className="mt-0.5 text-xs text-content-tertiary">
@@ -47,19 +48,35 @@ export function PurchaseOrderModal({ order, open, onClose }: { order: Order; ope
             </p>
           </div>
           <div className="text-end">
-            <p className="text-sm font-bold text-content-link">mimony</p>
+            <p className="text-sm font-bold text-brand-primary">mimony</p>
             <p className="text-xs text-content-tertiary">{t('order.po.fromOffer', { version: order.offerVersion })}</p>
           </div>
         </div>
 
         <div className="mt-5 grid gap-6 sm:grid-cols-2">
           <Party label={t('order.buyer')} p={order.buyer} />
-          <Party label={t('order.supplier')} p={order.supplier} />
+          {isSupplierRevealed(order) ? (
+            <Party label={t('order.supplier')} p={order.supplier} />
+          ) : (
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-content-tertiary">{t('order.supplier')}</p>
+              <p className="mt-1 text-sm font-bold text-content-primary">{supplierDisplayName(order)}</p>
+              <p className="text-xs text-content-tertiary">{t('order.supplierRevealOnAccept')}</p>
+            </div>
+          )}
         </div>
 
-        <div className="mt-5 border-t border-border-subtle pt-3">
+        <div className="mt-5 border-t border-border-subtle pt-4">
+          {/* Column header — # · Description · Qty · Unit price · Line total */}
+          <div className="grid grid-cols-[20px_minmax(0,1fr)_64px_80px_100px] items-center gap-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-content-tertiary">
+            <span>#</span>
+            <span>{t('order.col.description')}</span>
+            <span className="text-end">{t('order.col.qty')}</span>
+            <span className="text-end">{t('order.col.unitPrice')}</span>
+            <span className="text-end">{t('order.col.lineTotal')}</span>
+          </div>
           {order.lines.map((l, i) => (
-            <div key={i} className="grid grid-cols-[20px_minmax(0,1fr)_64px_80px_100px] items-center gap-3 border-b border-border-subtle py-2 text-sm">
+            <div key={i} className="grid grid-cols-[20px_minmax(0,1fr)_64px_80px_100px] items-center gap-3 border-t border-border-subtle py-2.5 text-sm">
               <span className="text-content-tertiary">{i + 1}</span>
               <span className="text-content-primary">{l.description}</span>
               <span className="text-end tabular-nums text-content-secondary">{l.quantity.toLocaleString(i18n.language)}</span>
@@ -69,17 +86,17 @@ export function PurchaseOrderModal({ order, open, onClose }: { order: Order; ope
               </span>
             </div>
           ))}
-          <dl className="mt-3 space-y-1 text-sm">
-            <div className="flex justify-between"><dt className="text-content-tertiary">{t('order.subtotal')}</dt><dd className="tabular-nums text-content-secondary">{money(subtotal)}</dd></div>
-            <div className="flex justify-between"><dt className="text-content-tertiary">{t('order.vat')}</dt><dd className="tabular-nums text-content-secondary">{money(vat)}</dd></div>
-            <div className="flex justify-between border-t border-border-subtle pt-1.5"><dt className="font-semibold text-content-primary">{t('order.po.total')}</dt><dd className="font-bold tabular-nums text-content-primary">{money(total)}</dd></div>
+          <dl className="mt-2 space-y-1 border-t border-border-subtle pt-3 text-sm">
+            <div className="flex justify-between"><dt className="text-content-secondary">{t('order.subtotal')}</dt><dd className="tabular-nums text-content-primary">{money(subtotal)}</dd></div>
+            <div className="flex justify-between"><dt className="text-content-secondary">{t('order.vat')}</dt><dd className="tabular-nums text-content-primary">{money(vat)}</dd></div>
+            <div className="flex justify-between border-t border-border-subtle pt-2"><dt className="font-bold uppercase tracking-wide text-content-primary">{t('order.po.total')}</dt><dd className="font-bold tabular-nums text-content-primary">{money(total)}</dd></div>
           </dl>
         </div>
 
         <div className="mt-5">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-content-tertiary">{t('order.po.terms')}</p>
           <p className="mt-1 text-sm text-content-secondary">
-            {t('order.po.termsBody', { terms: order.paymentTermsLabel, address: order.shipment.deliverTo ?? '—' })}
+            {t('order.po.termsBody', { terms: order.paymentTermsLabel, date: deliveryDate, address: order.shipment.deliverTo ?? '—' })}
           </p>
         </div>
       </div>

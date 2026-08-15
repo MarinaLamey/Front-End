@@ -17,13 +17,14 @@ interface WelcomeHeroProps {
 
 /**
  * WelcomeHero — the purple gradient banner at the top of the verified buyer dashboard: greeting,
- * org name + type chip, subtitle, and the primary "Create RFQ" action. Text is white over the
- * brand gradient; the gradient is a flat brand sweep (distinct from the auth split-panel one).
+ * org name + type chip, subtitle, and the primary "Create RFQ" action. The gradient is the
+ * token-backed `.mp-gradient-hero` surface (distinct from the auth split-panel one). Text is
+ * plain white rather than an on-brand token because that surface stays purple in dark mode.
  */
 export function WelcomeHero({ greeting, orgName, orgType, subtitle, onCreateRfq, createDisabled, ctaLabel }: WelcomeHeroProps) {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col gap-4 rounded-2xl bg-[linear-gradient(120deg,#4A3F8F_0%,#51489E_45%,#6D63C6_100%)] p-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mp-gradient-hero flex flex-col gap-4 rounded-2xl p-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <h2 className="text-2xl font-bold text-white">{greeting}</h2>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-white/90">

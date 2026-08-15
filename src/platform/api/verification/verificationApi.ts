@@ -11,11 +11,11 @@
 export type DocStatus = 'verifying' | 'verified' | 'rejected'
 /** Org-level status, DERIVED from its documents (never set directly). */
 export type VerificationStatus = 'pending' | 'verified' | 'rejected'
-/** The reviewable documents on a request. */
-export type DocKey = 'cr' | 'vat'
+/** The reviewable documents on a request — CR (Wathiq), VAT (ZATCA), National Address (SPL). */
+export type DocKey = 'cr' | 'vat' | 'nationalAddress'
 
 export interface DocReview {
-  /** The CR / VAT number submitted at registration. */
+  /** The CR / VAT / National Address number submitted at registration. */
   number: string
   status: DocStatus
   /** The admin's typed reason — set only when this document is rejected. */
@@ -38,12 +38,15 @@ export interface OrgRegistration {
   orgName: string
   cr: string
   vat: string
+  /** Optional so the existing registration call site keeps compiling; falls back to a dash. */
+  nationalAddress?: string
 }
 
-export const DOC_KEYS: DocKey[] = ['cr', 'vat']
+export const DOC_KEYS: DocKey[] = ['cr', 'vat', 'nationalAddress']
 
-/** localStorage key for the mock table — exported so other tabs can react to writes (cross-tab sync). */
-export const VERIFICATION_STORAGE_KEY = 'miproc.verifications.v1'
+/** localStorage key for the mock table — exported so other tabs can react to writes (cross-tab sync).
+ *  v2: National Address joined CR + VAT, so v1 records (which lack it) are dropped rather than read. */
+export const VERIFICATION_STORAGE_KEY = 'miproc.verifications.v2'
 const STORAGE_KEY = VERIFICATION_STORAGE_KEY
 const LATENCY = 400
 
@@ -109,6 +112,7 @@ export const verificationApi = {
       documents: {
         cr: { number: reg.cr, status: 'verifying' },
         vat: { number: reg.vat, status: 'verifying' },
+        nationalAddress: { number: reg.nationalAddress ?? '—', status: 'verifying' },
       },
       status: 'pending',
       submittedAt: now(),

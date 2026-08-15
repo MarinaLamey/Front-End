@@ -37,7 +37,7 @@ export function RegisterPage() {
   // Profile submitted → account Active → land on the primary role's dashboard.
   const handleSubmitted = () => {
     const primary = pending?.roles[0] ?? 'buyer'
-    login(primary)
+    login(primary, undefined, undefined, 'orgAdmin')
     navigate(`/${primary}`)
   }
 

@@ -54,7 +54,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
         </span>
       )}
 
-      <input ref={inputRef} {...inputProps} />
+      {/* dir="auto" lets each field detect its own text direction from the first strong character —
+          Arabic renders RTL, Latin/digits LTR — so inputs accept any language regardless of the app
+          direction. A caller-provided `dir` (via inputProps) still overrides. */}
+      <input ref={inputRef} dir="auto" {...inputProps} />
 
       {isLoading ? (
         <Spinner className={cn('shrink-0', spinnerClassName)} />

@@ -15,7 +15,8 @@ interface TaxDetailsStepProps {
 
 const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 
-const isVat = (vat: string) => /^\d{15}$/.test(vat)
+// KSA ZATCA VAT: exactly 15 digits, starting AND ending with 3 (e.g. 3XXXXXXXXXXXXX3).
+const isVat = (vat: string) => /^3\d{13}3$/.test(vat)
 
 /** Step 4 — VAT registration: the 15-digit number and its certificate. Split out of Company details. */
 export function TaxDetailsStep({ data, patch, onNext, onBack }: TaxDetailsStepProps) {

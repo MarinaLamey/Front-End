@@ -11,8 +11,8 @@ interface BillingToggleProps {
 }
 
 /**
- * BillingToggle — the shared monthly⇄annual pill used by both the onboarding PlansStep and the
- * dashboard Subscription page. Purely controlled; the parent owns the `billing` state.
+ * BillingToggle — the shared monthly⇄annual pill used by the dashboard Subscription page.
+ * Purely controlled; the parent owns the `billing` state.
  */
 export function BillingToggle({ value, onChange, showSave = true, className }: BillingToggleProps) {
   const { t } = useTranslation()

@@ -77,6 +77,61 @@ export function ChatIcon({ className }: IconProps) {
   )
 }
 
+/** Help / support — a question-mark circle (Quick Actions). */
+export function HelpIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.6 9.2a2.4 2.4 0 0 1 4.66.8c0 1.6-2.4 2.4-2.4 2.4" />
+      <path d="M12 16.6h.01" />
+    </Svg>
+  )
+}
+
+/** Shield — the "Organisation Admin" header badge. */
+export function ShieldIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6z" />
+    </Svg>
+  )
+}
+
+/** Edit — a pencil (user administration row action). */
+export function EditIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+    </Svg>
+  )
+}
+
+/** Delete — a trash can (user administration row action). */
+export function TrashIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M3 6h18" />
+      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </Svg>
+  )
+}
+
+/** Coins — the org "Payment Received" tile. */
+export function CoinsIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <ellipse cx="9" cy="6" rx="6" ry="2.5" />
+      <path d="M3 6v5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V6" />
+      <path d="M3 11v5c0 1.4 2.7 2.5 6 2.5 1 0 2-.1 2.8-.3" />
+      <ellipse cx="17" cy="15" rx="4.5" ry="2" />
+      <path d="M12.5 15v3c0 1.1 2 2 4.5 2s4.5-.9 4.5-2v-3" />
+    </Svg>
+  )
+}
+
 export function BoxIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
@@ -92,6 +147,27 @@ export function UsersIcon({ className }: IconProps) {
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11" />
+    </Svg>
+  )
+}
+
+/** Bank / landmark building — the Organisation nav group and the Organisation-profile item. */
+export function BankIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M12 4 20 9H4Z" />
+      <path d="M6 9v12M10 9v12M14 9v12M18 9v12" />
+      <path d="M4 21h16" />
+    </Svg>
+  )
+}
+
+/** Gear — the Organisation → Settings item. */
+export function SettingsIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </Svg>
   )
 }
@@ -144,6 +220,15 @@ export function ChevronDownIcon({ className }: IconProps) {
   )
 }
 
+/** Chevron pointing to the inline end. Rotate 180° for the "previous" direction. */
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="m9 6 6 6-6 6" />
+    </Svg>
+  )
+}
+
 export function ArrowUpRightIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
@@ -183,6 +268,18 @@ export function EyeIcon({ className }: IconProps) {
     <Svg className={className}>
       <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
       <circle cx="12" cy="12" r="3" />
+    </Svg>
+  )
+}
+
+/** Eye with a slash — "hidden / anonymous". Used by the Anonymous chip on RFQ rows. */
+export function EyeOffIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M10.7 6.2A9.6 9.6 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3 3.7" />
+      <path d="M6.5 7.7A17 17 0 0 0 2 12s3.5 6 10 6a9.9 9.9 0 0 0 4.2-.9" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+      <path d="m3 3 18 18" />
     </Svg>
   )
 }
@@ -240,6 +337,15 @@ export function CheckCircleIcon({ className }: IconProps) {
   )
 }
 
+/** Outlined star — "Add to favourites" on a closed order. */
+export function StarIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="m12 4 2.45 4.96 5.55.81-4 3.9.94 5.5L12 16.6l-4.94 2.6.94-5.5-4-3.9 5.55-.81z" />
+    </Svg>
+  )
+}
+
 export function CreditCardIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
@@ -267,6 +373,14 @@ export function PercentBadgeIcon({ className }: IconProps) {
   )
 }
 
+export function CloseIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </Svg>
+  )
+}
+
 export function XCircleIcon({ className }: IconProps) {
   return (
     <Svg className={className}>
@@ -281,6 +395,17 @@ export function AlertTriangleIcon({ className }: IconProps) {
     <Svg className={className}>
       <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
       <path d="M12 9v4M12 17h.01" />
+    </Svg>
+  )
+}
+
+/** Tray with an up arrow — the glyph inside a file dropzone. */
+export function UploadIcon({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+      <path d="m8 9 4-4 4 4" />
+      <path d="M12 5v11" />
     </Svg>
   )
 }

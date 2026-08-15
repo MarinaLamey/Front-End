@@ -48,8 +48,8 @@ export interface PlansData {
 
 /**
  * usePlans — the single data seam for subscription plans. Today it returns the seed copy (from
- * the shared `plans` i18n namespace) + local demo pricing; later it becomes an API query. Both
- * the onboarding PlansStep and the dashboard Subscription page read from here.
+ * the shared `plans` i18n namespace) + local demo pricing; later it becomes an API query. The
+ * dashboard Subscription page reads from here.
  */
 export function usePlans(): PlansData {
   const { t } = useTranslation()

@@ -1,8 +1,23 @@
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/shared/ui/Button'
 import { Modal } from '@/shared/ui/Modal'
+import { Textarea } from '@/shared/ui/Textarea'
 import { cn } from '@/shared/lib/cn'
 
 type Tone = 'danger' | 'warning'
+
+/**
+ * A required free-text field (e.g. a cancellation reason). When present, the dialog renders a
+ * character-counted textarea and blocks Confirm until the trimmed length is within [min, max].
+ */
+interface ReasonField {
+  value: string
+  onChange: (value: string) => void
+  label: string
+  placeholder?: string
+  min: number
+  max: number
+}
 
 interface RfqActionDialogProps {
   open: boolean
@@ -14,6 +29,8 @@ interface RfqActionDialogProps {
   badge?: { text: string; tone: 'danger' | 'neutral' }
   body: string
   callout: { heading: string; tone: Tone; bullets: string[] }
+  /** Optional required reason captured before the action can proceed. */
+  reason?: ReasonField
   confirmLabel: string
   /** Confirm button colour — destructive (Amend/Cancel) vs brand (Close). */
   confirmTone: 'danger' | 'primary'
@@ -43,10 +60,14 @@ export function RfqActionDialog({
   badge,
   body,
   callout,
+  reason,
   confirmLabel,
   confirmTone,
   cancelLabel,
 }: RfqActionDialogProps) {
+  const { t } = useTranslation()
+  const reasonLength = reason ? reason.value.trim().length : 0
+  const reasonInvalid = !!reason && (reasonLength < reason.min || reasonLength > reason.max)
   return (
     <Modal open={open} onClose={onClose} labelledBy="rfq-action-dialog-title">
       <div className="flex items-start justify-between gap-3">
@@ -81,11 +102,40 @@ export function RfqActionDialog({
         </ul>
       </div>
 
+      {reason && (
+        <div className="mt-4 flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-content-secondary">{reason.label}</label>
+          <Textarea
+            rows={3}
+            value={reason.value}
+            onChange={(e) => reason.onChange(e.target.value)}
+            placeholder={reason.placeholder}
+            maxLength={reason.max}
+            aria-invalid={reasonInvalid}
+          />
+          <div className="flex items-center justify-between text-xs">
+            <span
+              className={cn(
+                reasonLength > 0 && reasonLength < reason.min
+                  ? 'text-status-danger'
+                  : 'text-content-tertiary',
+              )}
+            >
+              {t('common.minChars', { min: reason.min })}
+            </span>
+            <span className="tabular-nums text-content-tertiary">
+              {reasonLength}/{reason.max}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="mt-5 flex gap-3">
         <Button
           variant={confirmTone === 'danger' ? 'danger' : 'primary'}
           fullWidth
           isLoading={loading}
+          disabled={reasonInvalid}
           onClick={onConfirm}
         >
           {confirmLabel}

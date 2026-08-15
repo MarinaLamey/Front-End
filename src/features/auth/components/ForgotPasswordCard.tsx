@@ -68,6 +68,8 @@ export function ForgotPasswordCard({ onCodeSent, onBack }: ForgotPasswordCardPro
             placeholder="name@company.com"
             value={reset.email}
             onChange={(event) => reset.setEmail(event.target.value)}
+            success={reset.emailValid}
+            error={reset.email.length > 0 && !reset.emailValid ? { title: t('validation.emailInvalid') } : null}
           />
         ) : (
           <Field
@@ -79,6 +81,8 @@ export function ForgotPasswordCard({ onCodeSent, onBack }: ForgotPasswordCardPro
             placeholder={t('auth.mobileHint')}
             value={reset.mobile}
             onChange={(event) => reset.setMobile(event.target.value)}
+            success={reset.mobileValid}
+            error={reset.mobile.length > 0 && !reset.mobileValid ? { title: t('validation.mobileInvalid') } : null}
           />
         )}
 

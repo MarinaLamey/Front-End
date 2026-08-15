@@ -8,4 +8,14 @@ export { NegotiationsInboxPage } from './negotiate/NegotiationsInboxPage'
 export { NegotiationThreadPage } from './negotiate/NegotiationThreadPage'
 export { OrdersInboxPage } from './orders/OrdersInboxPage'
 export { OrderConversationPage } from './orders/OrderConversationPage'
-export type { Rfq, RfqStatus, RfqDraft, RfqOutcome } from './types'
+
+// Supplier side of the same module — bidding, My Bids and the supplier's end of the negotiation.
+export { AvailableRfqsPage } from './supplier/AvailableRfqsPage'
+export { SupplierRfqDetailPage } from './supplier/SupplierRfqDetailPage'
+export { SubmitBidPage } from './supplier/SubmitBidPage'
+export { MyBidsPage } from './supplier/MyBidsPage'
+export { SupplierBidPage } from './supplier/SupplierBidPage'
+export { SupplierNegotiationsPage } from './supplier/SupplierNegotiationsPage'
+export { SupplierNegotiationPage } from './supplier/SupplierNegotiationPage'
+
+export type { Rfq, RfqStatus, RfqDraft, RfqOutcome, SupplierBidStatus } from './types'

@@ -20,8 +20,8 @@ export function OrdersInboxPage() {
   const rows = useMemo(
     () =>
       data
-        .filter((r: RfqDraft) => r.status === 'awarded' && r.award)
-        .sort((a, b) => (b.award?.awardedAt ?? '').localeCompare(a.award?.awardedAt ?? '')),
+        .filter((r: RfqDraft) => r.status === 'awarded' && r.awards?.[0])
+        .sort((a, b) => (b.awards?.[0]?.awardedAt ?? '').localeCompare(a.awards?.[0]?.awardedAt ?? '')),
     [data],
   )
 
@@ -61,7 +61,7 @@ export function OrdersInboxPage() {
 
             <ul className="auth-stagger divide-y divide-border-subtle">
               {rows.map((rfq) => {
-                const a = rfq.award!
+                const a = rfq.awards![0]
                 return (
                   <li
                     key={rfq.id}
