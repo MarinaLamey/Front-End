@@ -33,12 +33,13 @@ export function rolesForSeat(portal: Portal, seat: Seat): Role[] {
 }
 
 /**
- * The seat to assume when a caller doesn't name one: Org Admin.
+ * The seat to assume when a caller doesn't name one: an ordinary member of the organisation.
  *
- * Whoever signs up creates the organisation, so the FIRST account in an org is always its admin —
- * and the demo signs you in as exactly that person. Every other seat exists because an Org Admin
- * invited it, and an invite always carries an explicit role, so a non-admin seat is never a default.
+ * Deliberately NOT `orgAdmin`. Admin rights are granted only by naming the seat explicitly, from the
+ * one fact that establishes them — the backend's `Admin` role, held by whoever registered the
+ * company. Defaulting to `orgAdmin` handed the Organisation section and the admin badge to EVERY
+ * signed-in account, including the Buyer/Supplier users an admin provisions, who must never see them.
  */
-export function defaultSeat(_portal: Portal): Seat {
-  return 'orgAdmin'
+export function defaultSeat(portal: Portal): Seat {
+  return portal === 'supplier' ? 'supplier' : 'buyer'
 }

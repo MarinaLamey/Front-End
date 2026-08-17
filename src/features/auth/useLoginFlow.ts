@@ -58,8 +58,13 @@ export function useLoginFlow(): UseLoginFlowResult {
     }
     // `result.roles` are the buyer/supplier memberships — land on the first and remember all of
     // them so the Buyer/Supplier switch only exposes the role(s) this account registered for.
+    //
+    // The seat is named explicitly because the mock signs you in as the person who REGISTERED the
+    // organisation, and that person is its admin — which is what puts the Organisation section in the
+    // left nav. It is no longer the default seat: an admin-provisioned Buyer/Supplier user is an
+    // ordinary member, so admin rights now have to be stated rather than assumed.
     const portal = result.roles[0]
-    login(portal, undefined, result.roles)
+    login(portal, undefined, result.roles, 'orgAdmin')
     navigate(`/${portal}`)
   }
 
