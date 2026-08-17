@@ -1,13 +1,22 @@
 import type { OrgMemberRole } from '../types'
 
-/** The four roles in the order the frames list them, and the order the Role selects offer. */
-export const ROLE_ORDER = ['orgAdmin', 'buyer', 'supplier', 'viewer'] as const
+/** Every role a member can hold, in the order the frames list them. */
+export const ROLE_ORDER = ['orgAdmin', 'buyer', 'supplier', 'both'] as const
 
-const ROLE_BY_KEY: Record<(typeof ROLE_ORDER)[number], OrgMemberRole> = {
+export type RoleKey = (typeof ROLE_ORDER)[number]
+
+/**
+ * The roles an Org Admin can hand out from the Role selects. Org Admin still renders on the
+ * members already holding it, but it is not something an invitation grants — a new user joins as
+ * a Buyer, a Supplier, or both.
+ */
+export const ASSIGNABLE_ROLES: readonly RoleKey[] = ['buyer', 'supplier', 'both']
+
+const ROLE_BY_KEY: Record<RoleKey, OrgMemberRole> = {
   orgAdmin: 'Org Admin',
   buyer: 'Buyer',
   supplier: 'Supplier',
-  viewer: 'Viewer',
+  both: 'Both',
 }
 
 /**

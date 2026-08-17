@@ -16,15 +16,15 @@ import {
 import { InviteUserDialog } from './components/InviteUserDialog'
 import { ManageUserDialog } from './components/ManageUserDialog'
 import { NoSeatsDialog } from './components/NoSeatsDialog'
-import { ROLE_ORDER } from './components/roles'
+import { ROLE_ORDER, type RoleKey } from './components/roles'
 import { roleKeyOf } from './components/InviteUserDialog'
 import type { OrgMember } from './types'
 
-const ROLE_TONE: Record<OrgMember['role'], 'brand' | 'info' | 'success' | 'neutral'> = {
+const ROLE_TONE: Record<OrgMember['role'], 'brand' | 'info' | 'success' | 'warning'> = {
   'Org Admin': 'brand',
   Buyer: 'info',
   Supplier: 'success',
-  Viewer: 'neutral',
+  Both: 'warning',
 }
 const STATUS_TONE: Record<OrgMember['status'], 'success' | 'warning' | 'neutral'> = {
   active: 'success',
@@ -226,6 +226,6 @@ export function OrganisationUsersPage() {
 }
 
 /** Role key → the role value, so the reference tiles can reuse {@link ROLE_TONE}. */
-function roleOf(key: (typeof ROLE_ORDER)[number]): OrgMember['role'] {
-  return key === 'orgAdmin' ? 'Org Admin' : key === 'buyer' ? 'Buyer' : key === 'supplier' ? 'Supplier' : 'Viewer'
+function roleOf(key: RoleKey): OrgMember['role'] {
+  return key === 'orgAdmin' ? 'Org Admin' : key === 'buyer' ? 'Buyer' : key === 'supplier' ? 'Supplier' : 'Both'
 }

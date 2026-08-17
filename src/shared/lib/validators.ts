@@ -21,3 +21,15 @@ export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /** True when a value looks like an email address (validated on the trimmed value). */
 export const isEmail = (value: string) => EMAIL_RE.test(value.trim())
+
+/**
+ * Password policy (intentionally the strong form): ≥8 chars with an uppercase letter, a lowercase
+ * letter, a digit, and a special character. Matches the backend `RegisterRequest` policy and is our
+ * client-side floor, so a submittable password always clears the server's validation too.
+ */
+export const isStrongPassword = (value: string) =>
+  value.length >= 8 &&
+  /[A-Z]/.test(value) &&
+  /[a-z]/.test(value) &&
+  /\d/.test(value) &&
+  /[^A-Za-z0-9]/.test(value)

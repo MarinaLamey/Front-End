@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/Button'
 import { Modal } from '@/shared/ui/Modal'
 import { Select } from '@/shared/ui/Select'
 import { CloseButton } from './AddDocumentDialog'
-import { ROLE_ORDER, roleFromLabel } from './roles'
+import { ASSIGNABLE_ROLES, roleFromLabel } from './roles'
 import { roleKeyOf } from './InviteUserDialog'
 import type { OrgMember, OrgMemberRole } from '../types'
 
@@ -44,7 +44,11 @@ export function ManageUserDialog({
 
   if (!member) return null
 
-  const roleLabels = ROLE_ORDER.map((key) => t(`org.users.roles.${key}.name`))
+  // An Org Admin cannot be re-assigned that role, but their own row must still show it — so their
+  // current role leads the list and the three assignable ones follow.
+  const currentKey = roleKeyOf(member.role)
+  const roleKeys = ASSIGNABLE_ROLES.includes(currentKey) ? ASSIGNABLE_ROLES : [currentKey, ...ASSIGNABLE_ROLES]
+  const roleLabels = roleKeys.map((key) => t(`org.users.roles.${key}.name`))
 
   return (
     <Modal open={open} onClose={onClose} labelledBy="manage-user-title" className="max-w-xl">

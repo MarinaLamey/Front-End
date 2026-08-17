@@ -805,7 +805,7 @@ export const en = {
         orgAdmin: { name: 'Org Admin', desc: 'Users, the organisation record and these settings. Plus everything a Buyer can do.' },
         buyer: { name: 'Buyer', desc: 'Create and publish RFQs, negotiate with suppliers, award and manage orders.' },
         supplier: { name: 'Supplier', desc: 'Bid on matched RFQs, negotiate, accept purchase orders and fulfil them.' },
-        viewer: { name: 'Viewer', desc: 'Read only. Can see RFQs, bids and orders but cannot act on any of them.' },
+        both: { name: 'Both', desc: 'Buyer and Supplier in one seat: post RFQs and bid on them, from either side of the deal.' },
       },
       invite: {
         title: 'Invite user',
@@ -814,8 +814,9 @@ export const en = {
         namePlaceholder: 'Fatima Al-Harbi',
         emailLabel: 'Work email',
         emailPlaceholder: 'fatima@alfaisal.com.sa',
+        passwordLabel: 'Temporary password',
         roleLabel: 'Role',
-        roleHint: 'Org Admin · Buyer · Supplier · Viewer. Only an Org Admin can change a role later.',
+        roleHint: 'Buyer · Supplier · Both. Only an Org Admin can change a role later.',
         seatHint: '{{count}} seats left of {{total}}. Sending this invitation uses it.',
         seatHint_one: '{{count}} seat left of {{total}}. Sending this invitation uses it.',
         submit: 'Send invitation',
@@ -1099,6 +1100,7 @@ export const en = {
   order: {
     title: 'Orders',
     inboxSubtitle: 'Every purchase order your organisation has issued, and where each one stands.',
+
     // The SUPPLIER's end of the same orders: accepting the PO, fulfilling it, and the conversation.
     supplierView: {
       title: 'Orders',

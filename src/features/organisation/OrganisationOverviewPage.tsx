@@ -25,12 +25,12 @@ import { useCurrentOrgMeta, useOrgVerification, VERIFICATION_BADGE } from '@/fea
 import { useOrganisation } from './useOrganisation'
 import type { OrgActionItem, OrgMember } from './types'
 
-/** Role pill tone: Org Admin = brand, Buyer = info, Supplier = success, Viewer = neutral. */
-const ROLE_TONE: Record<OrgMember['role'], 'brand' | 'info' | 'success' | 'neutral'> = {
+/** Role pill tone: Org Admin = brand, Buyer = info, Supplier = success, Both = warning. */
+const ROLE_TONE: Record<OrgMember['role'], 'brand' | 'info' | 'success' | 'warning'> = {
   'Org Admin': 'brand',
   Buyer: 'info',
   Supplier: 'success',
-  Viewer: 'neutral',
+  Both: 'warning',
 }
 
 /** Member-status pill tone: active = success, invited = warning, disabled = neutral. */

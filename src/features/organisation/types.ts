@@ -2,12 +2,13 @@
  * Org-admin data seam types.
  *
  * Mock DISPLAY data for the Organisation area (Overview / Users / Profile /
- * Settings). The per-member role here ('Org Admin' | 'Buyer' | 'Supplier') is
- * org-membership display data — NOT the auth RBAC in `platform/auth/roles.ts`,
- * which stays as-is.
+ * Settings). The per-member role here ('Org Admin' | 'Buyer' | 'Supplier' |
+ * 'Both') is org-membership display data — NOT the auth RBAC in
+ * `platform/auth/roles.ts`, which stays as-is. Only Buyer / Supplier / Both are
+ * assignable from the Role selects (see `components/roles.ts`).
  * ──────────────────────────────────────────────────────────────────────────── */
 
-export type OrgMemberRole = 'Org Admin' | 'Buyer' | 'Supplier' | 'Viewer'
+export type OrgMemberRole = 'Org Admin' | 'Buyer' | 'Supplier' | 'Both'
 export type OrgMemberStatus = 'active' | 'invited' | 'disabled'
 
 export interface OrgMember {
@@ -131,5 +132,14 @@ export interface OrganisationData {
 export interface InviteInput {
   name: string
   email: string
+  /**
+   * The new user's initial password, set by the Org Admin.
+   *
+   * Required because `POST /api/admin/users` creates the account outright — the backend has no
+   * invitation flow, so there is no set-your-own-password link for the user to follow. It is passed
+   * straight to that call and never persisted client-side (the mock builds its member row from named
+   * fields, so it cannot leak into localStorage).
+   */
+  password: string
   role: OrgMemberRole
 }

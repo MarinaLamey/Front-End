@@ -85,7 +85,7 @@ export const DEMO_MEMBERS = [
     name: 'Fahad Al-Mutairi',
     email: `fahad@${DEMO_ORG.emailDomain}`,
     department: 'Operations',
-    role: 'Viewer',
+    role: 'Both',
     status: 'invited',
     lastActiveKey: 'inviteSent2d',
   },
