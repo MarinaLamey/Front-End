@@ -143,9 +143,9 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
       {/* Full-width top header — logo, Beta badge, page title + account controls. */}
       <header className="flex items-center justify-between gap-4 border-b border-border-subtle bg-bg-surface px-6 py-3">
         <div className="flex items-center gap-3">
-          {/* Fixed height + auto width: the asset carries its own shadow margin, so `h-8` lands the
-              visible mark at the ~24px the Figma shows. */}
-          <BrandLogo className="h-8 w-auto" />
+          {/* Fixed height + auto width so the ratio holds. The asset carries its own shadow margin
+              (91×70 around a 75×54 mark), so the visible wordmark reads ~77% of this height. */}
+          <BrandLogo className="h-14 w-auto" />
           <span className="rounded-full bg-brand-subtle px-2 py-0.5 text-[11px] font-semibold text-brand-primary">
             {t('dashboard.beta')}
           </span>

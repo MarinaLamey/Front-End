@@ -26,7 +26,7 @@ export function AdminShell() {
     <div className="flex min-h-screen flex-col bg-bg-canvas">
       <header className="flex items-center justify-between gap-4 border-b border-border-subtle bg-bg-surface px-6 py-3">
         <div className="flex items-center gap-3">
-          <BrandLogo className="h-6.5 w-26" />
+          <BrandLogo className="h-14 w-auto" />
           <span className="inline-flex items-center gap-1 rounded-full bg-status-ai-subtle px-2 py-0.5 text-[11px] font-semibold text-status-ai">
             <ShieldDocIcon className="h-3.5 w-3.5" />
             {t('admin.badge')}
