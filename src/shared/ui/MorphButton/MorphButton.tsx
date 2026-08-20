@@ -52,19 +52,23 @@ function GrowthArrow() {
 export function MorphButton({ label, hoverLabel, tone = 'onDark', to, href, className }: MorphButtonProps) {
   const classes = cn(BASE, TONE[tone], className)
 
+  /* Both labels sit in the same 1×1 grid cell, so the button sizes to the WIDER of the two.
+     Overlaying the hover label absolutely would size the button to `label` alone and let
+     `overflow-hidden` clip the reveal — which it did in Arabic, where the two run to very
+     different lengths. */
   const content = (
-    <>
-      <span className="transition-opacity duration-500 ease-in-out group-hover:opacity-0 motion-reduce:transition-none">
+    <span className="grid place-items-center whitespace-nowrap">
+      <span className="col-start-1 row-start-1 transition-opacity duration-500 ease-in-out group-hover:opacity-0 motion-reduce:transition-none">
         {label}
       </span>
       <span
         aria-hidden="true"
-        className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100 motion-reduce:transition-none"
+        className="col-start-1 row-start-1 flex items-center gap-2 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100 motion-reduce:transition-none"
       >
         {hoverLabel}
         <GrowthArrow />
       </span>
-    </>
+    </span>
   )
 
   return to ? (
