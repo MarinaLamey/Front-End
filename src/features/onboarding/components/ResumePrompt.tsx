@@ -39,7 +39,7 @@ export function ResumePrompt({ step, onResume, onStartOver }: ResumePromptProps)
       }
     >
       <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface-sunken p-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-subtle text-brand-primary">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-subtle text-brand-primary shadow-sm">
           <ClockIcon className="h-5 w-5" />
         </span>
         <p className="text-sm text-content-secondary">{t('onboarding.resume.onStep', { step })}</p>

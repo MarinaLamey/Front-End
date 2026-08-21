@@ -51,11 +51,14 @@ export function VerificationStatusCard({ items, note }: VerificationStatusCardPr
   const { t } = useTranslation()
   return (
     <SectionCard title={t('dashboard.verification.statusTitle')}>
-      <ul className="flex flex-col divide-y divide-border-subtle">
+      <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
         {items.map((item) => {
           const { icon: Icon, tone } = STATE_ICON[item.state]
           return (
-            <li key={item.title} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+            // `flex-wrap`: the badge+"Re-upload" cluster is `shrink-0` by design, so a rejected row
+            // (pill + button together) drops it to its own row on a narrow screen instead of
+            // overflowing the card.
+            <li key={item.title} className="flex flex-wrap items-start gap-3 py-3 first:pt-0 last:pb-0">
               <Icon className={`mt-0.5 h-5 w-5 shrink-0 stroke-2 ${tone}`} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-content-primary">{item.title}</p>
@@ -65,7 +68,7 @@ export function VerificationStatusCard({ items, note }: VerificationStatusCardPr
                 </p>
                 {item.reason && <p className="mt-0.5 text-xs font-medium text-status-danger">{item.reason}</p>}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
                 <StatusBadge label={t(STATE_BADGE[item.state])} tone={STATE_TONE[item.state]} dot={false} strong plain />
                 {item.action}
               </div>

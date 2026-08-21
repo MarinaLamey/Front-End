@@ -6,6 +6,7 @@ import { BRAND_PANEL_GRADIENT } from '@/shared/ui/SplitShell'
 import { Reveal } from '@/shared/ui/Reveal'
 import { ShimmerButton } from '@/shared/ui/ShimmerButton'
 import { MorphButton } from '@/shared/ui/MorphButton'
+import { KineticHeadline } from '../motion/KineticHeadline'
 import { ctaSecondaryDark } from './ctaStyles'
 import { IconAi, IconExchange, IconRfq, IconShield } from './icons'
 
@@ -42,11 +43,7 @@ export function LandingHero() {
               {t('marketing.hero.eyebrow')}
             </p>
           </Reveal>
-          <Reveal from="up" delay={90}>
-            <h1 className="text-4xl font-bold leading-tight text-white">
-              {t('marketing.hero.title')}
-            </h1>
-          </Reveal>
+          <KineticHeadline text={t('marketing.hero.title')} className="text-4xl font-bold leading-tight text-white" />
           <Reveal from="up" delay={180}>
             <p className="text-lg leading-relaxed text-white/90">{t('marketing.hero.subtitle')}</p>
           </Reveal>

@@ -4,6 +4,7 @@ export const en = {
     back: 'Back',
     cancel: 'Cancel',
     close: 'Close',
+    openMenu: 'Open menu',
     yes: 'Yes',
     no: 'No',
     minChars: 'At least {{min}} characters',
@@ -23,6 +24,25 @@ export const en = {
       rows: 'Rows',
       prev: 'Previous page',
       next: 'Next page',
+    },
+    // Copy for the shared ErrorState block. One entry per failure shape, so a screen only has to
+    // say WHAT failed rather than reword the explanation.
+    error: {
+      retry: 'Try again',
+      // Shown under the message as a footnote — useful to support, meaningless to most users.
+      status: 'Error {{status}}',
+      offline: {
+        title: 'You appear to be offline',
+        message: 'We couldn’t reach mimony. Check your connection, then try again.',
+      },
+      forbidden: {
+        title: 'You don’t have access to this',
+        message: 'This account isn’t allowed to view this page. Switch account, or ask your Org Admin for access.',
+      },
+      server: {
+        title: 'Something went wrong',
+        message: 'We couldn’t load this right now. Please try again in a moment.',
+      },
     },
   },
   catalog: {
@@ -67,10 +87,11 @@ export const en = {
     personalDetails: 'Personal details',
     fullName: 'Full name',
     jobTitle: 'Job title',
-    workEmail: 'Work email',
-    mobile: 'Mobile',
+    phone: 'Phone',
     language: 'Language',
-    timeZone: 'Time zone',
+    edit: 'Edit',
+    editEmail: 'Edit email',
+    editPhone: 'Edit phone',
     security: 'Security',
     password: 'Password',
     passwordLastChanged: 'Last changed {{date}}',
@@ -83,10 +104,43 @@ export const en = {
     sms: 'SMS',
     smsDesc: 'Only for sign-in codes. Cannot be turned off.',
     memberSince: 'Member since {{date}}',
+    contactChange: {
+      expires: 'Code expires in {{count}} minutes',
+      expires_one: 'Code expires in {{count}} minute',
+      resend: 'Resend code',
+      email: {
+        title: 'Change your email',
+        body: 'We send a 6-digit code to the new address. Your email changes only after you enter that code.',
+        label: 'New email',
+        placeholder: 'name@company.com.sa',
+        helper: 'Your current email stays active until the new one is verified.',
+        verifyTitle: 'Verify your new email',
+        verifyBody: 'We sent a {{length}}-digit code to {{destination}}. Enter it to confirm the change.',
+      },
+      phone: {
+        title: 'Change your phone',
+        body: 'We send a 4-digit code by SMS to the new phone. Your phone changes only after you enter that code.',
+        label: 'New phone',
+        helper: 'Your current phone stays active until the new one is verified.',
+        verifyTitle: 'Verify your new phone',
+        verifyBody: 'We sent a {{length}}-digit code by SMS to {{destination}}. Enter it to confirm the change.',
+      },
+    },
+    passwordChange: {
+      title: 'Change your password',
+      body: 'We send a 6-digit code to {{destination}}. Your password changes only after you enter that code.',
+      verifyTitle: 'Verify it is you',
+      verifyBody: 'We sent a {{length}}-digit code to {{destination}}. Enter it to continue.',
+    },
     errors: {
       name: 'Use letters only — no digits or symbols.',
       email: 'Enter a valid email address.',
-      mobile: 'Enter a Saudi mobile: 9 digits starting with 5.',
+      phone: 'Enter a Saudi mobile: 9 digits starting with 5.',
+      emailUnchanged: 'That is already your email address.',
+      phoneUnchanged: 'That is already your phone number.',
+      codeInvalid: 'That code is incorrect.',
+      codeExpired: 'That code has expired. Request a new one.',
+      generic: 'Something went wrong. Please try again.',
     },
     roles: {
       admin: {
@@ -380,7 +434,7 @@ export const en = {
     buildingNoInvalid: 'Building number must be 4 digits',
     additionalNoInvalid: 'Additional number must be 4 digits',
     zipInvalid: 'Zip code must be 5 digits',
-    unitNoInvalid: 'Unit number must be exactly 4 digits',
+    unitNoInvalid: 'Unit number must be 2 to 4 digits',
     lettersOnly: 'Use letters only — no numbers or symbols.',
   },
   onboarding: {
@@ -433,7 +487,7 @@ export const en = {
       subtitle: "Your Organisation's role, registration and tax details.",
       accountType: 'Account type',
       buyer: 'Buyer',
-      seller: 'Seller',
+      seller: 'Supplier',
       both: 'Both',
       organization: 'Organisation',
       orgName: 'Organisation name',
@@ -851,6 +905,9 @@ export const en = {
   },
   dashboard: {
     title: 'Dashboard',
+    // Heading for the ErrorState shown when the dashboard endpoint fails; the explanation under it
+    // comes from the variant (offline / forbidden / server).
+    errorTitle: 'We couldn’t load your dashboard',
     beta: 'Beta',
     orgAdminBadge: 'Organisation Admin',
     comingSoon: 'Coming soon',
@@ -3046,7 +3103,7 @@ export const en = {
     footer: {
       description:
         'B2B procurement and payments for Saudi Arabia. Source, bid and settle on one SAMA-ready platform.',
-      copyright: '© 2026 MI Technologies',
+      copyright: '© 2026 MI-Proc',
       product: 'PRODUCT',
       company: 'COMPANY',
       legal: 'LEGAL',

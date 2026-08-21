@@ -4,7 +4,7 @@ import { api, toUiError, type OnboardingRole } from '@/platform/api'
 import type { UiError } from '@/shared/ui/types'
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6
-/** Account type. 'supplier' is labelled "Seller" in the UI. */
+/** Account type. 'supplier' is labelled "Supplier" in the UI (i18n key is still `company.seller`). */
 export type RegisterRole = 'buyer' | 'supplier' | 'both'
 
 /** Everything collected across the six steps; submitted at Review. */

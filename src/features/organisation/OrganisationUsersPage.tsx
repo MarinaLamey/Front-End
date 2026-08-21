@@ -105,7 +105,7 @@ export function OrganisationUsersPage() {
       </div>
 
       {/* Seats bar. */}
-      <div className="rounded-2xl border border-border-subtle bg-bg-surface p-5">
+      <div className="rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-5">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-semibold text-content-primary">
             {t('org.users.seatsUsed', { used: seats.used, total: seats.total })}
@@ -124,7 +124,7 @@ export function OrganisationUsersPage() {
       </div>
 
       {/* What each role can do. */}
-      <div className="rounded-2xl border border-border-subtle bg-bg-surface p-5">
+      <div className="rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-content-primary">{t('org.users.rolesTitle')}</h2>
           <span className="text-xs text-content-tertiary">{t('org.users.rolesFixed')}</span>
@@ -145,7 +145,7 @@ export function OrganisationUsersPage() {
       </div>
 
       {/* Members table. */}
-      <div className="rounded-2xl border border-border-subtle bg-bg-surface p-5">
+      <div className="rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-5">
         <div className="overflow-x-auto">
           <div className="min-w-[720px]">
             <div className={cn(GRID, 'border-b border-border-subtle pb-2 text-xs font-medium text-content-tertiary')}>

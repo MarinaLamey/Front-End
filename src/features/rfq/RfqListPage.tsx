@@ -196,7 +196,7 @@ export function RfqListPage() {
           <h1 className="text-2xl font-bold tracking-tight text-content-primary">{t('rfq.title')}</h1>
           <p className="mt-1 text-sm text-content-secondary">{t('rfq.list.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Scope toggle — My RFQs / All organisation. */}
           <div className="flex rounded-lg border border-border-subtle bg-bg-surface p-0.5 text-sm">
             {SCOPES.map((s) => (
@@ -249,7 +249,7 @@ export function RfqListPage() {
         })}
       </div>
 
-      <div className="mt-4 rounded-xl border border-border-subtle bg-bg-surface">
+      <div className="mt-4 rounded-xl border border-border-subtle bg-bg-surface shadow-sm">
         {isLoading ? (
           <div className="flex min-h-[40vh] items-center justify-center">
             <Spinner />

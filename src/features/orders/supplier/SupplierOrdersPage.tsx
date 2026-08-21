@@ -72,7 +72,7 @@ export function SupplierOrdersPage() {
           <Spinner />
         </div>
       ) : orders.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface shadow-sm py-16 text-center">
           <p className="text-base font-semibold text-content-primary">{t('order.supplierView.empty')}</p>
           <p className="max-w-sm text-sm text-content-secondary">{t('order.supplierView.emptyHint')}</p>
           <Button className="mt-1" variant="outline" onClick={() => navigate('/supplier/bids')}>
@@ -104,11 +104,11 @@ export function SupplierOrdersPage() {
           </div>
 
           {visible.length === 0 ? (
-            <div className="rounded-xl border border-border-subtle bg-bg-surface py-14 text-center text-sm text-content-tertiary">
+            <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm py-14 text-center text-sm text-content-tertiary">
               {t('order.supplierView.noneInTab')}
             </div>
           ) : (
-            <div className="mp-stagger overflow-hidden rounded-xl border border-border-subtle bg-bg-surface">
+            <div className="mp-stagger overflow-hidden rounded-xl border border-border-subtle bg-bg-surface shadow-sm">
               <div className="overflow-x-auto">
                 {/* tracks 884 + 5 gaps 80 + row px-5 40 */}
                 <div className="min-w-[1004px]">

@@ -70,7 +70,7 @@ export function CancelOrderPage() {
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="auth-stagger space-y-6">
           {/* Reason */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.cancel.whyTitle')}</h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {REASONS.map((r) => (
@@ -95,7 +95,7 @@ export function CancelOrderPage() {
           {/* What happens to the RFQ. SoT §9: not a choice — the route follows the request's award
               state. A partly awarded request returns to Live keeping its number and its bids; a
               fully awarded one is finished, and the buyer starts a new request with a new number. */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.cancel.rfqTitle', { rfq: order.rfqReference })}</h2>
             <div className="mt-3 rounded-xl border border-border-subtle bg-bg-surface-sunken p-4">
               <p className="text-sm font-semibold text-content-primary">
@@ -114,7 +114,7 @@ export function CancelOrderPage() {
 
         {/* Right rail */}
         <div className="auth-stagger space-y-5">
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.po.summaryTitle')}</h2>
             {/* No PO-reference row — the page sub-heading already opens with the PO number. */}
             <dl className="mt-3 space-y-2.5 text-sm">
@@ -126,7 +126,7 @@ export function CancelOrderPage() {
             <p className="mt-3 text-xs text-content-tertiary">{preAcceptance ? t('order.cancel.noConsequence') : t('order.cancel.agreementNote')}</p>
           </div>
 
-          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <Button variant="danger" fullWidth disabled={!canCancel} isLoading={cancel.isPending} onClick={doCancel}>
               {t('order.cancel.confirm')}
             </Button>

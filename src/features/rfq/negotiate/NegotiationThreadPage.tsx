@@ -307,7 +307,7 @@ export function NegotiationThreadPage() {
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         {/* Offer history */}
-        <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+        <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-content-primary">{t('rfq.nego.history')}</h2>
             <span className="text-xs text-content-tertiary">
@@ -558,7 +558,7 @@ export function NegotiationThreadPage() {
         {/* Right rail */}
         <div className="space-y-5">
           {/* On the table */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-content-primary">{t('rfq.nego.onTable')}</h2>
               <span className="rounded-full bg-bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-content-secondary">
@@ -579,7 +579,7 @@ export function NegotiationThreadPage() {
           </div>
 
           {/* Actions */}
-          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <Button fullWidth onClick={acceptAndAward} isLoading={award.isPending} disabled={!active}>
               {t('rfq.nego.acceptAward')}
             </Button>
@@ -599,7 +599,7 @@ export function NegotiationThreadPage() {
 
           {/* Also negotiating */}
           {others.length > 0 && (
-            <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+            <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
               <h2 className="text-sm font-semibold text-content-primary">{t('rfq.nego.alsoNegotiating')}</h2>
               <ul className="mt-3 space-y-3">
                 {others.map((th) => {

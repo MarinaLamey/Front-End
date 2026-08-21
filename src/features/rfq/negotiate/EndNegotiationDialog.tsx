@@ -63,7 +63,9 @@ export function EndNegotiationDialog({
         </ul>
       </div>
 
-      <div className="mt-5 flex gap-3">
+      {/* Stacks below `sm`: Button labels are `whitespace-nowrap overflow-hidden` with no ellipsis,
+          so two `fullWidth` buttons squeezed side by side on a narrow modal would silently clip. */}
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <Button variant="danger" fullWidth isLoading={loading} onClick={onConfirm}>
           {t('rfq.nego.end.confirm')}
         </Button>

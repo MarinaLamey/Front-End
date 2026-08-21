@@ -91,7 +91,9 @@ export function CompareOverrideDialog({
         {t('rfq.compare.override.accept')}
       </label>
 
-      <div className="mt-5 flex gap-3">
+      {/* Stacks below `sm`: Button labels are `whitespace-nowrap overflow-hidden` with no ellipsis,
+          so two `fullWidth` buttons squeezed side by side on a narrow modal would silently clip. */}
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <Button variant="danger" fullWidth disabled={!canConfirm} isLoading={loading} onClick={() => onConfirm(reason.trim())}>
           {t('rfq.compare.override.confirm')}
         </Button>

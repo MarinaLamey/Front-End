@@ -26,7 +26,7 @@ export function SupplierPartiesCard({ order }: { order: Order }) {
   const accepted = order.acceptedAt != null
 
   return (
-    <div className="grid gap-6 rounded-xl border border-border-subtle bg-bg-surface p-5 sm:grid-cols-2">
+    <div className="grid gap-6 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5 sm:grid-cols-2">
       {accepted ? (
         <Party label={t('order.buyer')} party={order.buyer} />
       ) : (
@@ -68,7 +68,7 @@ export function OrderNote({
 /** The card every supplier order surface hangs its content on. */
 export function Panel({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('rounded-xl border border-border-subtle bg-bg-surface p-5', className)}>{children}</div>
+    <div className={cn('rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5', className)}>{children}</div>
   )
 }
 

@@ -27,7 +27,7 @@ export function LandingFeatures() {
         <div className="grid gap-6 md:grid-cols-3">
           {FEATURES.map((feature, index) => (
             <Reveal key={feature.titleKey} delay={index * 100}>
-              <div className="group h-full space-y-3.5 rounded-2xl border border-border-subtle bg-bg-surface p-7 transition-transform duration-200 ease-out hover:-translate-y-1 motion-reduce:transition-none">
+              <div className="group h-full space-y-3.5 rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-7 transition-transform duration-200 ease-out hover:-translate-y-1 motion-reduce:transition-none">
                 <div className="flex h-[52px] w-[52px] items-center justify-center rounded-xl bg-brand-subtle transition-transform duration-200 group-hover:scale-110 motion-reduce:transform-none">
                   <feature.Icon className="h-6 w-6 text-brand-strong" />
                 </div>

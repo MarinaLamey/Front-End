@@ -112,7 +112,7 @@ export function OrdersInboxPage() {
           <Spinner />
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-surface">
+        <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-surface shadow-sm">
           <div className="min-w-[820px] px-5">
             <div className={cn(GRID, 'border-b border-border-subtle py-3 text-xs font-medium text-content-tertiary')}>
               <span>{t('order.col.order')}</span>

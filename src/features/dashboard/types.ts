@@ -1,4 +1,5 @@
 import type { BadgeTone, TimelineStep } from '@/shared/ui/dashboard'
+import type { ErrorVariant } from '@/shared/ui/ErrorState'
 
 /** One KPI tile's data. The label is resolved from `key` at render time (`dashboard.stats.*`). */
 export interface StatItem {
@@ -80,8 +81,20 @@ export interface TrackedOrder {
   steps: TimelineStep[]
 }
 
+/**
+ * The organisation's KYB state as the DASHBOARD API reports it — the same three values the
+ * verification store uses, so a page can consume either source without translating.
+ */
+export type DashboardVerification = 'verified' | 'pending' | 'rejected'
+
 export interface BuyerDashboardData {
   org: { name: string; type: string; userName: string }
+  /**
+   * KYB status straight from the backend, when the seam can determine it. The MOCK seam leaves this
+   * undefined and the page falls back to the local verification record; the REAL seam sets it from
+   * the dashboard payload, so a super-admin's decision reaches the screen without any local state.
+   */
+  verification?: DashboardVerification
   stats: StatItem[]
   pipeline: PipelineSegment[]
   actionCount: number
@@ -92,4 +105,31 @@ export interface BuyerDashboardData {
   recommendations: Recommendation[]
   documents: ComplianceDoc[]
   rejectionReason: string
+}
+
+/**
+ * A load failure, already classified into something the UI can act on. The seam does the
+ * classifying so the page never has to know whether it is holding an AxiosError, a fetch rejection
+ * or a mock throw.
+ */
+export interface DashboardError {
+  variant: ErrorVariant
+  /** HTTP status, when there was a response at all. Absent for a request that never got one. */
+  status?: number
+}
+
+/**
+ * What every dashboard seam returns — mock and real alike. The pages are written against this and
+ * nothing else, which is what lets the two repos keep byte-identical dashboard pages while only
+ * myapp's seam talks to a backend.
+ */
+export interface DashboardSeam {
+  data?: BuyerDashboardData
+  isLoading: boolean
+  /** Undefined on success. Present means: show the error block, there is nothing to render. */
+  error?: DashboardError
+  /** Re-runs the load behind the seam. Wired to the ErrorState retry button. */
+  refetch: () => void
+  /** True while a retry triggered by that button is in flight. */
+  isRefetching: boolean
 }

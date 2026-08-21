@@ -163,7 +163,7 @@ export function AvailableRfqsPage() {
           </div>
 
           {rows.length === 0 ? (
-            <div className="rounded-xl border border-border-subtle bg-bg-surface py-16 text-center">
+            <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm py-16 text-center">
               <p className="text-base font-semibold text-content-primary">
                 {t(`rfq.supplier.available.empty.${tab}`)}
               </p>
@@ -245,7 +245,7 @@ function OpportunityCard({
   return (
     <li
       className={cn(
-        'rounded-xl border border-border-subtle bg-bg-surface p-5 transition-colors',
+        'mp-lift rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5 transition-colors',
         declined && 'text-content-tertiary',
         declined && closed && 'opacity-60',
       )}

@@ -84,7 +84,7 @@ export function AwardConfirmedPage() {
 
           <div className="grid gap-5 lg:grid-cols-2">
             {/* Supplier — identity stays blind until they accept the PO. */}
-            <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+            <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-content-primary">{t('rfq.award.awaitingAcceptance')}</h3>
                 <span className="rounded-full bg-bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-content-secondary">
@@ -103,7 +103,7 @@ export function AwardConfirmedPage() {
             </div>
 
             {/* Agreed terms */}
-            <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+            <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-content-primary">{t('rfq.award.agreedTerms')}</h3>
                 <span className="rounded-full bg-brand-subtle px-2 py-0.5 text-xs font-medium text-brand-strong">
@@ -144,7 +144,7 @@ export function AwardConfirmedPage() {
       )}
 
       {/* What happens next */}
-      <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+      <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
         <p className="text-sm font-semibold text-content-primary">{t('rfq.award.next.heading')}</p>
         <ol className="mt-3 grid gap-4 sm:grid-cols-3">
           {steps.map((step, i) => (

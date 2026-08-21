@@ -107,7 +107,7 @@ export function OrderMessagesPage() {
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Conversation */}
-        <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+        <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.messages.conversation')}</h2>
             <span className="text-xs text-content-tertiary">{t('order.messages.historyMeta')}</span>
@@ -162,7 +162,7 @@ export function OrderMessagesPage() {
         {/* Right rail */}
         <div className="space-y-5">
           {/* Agreed terms (locked) */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-content-primary">{t('order.messages.agreedTerms')}</h2>
               <span className="rounded-full bg-bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-content-secondary">
@@ -179,7 +179,7 @@ export function OrderMessagesPage() {
           </div>
 
           {/* Documents */}
-          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <Button fullWidth onClick={() => setPoOpen(true)}>
               {t('order.messages.viewPo')}
             </Button>
@@ -190,7 +190,7 @@ export function OrderMessagesPage() {
 
           {/* Supplier — revealed, so this is the card that tells the buyer WHO to call. The CR/VAT
               and address live on the order itself; here the useful facts are a person and a number. */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('order.messages.supplier')}</h2>
             <p className="mt-2 text-base font-bold text-content-link">{order.supplier.name}</p>
             <dl className="mt-3 space-y-2.5 text-sm">

@@ -78,7 +78,7 @@ export function OrganisationSettingsPage() {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border-subtle bg-bg-surface p-5">
+    <div className="rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-5">
       <h2 className="text-sm font-semibold text-content-primary">{title}</h2>
       <ul className="mt-2 divide-y divide-border-subtle">{children}</ul>
     </div>

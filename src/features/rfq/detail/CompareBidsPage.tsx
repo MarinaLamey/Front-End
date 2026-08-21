@@ -369,7 +369,7 @@ export function CompareBidsPage() {
         />
       </div>
 
-      <div className="mt-4 rounded-xl border border-border-subtle bg-bg-surface p-5">
+      <div className="mt-4 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
         {columns.length === 0 ? (
           <p className="py-8 text-center text-sm text-content-tertiary">{t('rfq.compare.noneToCompare')}</p>
         ) : view === 'summary' ? (

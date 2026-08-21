@@ -35,6 +35,7 @@ import {
 } from '@/shared/ui/dashboard'
 import { Button } from '@/shared/ui/Button'
 import { Spinner } from '@/shared/ui/Spinner'
+import { ErrorState } from '@/shared/ui/ErrorState'
 import { useBuyerDashboard } from './useBuyerDashboard'
 import type { ActionItem, BuyerDashboardData, StatItem } from './types'
 import { WelcomeHero } from './components/WelcomeHero'
@@ -91,9 +92,12 @@ export function BuyerDashboardPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const orgMeta = useCurrentOrgMeta()
-  const { data: record, isLoading: verificationLoading } = useOrgVerification(orgMeta)
-  const { data, isLoading: dashboardLoading } = useBuyerDashboard()
-  const status = record?.status ?? 'pending'
+  const { data: record, isLoading: verificationLoading, refetch: refetchVerification } = useOrgVerification(orgMeta)
+  const { data, isLoading: dashboardLoading, error, refetch, isRefetching } = useBuyerDashboard()
+  // The backend's KYB status wins whenever the data seam can report it — that is the real
+  // super-admin decision, and it must not be overridden by the local verification record. The
+  // record is only consulted in mock mode, where the seam leaves `verification` undefined.
+  const status = data?.verification ?? record?.status ?? 'pending'
   const verified = status === 'verified'
 
   // The green "verified" banner is a one-time celebration: it shows when the org first becomes
@@ -123,6 +127,21 @@ export function BuyerDashboardPage() {
     ''
 
   const createRfq = () => navigate('/buyer/rfqs/new')
+
+  // The failure check comes FIRST: on an error the seam has no data, so the `!data` clause below
+  // would otherwise hold the page on a spinner that never resolves. A `forbidden` error gets no
+  // retry button — this account will be refused again for as long as it is this account.
+  if (error) {
+    return (
+      <ErrorState
+        variant={error.variant}
+        title={t('dashboard.errorTitle')}
+        detail={error.status ? t('common.error.status', { status: error.status }) : undefined}
+        onRetry={error.variant === 'forbidden' ? undefined : refetch}
+        isRetrying={isRefetching}
+      />
+    )
+  }
 
   // Until the real verification status AND the derived dashboard are loaded, show a spinner rather
   // than defaulting to the pending view — otherwise a verified org briefly flashes the pending
@@ -164,7 +183,18 @@ export function BuyerDashboardPage() {
       )}
 
       {!verified ? (
-        <PreVerifiedDashboard record={record} status={status} onCreateRfq={createRfq} />
+        <PreVerifiedDashboard
+          record={record}
+          status={status}
+          onCreateRfq={createRfq}
+          // Re-read the KYB decision AND the dashboard: if the super-admin has approved us since
+          // the page loaded, both the status and the figures behind it have moved on.
+          onCheckStatus={() => {
+            refetchVerification()
+            refetch()
+          }}
+          isChecking={verificationLoading || isRefetching}
+        />
       ) : data.rfqs.length === 0 ? (
         // Verified but nothing sourced yet: the working dashboard would be a wall of empty cards,
         // so the first run explains the flow instead.
@@ -193,7 +223,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; on
       />
 
       {/* Verified-suppliers strip. */}
-      <div className="flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-surface px-4 py-3 text-sm text-content-secondary">
+      <div className="flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-surface shadow-sm px-4 py-3 text-sm text-content-secondary">
         <CheckCircleIcon className="h-4 w-4 text-status-success" />
         {t('dashboard.verifiedSuppliersOnly')}
       </div>
@@ -201,7 +231,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; on
       <StatGrid stats={data.stats} />
 
       {/* Pipeline strip. */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg-surface px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg-surface shadow-sm px-5 py-4">
         <span className="text-sm font-semibold text-content-primary">{t('dashboard.pipeline')}</span>
         <div className="flex flex-wrap items-center gap-4">
           {data.pipeline.map((seg) => (
@@ -228,7 +258,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; on
         <p className="-mt-2 mb-3 text-sm text-content-tertiary">
           {t('dashboard.actionItems', { count: data.actionCount })}
         </p>
-        <ul className="flex flex-col divide-y divide-border-subtle">
+        <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
           {data.actions.map((action) => (
             <li key={action.id} className="py-2 first:pt-0 last:pb-0">
               <ListRow
@@ -271,7 +301,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; on
             </button>
           }
         >
-          <ul className="flex flex-col divide-y divide-border-subtle">
+          <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
             {data.rfqs.map((rfq) => (
               <li key={rfq.id} className="py-1">
                 <ListRow
@@ -280,7 +310,9 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; on
                   title={rfq.title}
                   subtitle={
                     <>
-                      {rfq.ref} · {rfq.meta}
+                      {/* Joined rather than interpolated: a row whose reference or meta is empty
+                          must not render a dangling " · ". */}
+                      {[rfq.ref, rfq.meta].filter(Boolean).join(' · ')}
                       {rfq.anonymous && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-bg-surface-sunken px-1.5 py-0.5 text-[11px] text-content-tertiary">
                           <EyeOffIcon className="h-3 w-3" />
@@ -333,7 +365,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; on
 
       {/* Suggested suppliers. */}
       <SectionCard title={t('dashboard.suggestedSuppliers')}>
-        <ul className="flex flex-col divide-y divide-border-subtle">
+        <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
           {data.recommendations.map((rec) => (
             <li key={rec.id} className="py-2 first:pt-0 last:pb-0">
               <ListRow
@@ -368,7 +400,7 @@ function VerifiedDashboard({ data, onCreateRfq }: { data: BuyerDashboardData; on
           </button>
         }
       >
-        <ul className="flex flex-col divide-y divide-border-subtle">
+        <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
           {data.documents.map((doc) => {
             const expiring = doc.status.toLowerCase().startsWith('expiring')
             return (
@@ -450,10 +482,14 @@ function PreVerifiedDashboard({
   record,
   status,
   onCreateRfq,
+  onCheckStatus,
+  isChecking,
 }: {
   record?: OrgVerification
   status: 'pending' | 'rejected'
   onCreateRfq: () => void
+  onCheckStatus: () => void
+  isChecking: boolean
 }) {
   const { t } = useTranslation()
   const resubmit = useResubmitDoc()
@@ -506,7 +542,13 @@ function PreVerifiedDashboard({
         subtitle={rejected ? t('dashboard.sourcing.resubmitSubtitle') : t('dashboard.sourcing.pendingSubtitle')}
         steps={sourcingSteps(t, false)}
         action={
-          <Button variant={rejected ? 'primary' : 'outline'} size="sm" leftIcon={<RefreshIcon className="h-4 w-4" />} onClick={() => undefined}>
+          <Button
+            variant={rejected ? 'primary' : 'outline'}
+            size="sm"
+            leftIcon={<RefreshIcon className="h-4 w-4" />}
+            isLoading={isChecking}
+            onClick={onCheckStatus}
+          >
             {rejected ? t('dashboard.sourcing.resubmit') : t('dashboard.sourcing.checkStatus')}
           </Button>
         }

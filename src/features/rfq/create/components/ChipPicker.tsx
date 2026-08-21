@@ -18,6 +18,14 @@ interface ChipPickerProps {
   placeholderChip?: string
   /** Read-only mode — shows the selected chips without remove/add controls (e.g. locked on Amend). */
   locked?: boolean
+  /**
+   * Display-only translations, keyed by the value in `options`/`selected`.
+   *
+   * The picker keeps storing the VALUE, not the label: RFQ categories come from the backend
+   * catalogue and have to travel back as the exact catalogue name to resolve to a GUID, but the
+   * buyer should read them in their own language. A value with no entry renders as itself.
+   */
+  labels?: Record<string, string>
 }
 
 /**
@@ -36,20 +44,25 @@ export function ChipPicker({
   customLabel,
   placeholderChip,
   locked = false,
+  labels,
 }: ChipPickerProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
 
+  const labelOf = (value: string) => labels?.[value] ?? value
+  // Search the label, not the value — with `labels` set they differ, and an Arabic reader typing
+  // what is on screen must still find the option.
   const available = options.filter(
-    (option) => !selected.includes(option) && option.toLowerCase().includes(query.trim().toLowerCase()),
+    (option) =>
+      !selected.includes(option) && labelOf(option).toLowerCase().includes(query.trim().toLowerCase()),
   )
   const trimmed = query.trim()
   const canCustom =
     allowCustom &&
     trimmed.length > 0 &&
-    !options.some((o) => o.toLowerCase() === trimmed.toLowerCase()) &&
-    !selected.some((s) => s.toLowerCase() === trimmed.toLowerCase())
+    !options.some((o) => labelOf(o).toLowerCase() === trimmed.toLowerCase()) &&
+    !selected.some((s) => labelOf(s).toLowerCase() === trimmed.toLowerCase())
 
   const add = (value: string) => {
     if (value && !selected.includes(value)) onChange([...selected, value])
@@ -71,7 +84,7 @@ export function ChipPicker({
             key={chip}
             className="inline-flex items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-medium text-brand-strong"
           >
-            {chip}
+            {labelOf(chip)}
             {!locked && (
               <button
                 type="button"
@@ -113,7 +126,7 @@ export function ChipPicker({
                   onClick={() => add(option)}
                   className="flex w-full cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-sm text-content-primary transition-colors hover:bg-bg-surface-sunken"
                 >
-                  {option}
+                  {labelOf(option)}
                   <span className="text-xs font-medium text-brand-primary">{addLabel}</span>
                 </button>
               </li>

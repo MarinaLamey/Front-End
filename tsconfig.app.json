@@ -6,6 +6,8 @@
     "module": "esnext",
     "types": ["vite/client"],
     "skipLibCheck": true,
+    /* The ErrorState Lottie animations ship as .json so a designer's file is a drop-in swap. */
+    "resolveJsonModule": true,
 
     /* Path alias */
     "paths": {

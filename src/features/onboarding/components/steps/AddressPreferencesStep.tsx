@@ -20,7 +20,7 @@ interface AddressPreferencesStepProps {
 const BUILDING_RE = /^\d{4}$/ // e.g. 7201
 const ADDITIONAL_RE = /^\d{4}$/ // e.g. 2443
 const ZIP_RE = /^\d{5}$/ // e.g. 13315
-const UNIT_RE = /^\d{4}$/ // exactly 4 digits (backend rule), e.g. 0012
+const UNIT_RE = /^\d{2,4}$/ // 2 to 4 digits, e.g. 12 or 0012
 
 const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 

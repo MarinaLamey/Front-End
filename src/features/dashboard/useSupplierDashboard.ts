@@ -4,12 +4,20 @@ import { useAuth } from '@/platform/auth'
 import { formatSar, toHalalas } from '@/shared/lib/money'
 import { useRfqs } from '@/features/rfq/hooks/useRfqs'
 import { supplierViews, type SupplierRfqView } from '@/features/rfq/supplier/deriveSupplierBid'
-import { useOrganisation } from '@/features/organisation/useOrganisation'
+import { useOrganisationQuery } from '@/features/organisation/hooks/orgQueries'
 import { useSupplierOrders } from '@/features/orders/hooks/orderQueries'
+import { mockSeamState } from './mockSeam'
 import type { Order } from '@/features/orders/types'
 import type { SupplierBidStatus } from '@/features/rfq/types'
 import type { BadgeTone, TimelineStep } from '@/shared/ui/dashboard'
-import type { BuyerDashboardData, ComplianceDoc, PipelineSegment, RfqSummary, StatItem } from './types'
+import type {
+  BuyerDashboardData,
+  ComplianceDoc,
+  DashboardSeam,
+  PipelineSegment,
+  RfqSummary,
+  StatItem,
+} from './types'
 
 /**
  * Chip colour per bid status. Forced explicitly rather than inferred from the label, because
@@ -74,12 +82,15 @@ function orderSteps(order: Order, t: (k: string) => string): TimelineStep[] {
  * Organisation record — so the KPIs, the pipeline and My Bids describe the same bids the supplier
  * sees on their own pages, and the compliance documents are the org's real ones.
  */
-export function useSupplierDashboard(): { data?: BuyerDashboardData; isLoading: boolean } {
+export function useSupplierDashboard(): DashboardSeam {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
-  const { data: rfqs = [], isLoading: rfqsLoading } = useRfqs()
-  const { data: org, isLoading: orgLoading } = useOrganisation()
-  const { data: supplierOrders = [], isLoading: ordersLoading } = useSupplierOrders()
+  const rfqsQuery = useRfqs()
+  const orgQuery = useOrganisationQuery()
+  const ordersQuery = useSupplierOrders()
+  const { data: rfqs = [], isLoading: rfqsLoading } = rfqsQuery
+  const { data: org, isLoading: orgLoading } = orgQuery
+  const { data: supplierOrders = [], isLoading: ordersLoading } = ordersQuery
 
   const isLoading = rfqsLoading || orgLoading || ordersLoading
 
@@ -234,5 +245,5 @@ export function useSupplierDashboard(): { data?: BuyerDashboardData; isLoading: 
     }
   }, [rfqs, org, supplierOrders, user, t, i18n.language])
 
-  return { data, isLoading }
+  return { data, isLoading, ...mockSeamState([rfqsQuery, orgQuery, ordersQuery]) }
 }

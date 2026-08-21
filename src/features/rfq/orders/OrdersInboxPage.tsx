@@ -41,7 +41,7 @@ export function OrdersInboxPage() {
           <Spinner />
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface shadow-sm py-16 text-center">
           <p className="text-base font-semibold text-content-primary">{t('rfq.order.empty')}</p>
           <p className="max-w-sm text-sm text-content-secondary">{t('rfq.order.emptyHint')}</p>
           <Button className="mt-1" variant="outline" onClick={() => navigate('/buyer/rfqs')}>
@@ -49,7 +49,7 @@ export function OrdersInboxPage() {
           </Button>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-surface">
+        <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-surface shadow-sm">
           <div className="min-w-[740px] px-5">
             <div className={cn(GRID, 'border-b border-border-subtle py-3')}>
               <span className="text-xs font-medium text-content-tertiary">{t('rfq.order.colOrder')}</span>

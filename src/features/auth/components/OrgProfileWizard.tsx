@@ -33,7 +33,7 @@ export function OrgProfileWizard({ orgId, roles, onSubmitted }: OrgProfileWizard
   } = useOrgProfile({ orgId, roles, onSubmitted })
 
   return (
-    <div className="flex w-full max-w-[640px] flex-col gap-5 rounded-2xl border border-border-subtle bg-bg-surface p-7">
+    <div className="flex w-full max-w-[640px] flex-col gap-5 rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-7">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-content-primary">{t('auth.profileTitle')}</h1>
         <p className="text-sm text-content-secondary">

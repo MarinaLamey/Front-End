@@ -108,7 +108,7 @@ export function MyBidsPage() {
           <Spinner />
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface shadow-sm py-16 text-center">
           <p className="text-base font-semibold text-content-primary">{t('rfq.supplier.myBids.empty')}</p>
           <p className="max-w-sm text-sm text-content-secondary">{t('rfq.supplier.myBids.emptyHint')}</p>
           <Button className="mt-1" variant="outline" onClick={() => navigate('/supplier/rfqs')}>
@@ -120,11 +120,11 @@ export function MyBidsPage() {
           <SupplierChips chips={chips} active={chip} onChange={setChip} />
 
           {visible.length === 0 ? (
-            <div className="rounded-xl border border-border-subtle bg-bg-surface py-14 text-center text-sm text-content-tertiary">
+            <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm py-14 text-center text-sm text-content-tertiary">
               {t('rfq.supplier.myBids.noneInFilter')}
             </div>
           ) : (
-            <div className="mp-stagger overflow-hidden rounded-xl border border-border-subtle bg-bg-surface">
+            <div className="mp-stagger overflow-hidden rounded-xl border border-border-subtle bg-bg-surface shadow-sm">
               <div className="overflow-x-auto">
                 {/* tracks 764 + 5 gaps 80 + row px-5 40 — below this the table scrolls rather than
                     squeezing a column past its fixed width and breaking the header alignment. */}

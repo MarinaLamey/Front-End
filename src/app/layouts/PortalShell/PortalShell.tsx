@@ -17,18 +17,24 @@ import {
   ShieldIcon,
   HelpIcon,
   LockIcon,
+  MenuIcon,
 } from '@/shared/ui/dashboard'
 import { UserIcon } from '@/features/auth/components/authIcons'
 import type { NavItem, PortalConfig } from '@/app/portals'
 import { NotificationPanel, type NotificationItem } from './NotificationPanel'
 import { HelpSupportDialog } from '@/shared/ui/HelpSupportDialog'
+import { CloseButton } from '@/shared/ui/Modal'
 
-/** Shared NavLink styling for sidebar items (top-level and sub-items). */
+/**
+ * Shared NavLink styling for sidebar items (top-level and sub-items). Active reads as a quiet
+ * tint + a thin brand accent on the leading edge (inset box-shadow, so it doesn't consume layout
+ * space or fight the item's own rounding) — deliberately lighter than a solid filled pill.
+ */
 const navItemClass = ({ isActive }: { isActive: boolean }) =>
   cn(
-    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
     isActive
-      ? 'bg-brand-subtle font-medium text-brand-primary'
+      ? 'bg-brand-subtle/60 font-medium text-brand-primary shadow-[inset_2px_0_0_0_var(--color-brand-primary)] rtl:shadow-[inset_-2px_0_0_0_var(--color-brand-primary)]'
       : 'text-content-secondary hover:bg-interactive-hover hover:text-content-primary',
   )
 
@@ -46,9 +52,9 @@ function NavGroup({ item }: { item: NavItem }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-content-secondary transition-colors hover:bg-interactive-hover hover:text-content-primary"
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-content-secondary transition-colors hover:bg-interactive-hover hover:text-content-primary"
       >
-        <item.icon className="h-5 w-5 shrink-0" />
+        <item.icon className="h-4 w-4 shrink-0" />
         <span className="flex-1 text-start">{t(item.label)}</span>
         <ChevronDownIcon className={cn('h-4 w-4 text-content-tertiary transition-transform', open && 'rotate-180')} />
       </button>
@@ -56,7 +62,7 @@ function NavGroup({ item }: { item: NavItem }) {
         <div className="mt-1 space-y-1 ps-4">
           {children.map((child) => (
             <NavLink key={child.to} to={child.to ?? '#'} end={child.end} className={navItemClass}>
-              <child.icon className="h-5 w-5 shrink-0" />
+              <child.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{t(child.label)}</span>
             </NavLink>
           ))}
@@ -124,10 +130,24 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
   const [bellOpen, setBellOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  // Sidebar drawer — mounted at every width, only reachable below `lg` (the hamburger is
+  // `lg:hidden`). Below `lg` the sidebar is `fixed` and slides in via transform; at `lg`+ it's
+  // back in normal flow and this state is simply never toggled.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const bellRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   useDismiss(bellOpen, bellRef, () => setBellOpen(false))
   useDismiss(menuOpen, menuRef, () => setMenuOpen(false))
+  // Close the drawer whenever the route changes — otherwise the scrim would still cover the
+  // freshly-navigated page after tapping a nav link. Adjusted during render (React's documented
+  // pattern for resetting state on a prop change) rather than in an effect, so there's no extra
+  // commit/flicker.
+  const { pathname } = useLocation()
+  const [lastPathname, setLastPathname] = useState(pathname)
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname)
+    setMobileNavOpen(false)
+  }
 
   const unread = NOTIFICATIONS.some((n) => n.unread)
   const pill = PILL[status]
@@ -140,9 +160,21 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-bg-canvas">
-      {/* Full-width top header — logo, Beta badge, page title + account controls. */}
-      <header className="flex items-center justify-between gap-4 border-b border-border-subtle bg-bg-surface px-6 py-3">
+      {/* Full-width top header — logo, Beta badge, page title + account controls. `flex-wrap` is a
+          no-op at the width the header already fits on one line (lg+, unchanged from before); below
+          that it lets the control cluster drop to its own row instead of overflowing. */}
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border-subtle bg-bg-surface px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
+          {/* Sidebar drawer trigger — only reachable below `lg`, where the sidebar itself becomes
+              an off-canvas drawer instead of sitting in flow. */}
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label={t('common.openMenu')}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-content-secondary hover:bg-interactive-hover lg:hidden"
+          >
+            <MenuIcon className="h-5 w-5" />
+          </button>
           {/* Fixed height + auto width so the ratio holds. The asset carries its own shadow margin
               (91×70 around a 75×54 mark), so the visible wordmark reads ~77% of this height. */}
           <BrandLogo className="h-14 w-auto" />
@@ -151,10 +183,11 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Organisation-Admin badge — only for the org's Admin. */}
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+          {/* Organisation-Admin badge — only for the org's Admin. Secondary info, so it steps
+              aside below `sm` rather than crowding the bell/avatar off the row. */}
           {isOrgAdmin && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle px-2.5 py-1 text-xs font-semibold text-content-secondary">
+            <span className="hidden items-center gap-1.5 rounded-full border border-border-subtle px-2.5 py-1 text-xs font-semibold text-content-secondary sm:inline-flex">
               <ShieldIcon className="h-4 w-4" />
               {t('dashboard.orgAdminBadge')}
             </span>
@@ -191,11 +224,26 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
           {/* Verification pill — reflects the org's real KYB status from the API (read-only). While
               the status is loading, show a neutral skeleton instead of a misleading "Pending". */}
           {verificationLoading ? (
-            <span aria-hidden className="inline-block h-6 w-24 rounded-full bg-bg-surface-sunken motion-safe:animate-pulse" />
+            <span aria-hidden className="inline-block h-6 w-6 rounded-full bg-bg-surface-sunken motion-safe:animate-pulse sm:w-24" />
           ) : (
-            <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold', pill.tone)}>
-              <PillIcon className="h-4 w-4 stroke-2" />
-              {t(pill.key)}
+            /* Two-stage entrance, so the status ARRIVES rather than snapping in: the pill settles
+               into the slot the skeleton was holding (`page-in` — 6px rise + fade), then the icon
+               springs in just behind it (`check-pop`, spring easing, offset like the stepper check).
+               Opacity + transform only, so the whole thing stays on the compositor at 60fps. */
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-bold motion-safe:animate-page-in sm:px-3',
+                pill.tone,
+              )}
+              title={t(pill.key)}
+            >
+              {/* Wrapper carries the animation: the icon components take no `style` prop. */}
+              <span className="inline-flex motion-safe:animate-check-pop" style={{ animationDelay: '120ms' }}>
+                <PillIcon className="h-4 w-4 stroke-2" />
+              </span>
+              {/* Below `sm` the pill is icon-only (with a title tooltip) so it doesn't crowd the
+                  bell/avatar off the header row. */}
+              <span className="hidden sm:inline">{t(pill.key)}</span>
             </span>
           )}
 
@@ -265,7 +313,30 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
 
       {/* Below the header — config-driven sidebar nav + routed content. */}
       <div className="flex min-h-0 flex-1">
-        <aside className="flex w-60 shrink-0 flex-col border-e border-border-subtle bg-bg-surface">
+        {/* Drawer backdrop — below `lg` only. Stays mounted (opacity + pointer-events toggle
+            instead of a mount/unmount) so both the open and close transitions animate. */}
+        <div
+          aria-hidden
+          onClick={() => setMobileNavOpen(false)}
+          className={cn(
+            'fixed inset-0 z-40 bg-bg-inverse/50 transition-opacity duration-300 ease-out motion-reduce:transition-none lg:hidden',
+            mobileNavOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+        />
+
+        {/* Sidebar — in normal flow at `lg`+ (unchanged from before). Below `lg` it becomes a
+            fixed off-canvas drawer that slides in on `transform` only (GPU-only, 60fps), opened
+            by the header's hamburger and closed by its own button, the backdrop, or navigating. */}
+        <aside
+          className={cn(
+            'fixed inset-y-0 start-0 z-50 flex w-60 shrink-0 -translate-x-full flex-col border-e border-border-subtle bg-bg-surface transition-transform duration-300 ease-out motion-reduce:transition-none rtl:translate-x-full',
+            mobileNavOpen && 'translate-x-0',
+            'lg:static lg:z-auto lg:translate-x-0 lg:transition-none',
+          )}
+        >
+          <div className="flex items-center justify-end p-3 lg:hidden">
+            <CloseButton onClose={() => setMobileNavOpen(false)} label={t('common.close')} />
+          </div>
           <nav className="flex-1 space-y-1 overflow-auto p-3">
             {/* The Organisation group is Org-Admin-only — regular Buyer / Supplier users never see it. */}
             {portal.nav
@@ -274,15 +345,18 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
                 if (item.children) return <NavGroup key={item.label} item={item} />
                 // Feature access follows the org's KYB status: a gated destination stays visible
                 // (so the user knows it exists) but is inert until the admin verifies the org.
-                if (item.requiresVerification && status !== 'verified') {
+                // `!verificationLoading` matters: until the status is known the item stays a normal
+                // link, so a verified org never sees its Bids/Negotiations/Orders flash locked and
+                // then unlock a moment later. The lock is a hint, not the security boundary.
+                if (item.requiresVerification && !verificationLoading && status !== 'verified') {
                   return (
                     <span
                       key={item.to}
                       aria-disabled
                       title={t('nav.lockedUntilVerified')}
-                      className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-content-disabled"
+                      className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-content-disabled"
                     >
-                      <item.icon className="h-5 w-5 shrink-0" />
+                      <item.icon className="h-4 w-4 shrink-0" />
                       <span className="flex-1">{t(item.label)}</span>
                       <LockIcon className="h-4 w-4 shrink-0" />
                     </span>
@@ -290,7 +364,7 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
                 }
                 return (
                   <NavLink key={item.to} to={item.to ?? '#'} end={item.end} className={navItemClass}>
-                    <item.icon className="h-5 w-5 shrink-0" />
+                    <item.icon className="h-4 w-4 shrink-0" />
                     <span className="flex-1">{t(item.label)}</span>
                   </NavLink>
                 )
@@ -303,7 +377,7 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
               onClick={() => setHelpOpen(true)}
               className={cn('w-full cursor-pointer', navItemClass({ isActive: false }))}
             >
-              <HelpIcon className="h-5 w-5 shrink-0" />
+              <HelpIcon className="h-4 w-4 shrink-0" />
               <span className="flex-1 text-start">{t('dashboard.actions.helpSupport')}</span>
             </button>
           </div>
@@ -314,7 +388,7 @@ export function PortalShell({ portal }: { portal: PortalConfig }) {
 
         <HelpSupportDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

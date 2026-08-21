@@ -4,12 +4,21 @@ import { useAuth } from '@/platform/auth'
 import { formatSar, toHalalas } from '@/shared/lib/money'
 import { useRfqs } from '@/features/rfq/hooks/useRfqs'
 import { deriveRfqDetail, isNegotiating } from '@/features/rfq/detail/deriveRfqDetail'
-import { useOrganisation } from '@/features/organisation/useOrganisation'
+import { useOrganisationQuery } from '@/features/organisation/hooks/orgQueries'
 import { useOrders } from '@/features/orders/hooks/orderQueries'
+import { mockSeamState } from './mockSeam'
 import type { Order } from '@/features/orders/types'
 import type { Bid, RfqDraft } from '@/features/rfq/types'
 import type { BadgeTone, TimelineStep } from '@/shared/ui/dashboard'
-import type { BuyerDashboardData, ComplianceDoc, PipelineSegment, RfqSummary, StatItem, TrackedOrder } from './types'
+import type {
+  BuyerDashboardData,
+  ComplianceDoc,
+  DashboardSeam,
+  PipelineSegment,
+  RfqSummary,
+  StatItem,
+  TrackedOrder,
+} from './types'
 
 /** Orders that are still running — a closed/cancelled/declined PO is not worth tracking. */
 const LIVE_ORDER_STATUSES = new Set<Order['status']>(['awaiting_acceptance', 'in_transit', 'delivered'])
@@ -72,12 +81,15 @@ function trackedOrderSteps(order: Order, t: (k: string) => string): TimelineStep
  * its own CR/VAT numbers), which meant the dashboard described a different company with a different
  * set of RFQs than every screen you could click through to. Deriving makes that drift impossible.
  */
-export function useBuyerDashboard(): { data?: BuyerDashboardData; isLoading: boolean } {
+export function useBuyerDashboard(): DashboardSeam {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
-  const { data: rfqs = [], isLoading: rfqsLoading } = useRfqs()
-  const { data: org, isLoading: orgLoading } = useOrganisation()
-  const { data: orders = [], isLoading: ordersLoading } = useOrders()
+  const rfqsQuery = useRfqs()
+  const orgQuery = useOrganisationQuery()
+  const ordersQuery = useOrders()
+  const { data: rfqs = [], isLoading: rfqsLoading } = rfqsQuery
+  const { data: org, isLoading: orgLoading } = orgQuery
+  const { data: orders = [], isLoading: ordersLoading } = ordersQuery
 
   const isLoading = rfqsLoading || orgLoading || ordersLoading
 
@@ -339,5 +351,5 @@ export function useBuyerDashboard(): { data?: BuyerDashboardData; isLoading: boo
     }
   }, [rfqs, org, orders, user, t, i18n.language])
 
-  return { data, isLoading }
+  return { data, isLoading, ...mockSeamState([rfqsQuery, orgQuery, ordersQuery]) }
 }

@@ -24,7 +24,11 @@ interface WelcomeHeroProps {
 export function WelcomeHero({ greeting, orgName, orgType, subtitle, onCreateRfq, createDisabled, ctaLabel }: WelcomeHeroProps) {
   const { t } = useTranslation()
   return (
-    <div className="mp-gradient-hero flex flex-col gap-4 rounded-2xl p-6 sm:flex-row sm:items-center sm:justify-between">
+    // `relative overflow-hidden` + `shadow-lg` so the gradient reads as a raised banner rather
+    // than a flat fill; `hero-sheen` (existing primitive, already used on the landing page's
+    // hero cards) plays a single light sweep once the page settles — restrained, not a loop.
+    <div className="mp-gradient-hero relative flex flex-col gap-4 overflow-hidden rounded-2xl p-6 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+      <span aria-hidden="true" className="hero-sheen pointer-events-none absolute inset-0" style={{ animationDelay: '500ms' }} />
       <div className="min-w-0">
         <h2 className="text-2xl font-bold text-white">{greeting}</h2>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-white/90">
@@ -40,8 +44,8 @@ export function WelcomeHero({ greeting, orgName, orgType, subtitle, onCreateRfq,
         onClick={onCreateRfq}
         disabled={createDisabled}
         className={cn(
-          'inline-flex shrink-0 items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-brand-primary transition-colors',
-          createDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-white/90',
+          'inline-flex shrink-0 items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-brand-primary shadow-md transition-colors',
+          createDisabled ? 'cursor-not-allowed opacity-60' : 'mp-lift hover:bg-white/90',
         )}
       >
         <PlusIcon className="h-4 w-4" />

@@ -1,0 +1,177 @@
+/*
+ * Landing-page-only motion vocabulary. Kept out of the global `index.css` deliberately — this
+ * is a one-off scroll-driven system for the marketing surface, not a reusable design-system
+ * primitive, so it doesn't belong next to the `.mp-*` primitives every other screen shares.
+ *
+ * Every rule here animates only `clip-path`, `opacity`, `transform` or (for the thread's SVG
+ * path) `stroke-dashoffset` — the one non-`transform` exception, and it's paint-cheap: a single
+ * thin path, not a raster effect. Nothing here ever touches a layout-triggering property.
+ *
+ * Two independent implementations of the SAME motion live side by side, chosen by `@supports`:
+ *   - Native: `animation-timeline: view()` — the browser drives it off the main thread, zero JS.
+ *   - Fallback: driven by a `--progress` custom property that `scrollEngine.ts` (dynamically
+ *     imported, see `useScrollLink`) writes once per scroll frame. Both branches produce the
+ *     same visual result; only the driver differs.
+ */
+
+/* ── Kinetic headline — words cut into view, not faded/slid in ─────────────────────────────── */
+
+.kinetic-word {
+  display: inline-block;
+  /* Tightened from an earlier 0.7s/70ms pass — fintech reads as confident and quick, not
+     lingering; a snappier cut suits that better than a leisurely one. */
+  animation: kinetic-reveal-ltr 0.5s var(--ease-standard) backwards;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+[dir='rtl'] .kinetic-word {
+  animation-name: kinetic-reveal-rtl;
+}
+
+@keyframes kinetic-reveal-ltr {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0% 0 0);
+  }
+}
+
+@keyframes kinetic-reveal-rtl {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0%);
+  }
+}
+
+/* ── The Thread — the connecting path from the hero into Features ──────────────────────────── */
+
+.thread-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+[dir='rtl'] .thread-svg {
+  transform: scaleX(-1);
+}
+
+.thread-path {
+  fill: none;
+  stroke: url(#thread-gradient);
+  stroke-linecap: round;
+  stroke-width: 2px;
+  /* The SVG is stretched non-uniformly (see `.thread-node`'s comment below) — without this, the
+     stroke would scale with whichever axis is stretched more and render visibly thicker on tall
+     viewports than wide ones. This pins it to a real 2px regardless of that transform. */
+  vector-effect: non-scaling-stroke;
+}
+
+/* A diamond, not a dot — pairs with the trace's sharp-angled path the way a circuit/flowchart
+   checkpoint symbol pairs with its connector, instead of a soft circle sitting oddly on straight
+   lines. Plain HTML, not SVG: the SVG is stretched non-uniformly (`preserveAspectRatio="none"`)
+   to fill a wrapper far taller than it is wide, which would skew an SVG shape's proportions. A
+   `div` positioned at the same (x%, y%) the path was sampled at is immune to that distortion. */
+.thread-node {
+  position: absolute;
+  left: var(--node-x);
+  top: var(--node-y);
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--color-bg-surface);
+  border: 1.5px solid var(--color-brand-primary);
+  /* `translate` centers it on its point and `rotate` turns the square into a diamond — both
+     fixed. `scale` is the one independent property (not part of `transform`) the entrance
+     actually animates, so neither the centering nor the rotation can be clobbered by it. */
+  translate: -50% -50%;
+  rotate: 45deg;
+  scale: 0.55;
+}
+
+/* Native: the browser scrubs `stroke-dashoffset`/opacity/scale directly against scroll position
+   in the viewport — this whole block costs zero JS and zero main-thread work while scrolling. */
+@supports (animation-timeline: view()) {
+  .thread-path {
+    animation: thread-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 65%;
+  }
+
+  .thread-node {
+    animation: node-lit linear both;
+    animation-timeline: view();
+  }
+
+  /* Each node lights up over its own narrow window along the same scroll span — baked in per
+     node rather than parameterised, since `animation-range` doesn't reliably take `var()` yet. */
+  .thread-node-0 {
+    animation-range: entry 5% cover 20%;
+  }
+  .thread-node-1 {
+    animation-range: cover 25% cover 40%;
+  }
+  .thread-node-2 {
+    animation-range: cover 45% cover 60%;
+  }
+  .thread-node-3 {
+    animation-range: cover 60% cover 75%;
+  }
+}
+
+@keyframes thread-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes node-lit {
+  from {
+    opacity: 0.35;
+    scale: 0.55;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* Fallback: `scrollEngine.ts` writes `--progress` once on the wrapper; every descendant reads
+   the SAME inherited custom property, so only one element is ever registered with the engine —
+   the per-node "reveal window" is just arithmetic on that one shared value. */
+@supports not (animation-timeline: view()) {
+  .thread-path {
+    stroke-dashoffset: calc(1 - var(--progress, 0));
+  }
+
+  .thread-node {
+    --lit: clamp(0, calc((var(--progress, 0) - var(--node-at, 0)) * 8), 1);
+    opacity: calc(0.35 + var(--lit) * 0.65);
+    scale: calc(0.55 + var(--lit) * 0.45);
+  }
+}
+
+/* Belt-and-suspenders: even if tier resolution ever disagreed with the OS setting, or this CSS
+   loaded before the JS conditional rendering did, reduced motion always wins here too. */
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-word {
+    animation: none;
+    clip-path: none;
+  }
+  .thread-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .thread-node {
+    animation: none;
+    opacity: 1;
+    scale: 1;
+  }
+}

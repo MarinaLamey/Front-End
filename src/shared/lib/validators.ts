@@ -15,6 +15,17 @@ export const cleanMobile = (raw: string) =>
 /** True when a mobile is a valid Saudi number (9 digits starting with 5), ignoring spaces. */
 export const isSaudiMobile = (value: string) => MOBILE_RE.test(value.replace(/\s/g, ''))
 
+/**
+ * The inverse of {@link cleanMobile}: turn the stored nine digits back into the dialling form
+ * ("+966 51 234 5678"), so a field reads back the way it was offered without the stored value ever
+ * carrying punctuation the validator would only have to strip again.
+ */
+export const displayMobile = (digits: string): string => {
+  if (!digits) return ''
+  const [, a = '', b = '', c = ''] = /^(\d{0,2})(\d{0,3})(\d{0,4})$/.exec(digits) ?? []
+  return `+966 ${[a, b, c].filter(Boolean).join(' ')}`.trimEnd()
+}
+
 // Email: deliberately permissive — one @, a dot in the domain, no whitespace. Anything stricter
 // rejects addresses that are legal in practice, and the real check is the confirmation mail.
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

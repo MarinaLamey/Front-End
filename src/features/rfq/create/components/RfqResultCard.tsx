@@ -57,8 +57,11 @@ export function RfqResultCard({ result, onAction }: RfqResultCardProps) {
 
   return (
     <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-border-subtle bg-bg-surface p-8 text-center shadow-sm motion-safe:animate-card-in">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-success-subtle text-status-success-strong motion-safe:animate-check-pop">
+      {/* `hero-sheen` (existing primitive) plays once the check-pop spring settles — a quiet
+          celebratory glint, not a loop. */}
+      <div className="relative mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-status-success-subtle text-status-success-strong shadow-sm motion-safe:animate-check-pop">
         <CheckIcon className="h-6 w-6" />
+        <span aria-hidden="true" className="hero-sheen pointer-events-none absolute inset-0" style={{ animationDelay: '350ms' }} />
       </div>
 
       <h2 className="mt-5 text-xl font-bold text-content-primary">

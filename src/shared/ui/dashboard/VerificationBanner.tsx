@@ -41,13 +41,16 @@ interface VerificationBannerProps {
 export function VerificationBanner({ state, title, message, badgeLabel, action }: VerificationBannerProps) {
   const { tone, badge, icon: Icon } = CONFIG[state]
   return (
-    <div className={cn('flex items-start gap-3 rounded-xl border p-4', tone)}>
+    // `flex-wrap`: the badge+action cluster is `shrink-0` by design (a squeezed pill/button reads
+    // worse than one on its own line), so on a narrow screen — rejected state, with both the
+    // pill AND a "Resubmit" button — it drops to its own row instead of overflowing.
+    <div className={cn('flex flex-wrap items-start gap-3 rounded-xl border p-4', tone)}>
       <Icon className="mt-0.5 h-5 w-5 shrink-0 stroke-2" />
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-content-primary">{title}</p>
         <p className="mt-0.5 text-sm text-content-secondary">{message}</p>
       </div>
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex w-full shrink-0 items-center justify-end gap-3 sm:w-auto">
         {/* Tone comes from `state`, not the label — the label is localised and would not resolve. */}
         <StatusBadge label={badgeLabel} tone={badge} dot={false} strong plain />
         {action}

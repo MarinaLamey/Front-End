@@ -70,6 +70,7 @@ const WRAPPER_BASE =
 const INPUT_BASE =
   'peer h-full w-full flex-1 border-0 bg-transparent p-0 text-sm font-normal text-content-primary ' +
   'placeholder:text-content-tertiary outline-none focus:outline-none ' +
+  'read-only:cursor-default ' +
   'disabled:cursor-not-allowed'
 
 export const SPINNER_SIZE: Record<InputSize, string> = {
@@ -85,12 +86,20 @@ export interface InputProps
   leftIcon?: ReactNode
   /** Decorative trailing adornment. Replaced by a spinner while `isLoading`. */
   rightIcon?: ReactNode
-  /** Interactive trailing control (e.g. password show/hide). Rendered as a real button. */
+  /**
+   * Interactive trailing control, rendered as a real button inside the field's outline.
+   *
+   * Two tones: 'muted' (the default) is the quiet icon affordance — password show/hide; 'brand'
+   * is a link-coloured TEXT action for a field whose value is changed somewhere else, e.g. the
+   * "Edit" beside email and phone on the profile, which opens a verification dialog rather than
+   * letting the value be typed over.
+   */
   trailingAction?: {
     icon: ReactNode
     label: string
     onClick: () => void
     pressed?: boolean
+    tone?: 'muted' | 'brand'
   }
   /** Async validation in flight → trailing spinner + aria-busy. Does not block typing. */
   isLoading?: boolean

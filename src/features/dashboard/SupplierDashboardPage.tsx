@@ -33,6 +33,7 @@ import {
 } from '@/shared/ui/dashboard'
 import { Button } from '@/shared/ui/Button'
 import { Spinner } from '@/shared/ui/Spinner'
+import { ErrorState } from '@/shared/ui/ErrorState'
 import { HelpSupportDialog } from '@/shared/ui/HelpSupportDialog'
 import { cn } from '@/shared/lib/cn'
 import { useSupplierDashboard } from './useSupplierDashboard'
@@ -83,9 +84,12 @@ export function SupplierDashboardPage() {
   const navigate = useNavigate()
   const orgMeta = useCurrentOrgMeta()
   const { data: record, isLoading: verificationLoading, refetch: refetchVerification } = useOrgVerification(orgMeta)
-  const { data, isLoading: dashboardLoading } = useSupplierDashboard()
+  const { data, isLoading: dashboardLoading, error, refetch, isRefetching } = useSupplierDashboard()
   const resubmit = useResubmitDoc()
-  const status = record?.status ?? 'pending'
+  // The backend's KYB status wins whenever the data seam can report it — that is the real
+  // super-admin decision, and it must not be overridden by the local verification record. The
+  // record is only consulted in mock mode, where the seam leaves `verification` undefined.
+  const status = data?.verification ?? record?.status ?? 'pending'
   const verified = status === 'verified'
 
   /** Re-upload every flagged document at once — offered by the banner and by the steps card. */
@@ -121,6 +125,21 @@ export function SupplierDashboardPage() {
     ''
 
   const browseRfqs = () => navigate('/supplier/rfqs')
+
+  // The failure check comes FIRST: on an error the seam has no data, so the `!data` clause below
+  // would otherwise hold the page on a spinner that never resolves. A `forbidden` error gets no
+  // retry button — this account will be refused again for as long as it is this account.
+  if (error) {
+    return (
+      <ErrorState
+        variant={error.variant}
+        title={t('dashboard.errorTitle')}
+        detail={error.status ? t('common.error.status', { status: error.status }) : undefined}
+        onRetry={error.variant === 'forbidden' ? undefined : refetch}
+        isRetrying={isRefetching}
+      />
+    )
+  }
 
   if (verificationLoading || dashboardLoading || !data) {
     return (
@@ -169,7 +188,13 @@ export function SupplierDashboardPage() {
           record={record}
           status={status}
           onResubmit={resubmitAll}
-          onCheckStatus={() => void refetchVerification()}
+          // Re-read the KYB decision AND the dashboard: if the super-admin has approved us since
+          // the page loaded, both the status and the figures behind it have moved on.
+          onCheckStatus={() => {
+            refetchVerification()
+            refetch()
+          }}
+          isChecking={verificationLoading || isRefetching}
         />
       )}
     </div>
@@ -209,7 +234,10 @@ function VerifiedDashboard({ data, onBrowseRfqs }: { data: BuyerDashboardData; o
           steps={biddingSteps(t)}
         />
 
-        <StatGrid stats={MUTED_STATS.map((s) => ({ ...s }))} muted />
+        {/* Real counts, muted styling — same as the buyer's first-run layout. A supplier with no
+            bids yet still has an Available-RFQs figure worth seeing, so hardcoded zeros here
+            would hide the one number that tells them there is work to bid on. */}
+        <StatGrid stats={data.stats} muted />
 
         <SectionCard title={t('supplier.myBids')}>
           <EmptyState
@@ -234,7 +262,7 @@ function VerifiedDashboard({ data, onBrowseRfqs }: { data: BuyerDashboardData; o
       {hero}
 
       {/* Verified-buyers strip. */}
-      <div className="flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-surface px-4 py-3 text-sm text-content-secondary">
+      <div className="flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-surface shadow-sm px-4 py-3 text-sm text-content-secondary">
         <CheckCircleIcon className="h-4 w-4 text-status-success" />
         {t('supplier.verifiedBuyersOnly')}
       </div>
@@ -242,7 +270,7 @@ function VerifiedDashboard({ data, onBrowseRfqs }: { data: BuyerDashboardData; o
       <StatGrid stats={data.stats} />
 
       {/* Pipeline strip. */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg-surface px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg-surface shadow-sm px-5 py-4">
         <span className="text-sm font-semibold text-content-primary">{t('supplier.pipeline')}</span>
         <div className="flex flex-wrap items-center gap-4">
           {data.pipeline.map((seg) => (
@@ -270,7 +298,7 @@ function VerifiedDashboard({ data, onBrowseRfqs }: { data: BuyerDashboardData; o
           <p className="-mt-2 mb-3 text-sm text-content-tertiary">
             {t('dashboard.actionItems', { count: data.actionCount })}
           </p>
-          <ul className="flex flex-col divide-y divide-border-subtle">
+          <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
             {data.actions.map((action) => (
               <li key={action.id} className="py-2 first:pt-0 last:pb-0">
                 <ListRow
@@ -314,7 +342,7 @@ function VerifiedDashboard({ data, onBrowseRfqs }: { data: BuyerDashboardData; o
             </button>
           }
         >
-          <ul className="flex flex-col divide-y divide-border-subtle">
+          <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
             {data.rfqs.map((rfq) => (
               <li key={rfq.id} className="py-1">
                 <ListRow
@@ -364,7 +392,7 @@ function VerifiedDashboard({ data, onBrowseRfqs }: { data: BuyerDashboardData; o
       {/* Suggested RFQs — a plain region + category match; no fit score this phase. */}
       {data.recommendations.length > 0 && (
         <SectionCard title={t('supplier.suggestedRfqs')}>
-          <ul className="flex flex-col divide-y divide-border-subtle">
+          <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
             {data.recommendations.map((rec) => (
               <li key={rec.id} className="py-2 first:pt-0 last:pb-0">
                 <ListRow
@@ -400,7 +428,7 @@ function VerifiedDashboard({ data, onBrowseRfqs }: { data: BuyerDashboardData; o
           </button>
         }
       >
-        <ul className="flex flex-col divide-y divide-border-subtle">
+        <ul className="flex flex-col divide-y divide-border-subtle motion-safe:animate-page-in">
           {data.documents.map((doc) => {
             const expiring = doc.status.toLowerCase().startsWith('expiring')
             return (
@@ -473,11 +501,13 @@ function PreVerifiedDashboard({
   status,
   onResubmit,
   onCheckStatus,
+  isChecking,
 }: {
   record?: OrgVerification
   status: 'pending' | 'rejected'
   onResubmit: () => void
   onCheckStatus: () => void
+  isChecking: boolean
 }) {
   const { t } = useTranslation()
   const resubmit = useResubmitDoc()
@@ -532,7 +562,7 @@ function PreVerifiedDashboard({
             variant={rejected ? 'primary' : 'outline'}
             size="sm"
             leftIcon={<RefreshIcon className="h-4 w-4" />}
-            isLoading={rejected && resubmit.isPending}
+            isLoading={rejected ? resubmit.isPending : isChecking}
             // Rejected resubmits every flagged document; pending re-reads the review, which the
             // query already does on focus — so the button simply refetches it.
             onClick={rejected ? onResubmit : onCheckStatus}

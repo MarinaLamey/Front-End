@@ -23,7 +23,7 @@ const UPLOAD_ACCEPT = '.pdf,.jpg,.jpeg,.png'
 const BUILDING_RE = /^\d{4}$/
 const ADDITIONAL_RE = /^\d{4}$/
 const ZIP_RE = /^\d{5}$/
-const UNIT_RE = /^\d{1,4}$/
+const UNIT_RE = /^\d{2,4}$/
 const digits = (value: string, max: number) => value.replace(/\D/g, '').slice(0, max)
 
 /** A bordered group card ("Account" / "Organisation") holding editable fields. */

@@ -12,6 +12,12 @@ import { PlusIcon, TrashIcon } from './icons'
 interface LineItemsEditorProps {
   /** The selected categories — one line-item group is rendered per category, in order. */
   categories: RfqCategory[]
+  /**
+   * Display-only translations for the group headings, keyed by category name. The name itself is
+   * the backend catalogue's (it has to resolve to a GUID), so it is English; this is what makes the
+   * heading read in the buyer's language. A category with no entry renders as its catalogue name.
+   */
+  categoryLabels?: Record<string, string>
   items: LineItem[]
   method: LineInputMethod
   /** The RFQ's estimated budget in SAR, echoed in the footer. `0` = none entered. */
@@ -46,6 +52,7 @@ const rangeInverted = (item: LineItem): boolean =>
  */
 export function LineItemsEditor({
   categories,
+  categoryLabels,
   items,
   method,
   budget,
@@ -114,7 +121,9 @@ export function LineItemsEditor({
               return (
                 <div key={category.name} className="flex flex-col gap-2">
                   <div className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-sm font-semibold text-content-primary">{category.name}</span>
+                    <span className="text-sm font-semibold text-content-primary">
+                      {categoryLabels?.[category.name] ?? category.name}
+                    </span>
                     <span className="text-xs text-content-tertiary">
                       · {t(`rfq.create.lineItems.type.${category.type}`)} ·{' '}
                       {t('rfq.create.lineItems.count', { count: groupItems.length })}

@@ -130,7 +130,7 @@ export function OrderDetailPage() {
             <div className="space-y-5">
               <OrderStatusTimeline order={order} />
 
-              <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface p-5">
+              <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
                 {s === 'awaiting_acceptance' && (
                   <>
                     <Button fullWidth onClick={() => setPoOpen(true)}>{t('order.action.downloadPo')}</Button>
@@ -242,7 +242,7 @@ function ShipmentCard({ order }: { order: Order }) {
   const statusText = order.status === 'closed' ? t('order.ship.deliveredConfirmed') : t('order.ship.inTransit')
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+    <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
       <h2 className="text-sm font-semibold text-content-primary">{t('order.ship.title')}</h2>
       <dl className="mt-3 space-y-2.5 text-sm">
         <Row label={t('order.ship.status')} value={statusText} valueClass="font-semibold text-content-link" />
@@ -275,7 +275,7 @@ function ReceiptCard({ order }: { order: Order }) {
   const GRID = 'grid grid-cols-[20px_minmax(0,1.3fr)_64px_64px_minmax(0,0.9fr)_92px] items-center gap-3'
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+    <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-content-primary">{t('order.receipt.title')}</h2>
         {order.shipment.deliveredAt && (
@@ -370,7 +370,7 @@ function DeclinedView({ order }: { order: Order }) {
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="auth-stagger space-y-6">
           {/* Reason */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-content-primary">{t('order.declined.reasonTitle')}</h3>
               {order.declineReasonTag && (
@@ -388,7 +388,7 @@ function DeclinedView({ order }: { order: Order }) {
           </div>
 
           {/* What happens next — one route, not a choice. */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <h3 className="text-sm font-semibold text-content-primary">{t('order.resolve.title')}</h3>
             <div className="mt-3 rounded-xl border border-border-subtle bg-bg-surface-sunken p-4">
               <p className="text-sm font-semibold text-content-primary">{route.title}</p>
@@ -398,7 +398,7 @@ function DeclinedView({ order }: { order: Order }) {
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <h3 className="text-sm font-semibold text-content-primary">{t('order.declined.declinedPo')}</h3>
             {/* No PO-reference row: the red panel above already names the PO, so repeating it here
                 just pads the card. */}
@@ -412,7 +412,7 @@ function DeclinedView({ order }: { order: Order }) {
             <p className="mt-3 text-xs text-content-tertiary">{t('order.declined.noExposure')}</p>
           </div>
 
-          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <Button fullWidth onClick={route.go}>{route.action}</Button>
             <Button fullWidth variant="outline" onClick={() => navigate(`/buyer/rfqs/${order.rfqId}`)}>{t('order.resolve.viewRfq')}</Button>
             <p className="pt-1 text-xs text-content-tertiary">{t('order.declined.notBlocked')}</p>

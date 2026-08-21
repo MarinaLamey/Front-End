@@ -112,7 +112,7 @@ export function OrderConversationPage() {
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Conversation */}
-        <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+        <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-content-primary">{t('rfq.order.conversation')}</h2>
             <span className="text-xs text-content-tertiary">{t('rfq.order.historyKept')}</span>
@@ -182,7 +182,7 @@ export function OrderConversationPage() {
         {/* Right rail */}
         <div className="space-y-5">
           {/* Agreed terms */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-content-primary">{t('rfq.order.agreedTerms')}</h2>
               <span className="rounded-full bg-bg-surface-sunken px-2 py-0.5 text-xs font-semibold text-content-secondary">
@@ -199,7 +199,7 @@ export function OrderConversationPage() {
           </div>
 
           {/* Documents */}
-          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="space-y-2.5 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <Button fullWidth onClick={() => navigate(`/buyer/rfqs/${id}/award`)}>
               {t('rfq.order.viewPo')}
             </Button>
@@ -209,7 +209,7 @@ export function OrderConversationPage() {
           </div>
 
           {/* Supplier (revealed) */}
-          <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+          <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
             <h2 className="text-sm font-semibold text-content-primary">{t('rfq.order.supplier')}</h2>
             <p className="mt-2 text-base font-bold text-content-link">{a.identity.companyName}</p>
             <dl className="mt-3 space-y-2.5 text-sm">

@@ -300,7 +300,7 @@ export function OrganisationProfilePage() {
 /* ── Local presentational bits ────────────────────────────────────────────── */
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-2xl border border-border-subtle bg-bg-surface p-5">{children}</div>
+  return <div className="rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-5">{children}</div>
 }
 
 function TextField({

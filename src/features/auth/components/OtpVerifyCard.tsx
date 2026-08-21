@@ -31,7 +31,7 @@ export function OtpVerifyCard({ orgId, destination, resendAvailableAt, onVerifie
         event.preventDefault()
         if (isComplete) verify()
       }}
-      className="flex w-full max-w-md flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-surface p-7"
+      className="flex w-full max-w-md flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-7"
     >
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold text-content-primary">{t('auth.otpVerifyTitle')}</h1>

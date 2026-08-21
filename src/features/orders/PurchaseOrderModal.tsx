@@ -67,25 +67,31 @@ export function PurchaseOrderModal({ order, open, onClose }: { order: Order; ope
         </div>
 
         <div className="mt-5 border-t border-border-subtle pt-4">
-          {/* Column header — # · Description · Qty · Unit price · Line total */}
-          <div className="grid grid-cols-[20px_minmax(0,1fr)_64px_80px_100px] items-center gap-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-content-tertiary">
-            <span>#</span>
-            <span>{t('order.col.description')}</span>
-            <span className="text-end">{t('order.col.qty')}</span>
-            <span className="text-end">{t('order.col.unitPrice')}</span>
-            <span className="text-end">{t('order.col.lineTotal')}</span>
-          </div>
-          {order.lines.map((l, i) => (
-            <div key={i} className="grid grid-cols-[20px_minmax(0,1fr)_64px_80px_100px] items-center gap-3 border-t border-border-subtle py-2.5 text-sm">
-              <span className="text-content-tertiary">{i + 1}</span>
-              <span className="text-content-primary">{l.description}</span>
-              <span className="text-end tabular-nums text-content-secondary">{l.quantity.toLocaleString(i18n.language)}</span>
-              <span className="text-end tabular-nums text-content-secondary">{l.unitPriceSar.toFixed(2)}</span>
-              <span className="text-end font-semibold tabular-nums text-content-primary">
-                {(l.quantity * l.unitPriceSar).toLocaleString(i18n.language, { minimumFractionDigits: 2 })}
-              </span>
+          {/* Fixed 20/64/80/100px columns need ~310px before the description gets any room, which
+              a phone-width modal doesn't have — scroll the table horizontally rather than clip it. */}
+          <div className="overflow-x-auto">
+            <div className="min-w-[420px]">
+              {/* Column header — # · Description · Qty · Unit price · Line total */}
+              <div className="grid grid-cols-[20px_minmax(0,1fr)_64px_80px_100px] items-center gap-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-content-tertiary">
+                <span>#</span>
+                <span>{t('order.col.description')}</span>
+                <span className="text-end">{t('order.col.qty')}</span>
+                <span className="text-end">{t('order.col.unitPrice')}</span>
+                <span className="text-end">{t('order.col.lineTotal')}</span>
+              </div>
+              {order.lines.map((l, i) => (
+                <div key={i} className="grid grid-cols-[20px_minmax(0,1fr)_64px_80px_100px] items-center gap-3 border-t border-border-subtle py-2.5 text-sm">
+                  <span className="text-content-tertiary">{i + 1}</span>
+                  <span className="text-content-primary">{l.description}</span>
+                  <span className="text-end tabular-nums text-content-secondary">{l.quantity.toLocaleString(i18n.language)}</span>
+                  <span className="text-end tabular-nums text-content-secondary">{l.unitPriceSar.toFixed(2)}</span>
+                  <span className="text-end font-semibold tabular-nums text-content-primary">
+                    {(l.quantity * l.unitPriceSar).toLocaleString(i18n.language, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
           <dl className="mt-2 space-y-1 border-t border-border-subtle pt-3 text-sm">
             <div className="flex justify-between"><dt className="text-content-secondary">{t('order.subtotal')}</dt><dd className="tabular-nums text-content-primary">{money(subtotal)}</dd></div>
             <div className="flex justify-between"><dt className="text-content-secondary">{t('order.vat')}</dt><dd className="tabular-nums text-content-primary">{money(vat)}</dd></div>

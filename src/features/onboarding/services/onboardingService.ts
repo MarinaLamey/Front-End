@@ -35,6 +35,7 @@ export async function validateVat(request: VatValidationRequest): Promise<VatVal
     await delay(700)
     const isValid = /^\d{15}$/.test(request.vatNumber)
     return {
+      
       id: crypto.randomUUID(),
       vatNumber: request.vatNumber,
       businessName: isValid ? 'Acme Industries Co.' : undefined,

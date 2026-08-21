@@ -150,7 +150,7 @@ export function NegotiationsInboxPage() {
           <Spinner />
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-border-subtle bg-bg-surface shadow-sm py-16 text-center">
           <p className="text-base font-semibold text-content-primary">{t('rfq.nego.empty')}</p>
           <p className="max-w-sm text-sm text-content-secondary">{t('rfq.nego.emptyHint')}</p>
           <Button className="mt-1" variant="outline" onClick={() => navigate('/buyer/bids')}>
@@ -184,7 +184,7 @@ export function NegotiationsInboxPage() {
             })}
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-surface">
+          <div className="overflow-x-auto rounded-xl border border-border-subtle bg-bg-surface shadow-sm">
             {/* minimum tracks 766 + 5 gaps 80 + px-5 40 */}
             <div className="min-w-[886px] px-5">
               <div className={cn(GRID, 'border-b border-border-subtle py-3')}>

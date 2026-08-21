@@ -21,7 +21,9 @@ interface SectionCardProps {
  */
 export function SectionCard({ title, titleIcon, action, flush = false, className, children }: SectionCardProps) {
   return (
-    <section className={cn('rounded-xl border border-border-subtle bg-bg-surface', className)}>
+    // `mp-lift`: the same restrained hover rise as `StatCard`, so every dashboard card responds
+    // the same way — transform/opacity only.
+    <section className={cn('mp-lift rounded-xl border border-border-subtle bg-bg-surface shadow-sm', className)}>
       {(title || action) && (
         <header className="flex items-center justify-between gap-4 px-5 pt-5">
           <h2 className="flex items-center gap-2 text-base font-semibold text-content-primary">

@@ -34,7 +34,7 @@ export function PartiesCard({ order }: { order: Order }) {
     </div>
   )
   return (
-    <div className="grid gap-6 rounded-xl border border-border-subtle bg-bg-surface p-5 sm:grid-cols-2">
+    <div className="grid gap-6 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5 sm:grid-cols-2">
       <Party label={t('order.buyer')} p={order.buyer} />
       {isSupplierRevealed(order) ? (
         <Party label={t('order.supplier')} p={order.supplier} />
@@ -61,7 +61,7 @@ export function OrderedItemsTable({ order }: { order: Order }) {
   const fallbackDelivery = order.shipment.expectedArrival ?? order.shipment.deliveredAt
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+    <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-content-primary">{t('order.orderedItems')}</h2>
         <span className="text-xs text-content-tertiary">{t('order.linesAgreed', { count: order.lines.length })}</span>
@@ -121,7 +121,7 @@ export function PaymentScheduleCard({ order }: { order: Order }) {
   const GRID = 'grid grid-cols-[22px_minmax(0,1fr)_64px_120px] items-center gap-3'
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+    <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-content-primary">{t('order.schedule.title')}</h2>
         <span className="text-xs text-content-tertiary">
@@ -173,7 +173,7 @@ export function OrderStatusTimeline({ order }: { order: Order }) {
     iso ? new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(new Date(iso)) : ''
 
   return (
-    <div className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+    <div className="rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5">
       <h2 className="text-sm font-semibold text-content-primary">{t('order.statusTitle')}</h2>
       <ol className="mp-stagger mt-4 space-y-4">
         {steps.map((step, i) => (

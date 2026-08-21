@@ -104,7 +104,7 @@ export function SummaryRow({
 /** The card every supplier page hangs its content on. */
 export function Panel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('rounded-xl border border-border-subtle bg-bg-surface p-5', className)}>
+    <div className={cn('rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-5', className)}>
       {children}
     </div>
   )

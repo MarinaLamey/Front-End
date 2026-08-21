@@ -25,7 +25,7 @@ interface StepsCardProps {
  */
 export function StepsCard({ title, titleIcon, subtitle, action, steps, locked = false }: StepsCardProps) {
   return (
-    <section className="rounded-xl border border-border-subtle bg-bg-surface p-5">
+    <section className="mp-lift rounded-xl border border-border-subtle bg-bg-surface p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2 text-base font-semibold text-content-primary">
@@ -49,7 +49,7 @@ export function StepsCard({ title, titleIcon, subtitle, action, steps, locked = 
             <span
               className={cn(
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
-                locked ? 'bg-bg-surface-sunken text-content-tertiary' : 'bg-brand-subtle text-brand-primary',
+                locked ? 'bg-bg-surface-sunken text-content-tertiary' : 'bg-brand-subtle text-brand-primary shadow-sm',
               )}
             >
               {index + 1}

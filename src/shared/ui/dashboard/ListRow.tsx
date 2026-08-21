@@ -39,7 +39,7 @@ export function ListRow({ icon, iconTone = 'neutral', title, subtitle, trailing,
       {icon != null && (
         <span
           className={cn(
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg [&>svg]:h-5 [&>svg]:w-5',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg shadow-sm [&>svg]:h-5 [&>svg]:w-5',
             TILE_TONE[iconTone],
           )}
         >

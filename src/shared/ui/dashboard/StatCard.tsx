@@ -38,11 +38,13 @@ interface StatCardProps {
  */
 export function StatCard({ icon, value, label, accent = 'brand', delta, muted = false }: StatCardProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border-subtle bg-bg-surface p-5">
+    // `mp-lift` (existing primitive, previously unused in production): a soft rise + shadow
+    // crossfade on hover — transform/opacity only, so it costs nothing on the compositor.
+    <div className="mp-lift flex flex-col gap-4 rounded-xl border border-border-subtle bg-bg-surface p-5 shadow-sm">
       <div className="flex items-start justify-between">
         <span
           className={cn(
-            'flex h-11 w-11 items-center justify-center rounded-xl [&>svg]:h-5 [&>svg]:w-5',
+            'flex h-11 w-11 items-center justify-center rounded-xl shadow-sm [&>svg]:h-5 [&>svg]:w-5',
             ACCENT_TILE[accent],
             // Pending/rejected: keep the accent colour but fade it — the feature is locked.
             muted && 'opacity-50',

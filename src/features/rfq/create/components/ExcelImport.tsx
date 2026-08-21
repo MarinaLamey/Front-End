@@ -141,7 +141,7 @@ export function ExcelImport({ categories, onImport }: ExcelImportProps) {
 
       {/* Parsed preview. */}
       {phase === 'done' && result && !result.errorKey && (
-        <div className="flex flex-col gap-3 rounded-xl border border-border-subtle bg-bg-surface p-4">
+        <div className="flex flex-col gap-3 rounded-xl border border-border-subtle bg-bg-surface shadow-sm p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-content-primary">{t('rfq.create.excel.previewTitle')}</p>
             <p className="text-sm text-content-secondary">

@@ -89,9 +89,9 @@ export function OrganisationOverviewPage() {
   return (
     <section className="mx-auto w-full max-w-6xl space-y-6 motion-safe:animate-card-in">
       {/* Company identity card. */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border-subtle bg-bg-surface p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-5">
         <div className="flex items-center gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-subtle text-brand-primary">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-subtle text-brand-primary shadow-sm">
             <BankIcon className="h-6 w-6" />
           </span>
           <div>
@@ -268,8 +268,8 @@ const TILE_ACCENT: Record<'brand' | 'teal' | 'success', string> = {
 
 function Tile({ icon, accent, value, label, sub }: { icon: React.ReactNode; accent: 'brand' | 'teal' | 'success'; value: string; label: string; sub: string }) {
   return (
-    <div className="rounded-2xl border border-border-subtle bg-bg-surface p-5">
-      <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl [&_svg]:h-5 [&_svg]:w-5', TILE_ACCENT[accent])}>{icon}</span>
+    <div className="rounded-2xl border border-border-subtle bg-bg-surface shadow-sm p-5">
+      <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl shadow-sm [&_svg]:h-5 [&_svg]:w-5', TILE_ACCENT[accent])}>{icon}</span>
       <p className="mt-3 text-2xl font-bold tracking-tight text-content-primary">{value}</p>
       <p className="text-sm text-content-secondary">{label}</p>
       <p className="mt-0.5 text-xs text-content-tertiary">{sub}</p>

@@ -33,7 +33,7 @@ export function VerificationReviewStep({ onGoToDashboard }: VerificationReviewSt
             <BrandLogo className="h-[60px] w-auto" />
 
             <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-status-success-subtle text-status-success">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-status-success-subtle text-status-success shadow-sm">
                 <CheckIcon className="h-6 w-6" />
               </span>
               <div>

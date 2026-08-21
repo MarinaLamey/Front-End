@@ -35,6 +35,11 @@ const styleConfig = {
     // added here since the structural BASE is border-less.
     outline:
       'border border-border-subtle bg-bg-surface text-brand-primary hover:bg-bg-surface-sunken focus-visible:ring-brand-primary',
+    // Surface fill, neutral border, secondary text — the QUIET action that sits beside a louder
+    // one and must not compete with it ("Change" next to a password, "Sign out of all other
+    // devices"). Distinct from 'outline', which is the same shell in brand-primary text.
+    subtle:
+      'border border-border-default bg-bg-surface text-content-secondary hover:bg-interactive-hover focus-visible:ring-border-focus',
     danger:
       'bg-status-danger text-status-danger-on hover:bg-status-danger-hover focus-visible:ring-status-danger',
     link: 'bg-transparent text-content-link hover:text-content-link-hover focus-visible:ring-content-link',

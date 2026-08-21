@@ -67,7 +67,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
           aria-label={trailingAction.label}
           aria-pressed={trailingAction.pressed}
           onClick={trailingAction.onClick}
-          className="inline-flex shrink-0 text-content-tertiary hover:text-content-primary "
+          className={cn(
+            'inline-flex shrink-0 items-center',
+            // 'brand' carries a word, not a glyph, so it needs the type scale and a link colour;
+            // 'muted' stays byte-for-byte what every icon caller already renders.
+            trailingAction.tone === 'brand'
+              ? 'mp-press cursor-pointer rounded-md text-sm font-medium text-content-link transition-colors hover:text-content-link-hover'
+              : 'text-content-tertiary hover:text-content-primary',
+          )}
         >
           {trailingAction.icon}
         </button>
